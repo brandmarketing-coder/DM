@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'right PRO | DM 編輯器</title>
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans TC', '微軟正黑體', 'Microsoft JhengHei', sans-serif;
+  background: #e2e0dc; height: 100vh; overflow: hidden; color: #333;
+}
+
+/* ── Navbar ── */
+.navbar {
+  height: 52px; background: #1c1c1c; color: white;
+  display: flex; align-items: center; padding: 0 20px; gap: 10px;
+  flex-shrink: 0; user-select: none;
+}
+.nav-logo { font-size: 14px; letter-spacing: 1px; color: white; font-weight: 400; display: flex; align-items: center; gap: 4px; }
+.nav-logo .dot { width: 9px; height: 9px; background: #7ec850; border-radius: 50%; }
+.nav-title { font-size: 13px; color: #888; font-weight: 300; }
+.nav-spacer { flex: 1; }
+.nav-btn {
+  padding: 6px 14px; border-radius: 6px; cursor: pointer; border: none;
+  font-size: 12px; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 5px; transition: background 0.15s;
+}
+.nav-btn-export { background: #3a7d44; color: white; }
+.nav-btn-export:hover { background: #2d6235; }
+.nav-btn-preview { background: transparent; color: #bbb; border: 1px solid #444; }
+.nav-btn-preview:hover { border-color: #888; color: white; }
+
+/* ── Workspace ── */
+.workspace { display: flex; height: calc(100vh - 52px); }
+
+/* ── Preview Pane ── */
+.preview-pane { flex: 1; background: #d0cdc9; position: relative; overflow: hidden; }
+
+/* ── DM Sheet wrapper: absolutely centred ── */
+.dm-wrap {
+  position: absolute; top: 50%; left: 50%;
+  transform-origin: center center; /* transform set by JS */
+}
+
+/* ══════════════════════════════════════════
+   DM SHEET  (A4: 595 × 842 px)
+══════════════════════════════════════════ */
+#dm-sheet {
+  width: 595px; height: 842px;
+  display: flex; flex-direction: column;
+  background: white;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+  overflow: hidden; /* hard clip — no scrollbars ever */
+}
+
+/* Header / Footer images */
+.dm-hdr, .dm-ftr { flex-shrink: 0; line-height: 0; width: 100%; }
+.dm-hdr img, .dm-ftr img { width: 100%; display: block; }
+
+/* Content zone */
+.dm-content { flex: 1; min-height: 0; display: flex; flex-direction: column; background: white; overflow: hidden; }
+
+/* Tagline */
+.dm-tagline {
+  flex-shrink: 0;
+  text-align: center; padding: 11px 24px 5px;
+  font-size: 13px; letter-spacing: 4px; color: #666; font-weight: 300;
+}
+
+/* ══════════════════════════════════════════
+   FOUR-GRID  (2 × 2 independent cells)
+══════════════════════════════════════════ */
+.dm-four-grid {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  padding: 2px 6px 6px;
+}
+
+.dm-cell {
+  display: flex; flex-direction: column;
+  padding: 8px 12px 8px;
+  min-height: 0; overflow: hidden;
+}
+/* inner borders */
+.dm-cell:nth-child(1),
+.dm-cell:nth-child(3) { border-right: 1px solid #dedad6; }
+.dm-cell:nth-child(1),
+.dm-cell:nth-child(2) { border-bottom: 1px solid #dedad6; }
+
+/* Image area — fixed height so text is never squeezed out */
+.dm-cell-imgs {
+  height: 152px; flex-shrink: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 4px; overflow: hidden;
+}
+.dm-cell-img-slot {
+  min-width: 0;
+  display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
+  height: 100%;
+}
+.dm-cell-img-slot img {
+  max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+}
+.dm-cell-img-slot.is-main { flex: 0 0 88px; }
+.dm-cell-img-slot.is-gift  { flex: 0 0 56px; }
+.dm-cell-img-slot.is-main:only-child { flex: 0 0 auto; max-width: 130px; }
+
+/* Cell text */
+.dm-cell-text { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 4px; }
+.dm-cell-headline { font-size: 11px; font-weight: 700; color: #1a1a1a; line-height: 1.35; margin-bottom: 2px; }
+.dm-cell-names { font-size: 8.5px; color: #aaa; line-height: 1.5; margin-bottom: 3px; }
+.dm-cell-gift-name { color: #c0bbb5; }
+.dm-cell-price-row { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.dm-cell-price     { font-size: 17px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
+.dm-cell-unit      { font-size: 11px; color: #555; }
+.dm-cell-orig      { font-size: 8.5px; color: #c0bbb5; }
+
+/* ══════════════════════════════════════════
+   TWO-GRID  (2 stacked bundles)
+══════════════════════════════════════════ */
+.dm-two-rows { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+.dm-bundle-row {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 8px 28px 10px; overflow: hidden;
+}
+.dm-bundle-row + .dm-bundle-row { border-top: 1px solid #dedad6; }
+
+/* Products — each product is a column: image above, name below, bottoms aligned */
+.dm-bundle-pair {
+  flex: 1; min-height: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 20px; overflow: hidden; padding-bottom: 2px;
+}
+.dm-bprod { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.dm-bprod-img {
+  display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
+}
+.dm-bprod-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.dm-gift-badge {
+  font-size: 9px; background: #19322F; color: white;
+  padding: 2px 7px; border-radius: 9px; margin-bottom: 14px;
+  letter-spacing: 1.5px;
+}
+.dm-bprod-name {
+  font-size: 9.5px; color: #999; text-align: center;
+  margin-top: 5px; line-height: 1.3;
+}
+/* Two-grid image sizes: gift ~2/3 height of main, bottoms align via flex-end on parent */
+.dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 118px; height: 152px; }
+.dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 78px;  height: 102px; }
+.dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 130px; height: 165px; }
+
+/* Bundle price */
+.dm-bundle-price-row {
+  flex-shrink: 0; display: flex; align-items: baseline;
+  gap: 8px; flex-wrap: wrap; padding-top: 5px;
+  justify-content: center;
+}
+.dm-headline-lbl { font-size: 12px; color: #555; letter-spacing: 0.5px; }
+.dm-price-num   { font-size: 26px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
+.dm-price-unit  { font-size: 15px; color: #444; }
+.dm-orig-price  { font-size: 10px; color: #c0bbb5; }
+
+/* ══════════════════════════════════════════
+   ONE-GRID  (single centred product)
+══════════════════════════════════════════ */
+.dm-one-block {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 36px 14px; overflow: hidden;
+}
+
+/* One-grid pair: same column structure as two-grid, larger sizes */
+.dm-one-pair {
+  flex-shrink: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 24px; overflow: hidden;
+}
+.dm-one-pair .dm-bprod.is-main .dm-bprod-img  { width: 190px; height: 268px; }
+.dm-one-pair .dm-bprod.is-gift .dm-bprod-img   { width: 128px; height: 180px; }
+.dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 220px; height: 310px; }
+.dm-one-pair .dm-bprod-name { font-size: 10.5px; }
+
+.dm-one-price-row {
+  flex-shrink: 0;
+  display: flex; align-items: baseline;
+  gap: 8px; flex-wrap: wrap; padding-top: 10px;
+  justify-content: center;
+}
+
+/* ══════════════════════════════════════════
+   EDITOR PANE
+══════════════════════════════════════════ */
+.editor-pane {
+  width: 390px; flex-shrink: 0;
+  background: white; border-left: 1px solid #d0cdc9;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.editor-scroll { flex: 1; overflow-y: auto; }
+.editor-sec { padding: 14px 14px 12px; border-bottom: 1px solid #eee; }
+.editor-sec-num { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 12px; }
+
+/* Layout picker */
+.layout-pick { display: flex; gap: 8px; }
+.layout-opt {
+  flex: 1; border: 2px solid #e2e2e2; border-radius: 8px;
+  padding: 9px 6px; cursor: pointer; text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.layout-opt:hover { border-color: #5aaa6a; }
+.layout-opt.active { border-color: #3a7d44; background: #f0f7f1; }
+.lt-thumb {
+  width: 46px; height: 56px; margin: 0 auto 6px;
+  background: #ddd; display: grid; gap: 2px; padding: 4px; border-radius: 2px;
+}
+.lt-thumb.lt4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.lt-thumb.lt2 { grid-template-columns: 1fr;     grid-template-rows: 1fr 1fr; }
+.lt-thumb.lt1 { grid-template-columns: 1fr;     grid-template-rows: 1fr; }
+.lt-thumb > div { background: white; border-radius: 1px; }
+.lt-label { font-size: 12px; color: #666; }
+.layout-opt.active .lt-label { color: #3a7d44; font-weight: 600; }
+
+/* Fields */
+.field-lbl { font-size: 10.5px; color: #888; margin-bottom: 3px; display: block; }
+.field-input {
+  width: 100%; padding: 6px 9px; border: 1px solid #ddd; border-radius: 5px;
+  font-size: 12px; color: #333; outline: none; background: #fafafa;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: #5aaa6a; background: white; }
+
+/* Block editor */
+.block-ed {
+  background: #f8f7f5; border-radius: 7px; padding: 10px 10px 9px;
+  margin-top: 10px; border: 1px solid #ede9e5;
+}
+.block-ed-title { font-size: 10.5px; font-weight: 700; color: #555; margin-bottom: 9px; }
+
+.prod-pair { display: flex; gap: 7px; margin-bottom: 8px; }
+.prod-slot { flex: 1; min-width: 0; }
+.prod-slot-lbl { font-size: 9.5px; color: #aaa; margin-bottom: 3px; }
+.prod-thumb-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+.prod-thumb {
+  width: 30px; height: 30px; object-fit: contain;
+  border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;
+}
+.prod-sel {
+  width: 100%; padding: 4px 5px; border: 1px solid #ddd; border-radius: 4px;
+  font-size: 9.5px; color: #333; background: white; outline: none;
+}
+.prod-sel:focus { border-color: #5aaa6a; }
+
+.price-pair { display: flex; gap: 7px; margin-top: 2px; }
+.price-slot { flex: 1; }
+.price-slot label { font-size: 9.5px; color: #aaa; display: block; margin-bottom: 2px; }
+.price-input {
+  width: 100%; padding: 5px 7px; border: 1px solid #ddd; border-radius: 4px;
+  font-size: 12px; outline: none; background: #fafafa;
+}
+.price-input:focus { border-color: #5aaa6a; background: white; }
+
+.headline-field { margin-bottom: 7px; }
+
+/* Export */
+.editor-footer { flex-shrink: 0; }
+.btn-export-main {
+  display: block; width: 100%; padding: 14px;
+  background: #3a7d44; color: white; border: none;
+  font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: background 0.15s;
+}
+.btn-export-main:hover { background: #2d6235; }
+.export-note { font-size: 9.5px; color: #bbb; text-align: center; padding: 6px 10px; }
+
+/* ── Responsive ── */
+
+/* Medium: tablet landscape / small laptop — keep side-by-side, narrow editor */
+@media (max-width: 960px) {
+  .editor-pane { width: 300px; }
+  .block-ed { padding: 8px 8px 7px; }
+}
+
+/* Small: tablet portrait / mobile — stack vertically, page scrolls */
+@media (max-width: 700px) {
+  body { height: auto; overflow: auto; }
+
+  /* Navbar wraps if needed */
+  .navbar { height: auto; flex-wrap: wrap; padding: 8px 14px; gap: 6px; }
+  .nav-spacer { flex: 1 0 100%; display: none; }
+  .nav-title { display: none; }
+
+  /* Stack preview above editor */
+  .workspace { flex-direction: column; height: auto; overflow: visible; }
+
+  /* Preview: fixed height so the scaled A4 always shows */
+  .preview-pane { flex: none; height: 380px; min-height: 0; }
+
+  /* Editor: full width, flows in document */
+  .editor-pane {
+    width: 100%; height: auto;
+    border-left: none; border-top: 1px solid #d0cdc9;
+    overflow: visible; flex-shrink: 0;
+  }
+  .editor-scroll { overflow-y: visible; height: auto; }
+
+  /* Product selector pair: stack vertically so dropdowns are full width */
+  .prod-pair { flex-direction: column; gap: 6px; }
+  .prod-sel { font-size: 11px; }
+
+  /* Layout picker: stay horizontal, allow small size */
+  .lt-thumb { width: 36px; height: 44px; }
+  .lt-label { font-size: 11px; }
+}
+
+/* ── Print ── */
+@media print {
+  @page { size: 210mm 297mm; margin: 0; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  /*
+   * Chrome prints at 96dpi → A4 = 793 × 1122 CSS px.
+   * Our sheet is designed at 595 × 842 px (screen preview).
+   * zoom: 1.334 scales 595 × 1.334 = 793 px  &  842 × 1.334 = 1123 px,
+   * filling A4 exactly while preserving every fixed-px proportion.
+   */
+  html {
+    zoom: 1.333; /* 842 × 1.333 = 1122.5 px = A4 height at 96 dpi — exact fit */
+    width: 595px !important; height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important; padding: 0 !important;
+    background: none !important;
+  }
+  body {
+    width: 595px !important; height: auto !important;
+    overflow: visible !important;
+    background: none !important; margin: 0 !important; padding: 0 !important;
+  }
+  .navbar, .editor-pane { display: none !important; }
+  .workspace {
+    display: block !important; width: 595px !important;
+    height: auto !important; overflow: visible !important;
+  }
+  .preview-pane {
+    position: static !important; display: block !important;
+    background: none !important; overflow: visible !important;
+    width: 595px !important; height: auto !important;
+    padding: 0 !important; margin: 0 !important;
+  }
+  .dm-wrap {
+    position: static !important; transform: none !important;
+    display: block !important;
+    margin: 0 !important; padding: 0 !important;
+  }
+  #dm-sheet {
+    width: 595px !important; height: 842px !important;
+    box-shadow: none !important; overflow: visible !important;
+    display: flex !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <span class="nav-logo"><span class="dot"></span>'right</span>
+  <span style="color:#3a3a3a;margin:0 2px">|</span>
+  <span class="nav-logo" style="letter-spacing:6px;margin-left:2px">P R O</span>
+  <span style="color:#3a3a3a;margin:0 6px">|</span>
+  <span class="nav-title">DM 編輯器</span>
+  <div class="nav-spacer"></div>
+  <button class="nav-btn nav-btn-export" onclick="exportPDF()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    匯出 PDF (A4)
+  </button>
+  <button class="nav-btn nav-btn-preview" onclick="toggleEditor()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    預覽
+  </button>
+</nav>
+
+<div class="workspace">
+  <div class="preview-pane" id="previewPane">
+    <div class="dm-wrap" id="dmWrap">
+      <div id="dm-sheet"></div>
+    </div>
+  </div>
+
+  <div class="editor-pane" id="editorPane">
+    <div class="editor-scroll">
+      <!-- 1. Layout -->
+      <div class="editor-sec">
+        <div class="editor-sec-num">1. 選擇版面</div>
+        <div class="layout-pick">
+          <div class="layout-opt active" id="opt-four" onclick="setLayout('four')">
+            <div class="lt-thumb lt4"><div></div><div></div><div></div><div></div></div>
+            <div class="lt-label">四格</div>
+          </div>
+          <div class="layout-opt" id="opt-two" onclick="setLayout('two')">
+            <div class="lt-thumb lt2"><div></div><div></div></div>
+            <div class="lt-label">兩格</div>
+          </div>
+          <div class="layout-opt" id="opt-one" onclick="setLayout('one')">
+            <div class="lt-thumb lt1"><div></div></div>
+            <div class="lt-label">一格</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Content -->
+      <div class="editor-sec" style="border-bottom:none">
+        <div class="editor-sec-num">2. 編輯內容</div>
+        <div style="margin-bottom:4px">
+          <label class="field-lbl">標題文字</label>
+          <input type="text" id="dm-tagline" class="field-input"
+            value="永續美妝 Sustainable Beauty" oninput="renderDM()">
+        </div>
+        <div id="block-editors"></div>
+      </div>
+    </div>
+    <div class="editor-footer">
+      <button class="btn-export-main" onclick="exportPDF()">匯出 PDF (A4)</button>
+      <p class="export-note">* 匯出將依目前預覽內容產生 PDF，格式為 A4 直式 *</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   PRODUCTS
+══════════════════════════════════════════════ */
+const BASE = '../產品圖片/';
+const PRODUCTS = [
+  { id:'c100',    name:'咖啡因養髮液 100mL',         img:BASE+'No_1 強健頭皮/100mL_02_Caffeine Botanical Scalp Revitalizer_咖啡因養髮液-新版長噴頭.jpg' },
+  { id:'c50',     name:'咖啡因養髮液 50mL',          img:BASE+'No_1 強健頭皮/50mL_Caffeine Botanical Scalp Revitalizer_咖啡因養髮液CMYK.jpg' },
+  { id:'cm100',   name:'咖啡因麥拉寧養髮液 100mL',   img:BASE+'No_1 強健頭皮/100mL_02_Caffeine Melanin Botanical Scalp Revitalizer_咖啡因麥拉寧養髮液-新版長噴頭.jpg' },
+  { id:'cm50',    name:'咖啡因麥拉寧養髮液 50mL',    img:BASE+'No_1 強健頭皮/50mL_Caffeine Melanin Botanical Scalp Revitalizer_咖啡因麥拉寧養髮液.jpg' },
+  { id:'him70',   name:'男士養髮液 70mL',            img:BASE+'No_1 強健頭皮/70mL_01_Botanical Scalp Revitalizer for Him_PRO Series_男士養髮液.jpg' },
+  { id:'her70',   name:'女士養髮液 70mL',            img:BASE+'No_1 強健頭皮/70mL_01_Botanical Scalp Revitalizer for Her_PRO Series_女士養髮液.jpg' },
+  { id:'sh1-500', name:'強健頭皮洗髮露 500mL',       img:BASE+'No_1 強健頭皮/500mL_01_Scalp & Hair Reinforcing Shampoo_強健頭皮洗髮露.jpg' },
+  { id:'sh1-400', name:'強健頭皮洗髮露補充包 400mL', img:BASE+'No_1 強健頭皮/400mL_01_Scalp & Hair Reinforcing Shampoo R-Pack 強健頭皮洗髮露補充包400mL.jpg' },
+  { id:'prf1',    name:'PRO 香水 1號 70mL',          img:BASE+'No_1 強健頭皮/70mL_PRO Eau de Parfum No 1_PRO香水1號.jpg' },
+  { id:'sh2-500', name:'豐盈彈韌洗髮露 500mL',       img:BASE+'No_2 豐盈彈韌/500mL_02_Volumizing & Strengthening Shampoo_豐盈彈韌洗髮露.jpg' },
+  { id:'sh2-400', name:'豐盈彈韌洗髮露補充包 400mL', img:BASE+'No_2 豐盈彈韌/400mL_02_Volumizing & Strengthening Shampoo_R-Pack 豐盈彈韌洗髮露.jpg' },
+  { id:'eo2-70',  name:'豐盈彈韌精華油 70mL',        img:BASE+'No_2 豐盈彈韌/70mL_02_Volumizing & Strengthening Essential Oil_豐盈彈韌精華油升級版.jpg' },
+  { id:'eo2-750', name:'豐盈彈韌精華油 750mL',       img:BASE+'No_2 豐盈彈韌/750mL_02_Volumizing & Strengthening Essential Oil_豐盈彈韌精華油.jpg' },
+  { id:'sr2-220', name:'豐盈彈韌調理精華 220mL',     img:BASE+'No_2 豐盈彈韌/220mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
+  { id:'sr2-750', name:'豐盈彈韌調理精華 750mL',     img:BASE+'No_2 豐盈彈韌/750mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
+  { id:'prf2',    name:'PRO 香水 2號 70mL',          img:BASE+'No_2 豐盈彈韌/70mL_PRO Eau de Parfum No 2_PRO香水2號.jpg' },
+  { id:'sh3-500', name:'結構修護洗髮露 500mL',       img:BASE+'No_3 結構修護/500mL_03_Bond Building Shampoo_結構修護洗髮露.jpg' },
+  { id:'sh3-400', name:'結構修護洗髮露補充包 400mL', img:BASE+'No_3 結構修護/400mL_03_Bond Building Shampoo_R-Pack 結構修護洗髮露.jpg' },
+  { id:'el3-70',  name:'結構修護精華乳 70mL',        img:BASE+'No_3 結構修護/70mL_03_Bond Building Essence Lotion_結構修護精華乳.jpg' },
+  { id:'el3-750', name:'結構修護精華乳 750mL',       img:BASE+'No_3 結構修護/750mL_03_Bond Building Essence Lotion_結構修護精華乳.jpg' },
+  { id:'cd3-250', name:'結構修護護髮素 250mL',       img:BASE+'No_3 結構修護/250mL_03_Bond Building Conditioner_結構修護護髮素.jpg' },
+  { id:'prf3',    name:'PRO 香水 3號 70mL',          img:BASE+'No_3 結構修護/70mL_PRO Eau de Parfum No 3_PRO香水3號.jpg' },
+  { id:'sh4-500', name:'染燙護色洗髮露 500mL',       img:BASE+'No_4 染燙護色/500mL_04_Color & Perm Care Shampoo_染燙護色洗髮露.jpg' },
+  { id:'sh4-400', name:'染燙護色洗髮露補充包 400mL', img:BASE+'No_4 染燙護色/400mL_04_Color & Perm Care Shampoo_R-Pack 染燙護色洗髮露.jpg' },
+  { id:'eo4-70',  name:'染燙護色精華油 70mL',        img:BASE+'No_4 染燙護色/70mL_04_Color & Perm Care Essential Oil_染燙護色精華油.jpg' },
+  { id:'eo4-750', name:'染燙護色精華油 750mL',       img:BASE+'No_4 染燙護色/750mL_ 04_Color & Perm Care Essential Oil_染燙護色精華油.jpg' },
+  { id:'cd4-250', name:'染燙護色護髮素 250mL',       img:BASE+'No_4 染燙護色/250mL_04_Color & Perm Care Conditioner_染燙護色護髮素.jpg' },
+  { id:'prf4',    name:'PRO 香水 4號 70mL',          img:BASE+'No_4 染燙護色/70mL_PRO Eau de Parfum No 1_PRO香水4號.jpg' },
+  { id:'sh5-500', name:'濃縮咖啡因養髮洗髮露 500mL', img:BASE+'No_5 濃縮咖啡因養髮洗髮露/500mL_01_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
+  { id:'sh5-260', name:'濃縮咖啡因養髮洗髮露 260mL', img:BASE+'No_5 濃縮咖啡因養髮洗髮露/260mL_01_01_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
+  { id:'prf5',    name:'PRO 香水 5號 70mL',          img:BASE+'No_5 濃縮咖啡因養髮洗髮露/70mL_PRO Eau de Parfum No 5_PRO香水5號.jpg' },
+  { id:'sp-r60',  name:'舒活抗菌頭皮噴霧 60mL',      img:BASE+'No_6 頭皮噴霧/舒活抗菌頭皮噴霧 60mL.jpg' },
+  { id:'sp-c60',  name:'沁涼控油頭皮噴霧 60mL',      img:BASE+'No_6 頭皮噴霧/沁涼控油頭皮噴霧  60mL.jpg' },
+  { id:'sp-r750', name:'舒活抗菌頭皮噴霧 750mL',     img:BASE+'No_6 頭皮噴霧/舒活抗菌頭皮噴霧 750mL.jpg' },
+  { id:'sp-c750', name:'沁涼控油頭皮噴霧 750mL',     img:BASE+'No_6 頭皮噴霧/沁涼控油頭皮噴霧 750mL.jpg' },
+  { id:'mo-s',    name:'靜謐舒緩按摩油 220mL',       img:BASE+'No_7按摩油/220mL_Soothing Massage Oil_靜謐舒緩按摩油.jpg' },
+  { id:'mo-r',    name:'舒活身體按摩油 220mL',       img:BASE+'No_7按摩油/220mL_Relaxing Massage Oil_舒活身體按摩油.jpg' },
+  { id:'mo-g',    name:'生薑按摩油 220mL',           img:BASE+'No_7按摩油/220mL_Ginger Thermal  Massage Oil_生薑按摩油.jpg' },
+  { id:'bw1',     name:'PRO 1號香氛沐浴露 500mL',    img:BASE+'No_8沐浴露/500mL_01_PRO1號香氛沐浴露.png' },
+  { id:'bw2',     name:'PRO 2號香氛沐浴露 500mL',    img:BASE+'No_8沐浴露/500mL_02_PRO2號香氛沐浴露.png' },
+  { id:'hsp',     name:'定型液 350mL',               img:BASE+'No_9氣霧瓶/new定型液350mL灰字綠底.jpg' },
+  { id:'cdo',     name:'植萃彈力造型油 70mL',        img:BASE+'No_10 造型品/70mL_4S Botanical Curl Defining Oil_植萃彈力造型油.png' },
+  { id:'comb',    name:'PRO 經典氣墊梳',             img:BASE+'No_99 其他系列 副品/PRO經典氣墊梳.jpg' },
+  { id:'mini10',  name:'PRO 養髮液隨行瓶 10mL',      img:BASE+'PRO養髮液隨行瓶10mL/PRO養髮液隨行瓶10mL.jpg' },
+];
+
+/* ══════════════════════════════════════════════
+   STATE
+   cells[0..3] used by all layouts:
+   four  → cells[0..3]  (2×2 grid)
+   two   → cells[0..1]  (2 rows)
+   one   → cells[0]     (single)
+══════════════════════════════════════════════ */
+let layout = 'four';
+
+const mkCell = (pid, gid, hl, price, orig) => ({
+  prodId: pid, giftId: gid||'', headline: hl||'', price: price||'', origPrice: orig||''
+});
+
+/* Each layout has its own independent content */
+const state = {
+  four: [
+    mkCell('c100',  'mini10', '強健髮根 甦醒美麗',     '5,000', '8,300'),
+    mkCell('cm100', 'mini10', '不染髮的黑科技',        '6,000', '9,900'),
+    mkCell('him70', 'mini10', '滋養頭皮 澄透魅力',     '2,500', ''),
+    mkCell('her70', 'mini10', '豐厚專屬妳的自信美麗',  '2,500', ''),
+  ],
+  two: [
+    mkCell('sh2-500', 'mini10', '豐盈彈韌 輕盈飽滿', '3,800', '6,200'),
+    mkCell('sh3-500', 'mini10', '修護受損 重建結構', '3,800', '6,200'),
+  ],
+  one: [
+    mkCell('c100', 'mini10', '強健髮根 甦醒美麗', '5,000', '8,300'),
+  ],
+};
+
+const taglines = {
+  four: '永續美妝 Sustainable Beauty',
+  two:  '永續美妝 Sustainable Beauty',
+  one:  '永續美妝 Sustainable Beauty',
+};
+
+/* ══════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════ */
+const getProd = id => PRODUCTS.find(p => p.id === id) || PRODUCTS[0];
+const getProdOrNull = id => id ? (PRODUCTS.find(p => p.id === id) || null) : null;
+
+function fmt(v) {
+  const n = v ? v.toString().replace(/,/g, '') : '';
+  if (!n || isNaN(Number(n)) || n === '0') return n || '0';
+  return Number(n).toLocaleString('zh-TW');
+}
+
+function enc(path) {
+  return path.split('/').map((s, i) => i === 0 ? s : encodeURIComponent(s)).join('/');
+}
+
+/* ══════════════════════════════════════════════
+   DM RENDER — FOUR  (2×2 grid, 4 independent cells)
+══════════════════════════════════════════════ */
+function cellHTML(c) {
+  const mp = getProd(c.prodId);
+  const gp = getProdOrNull(c.giftId);
+
+  const giftSlot = gp ? `
+    <div class="dm-cell-img-slot is-gift">
+      <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
+    </div>` : '';
+
+  const giftName = gp ? `<br><span class="dm-cell-gift-name">（附贈）${gp.name}</span>` : '';
+
+  const orig = c.origPrice && c.origPrice !== '0'
+    ? `<span class="dm-cell-orig">原價NT$${fmt(c.origPrice)}</span>` : '';
+
+  return `
+    <div class="dm-cell">
+      <div class="dm-cell-imgs">
+        <div class="dm-cell-img-slot is-main">
+          <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+        </div>
+        ${giftSlot}
+      </div>
+      <div class="dm-cell-text">
+        ${c.headline ? `<div class="dm-cell-headline">${c.headline}</div>` : ''}
+        <div class="dm-cell-names">${mp.name}${giftName}</div>
+        <div class="dm-cell-price-row">
+          <span class="dm-cell-price">${fmt(c.price)}</span>
+          <span class="dm-cell-unit">元</span>
+          ${orig}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderFour(tag) {
+  return `
+    <div class="dm-content">
+      <div class="dm-tagline">${tag}</div>
+      <div class="dm-four-grid">
+        ${state.four.map(cellHTML).join('')}
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════
+   DM RENDER — TWO  (2 stacked bundles)
+══════════════════════════════════════════════ */
+function bundleRowHTML(c) {
+  const mp = getProd(c.prodId);
+  const gp = getProdOrNull(c.giftId);
+
+  const giftCol = gp ? `
+    <div class="dm-bprod is-gift">
+      <div class="dm-gift-badge">致贈</div>
+      <div class="dm-bprod-img">
+        <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
+      </div>
+      <div class="dm-bprod-name">${gp.name}</div>
+    </div>` : '';
+
+  const orig = c.origPrice && c.origPrice !== '0'
+    ? `<span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span>` : '';
+
+  const hl = c.headline
+    ? `<span class="dm-headline-lbl">${c.headline}</span>` : '';
+
+  return `
+    <div class="dm-bundle-row">
+      <div class="dm-bundle-pair">
+        <div class="dm-bprod is-main">
+          <div class="dm-bprod-img">
+            <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+          </div>
+          <div class="dm-bprod-name">${mp.name}</div>
+        </div>
+        ${giftCol}
+      </div>
+      <div class="dm-bundle-price-row">
+        ${hl}
+        <span class="dm-price-num">${fmt(c.price)}</span>
+        <span class="dm-price-unit">元</span>
+        ${orig}
+      </div>
+    </div>`;
+}
+
+function renderTwo(tag) {
+  return `
+    <div class="dm-content">
+      <div class="dm-tagline">${tag}</div>
+      <div class="dm-two-rows">
+        ${bundleRowHTML(state.two[0])}
+        ${bundleRowHTML(state.two[1])}
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════
+   DM RENDER — ONE  (single centred)
+══════════════════════════════════════════════ */
+function renderOne(tag) {
+  const c  = state.one[0];
+  const mp = getProd(c.prodId);
+  const gp = getProdOrNull(c.giftId);
+
+  const giftCol = gp ? `
+    <div class="dm-bprod is-gift">
+      <div class="dm-gift-badge">致贈</div>
+      <div class="dm-bprod-img">
+        <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
+      </div>
+      <div class="dm-bprod-name">${gp.name}</div>
+    </div>` : '';
+
+  const orig = c.origPrice && c.origPrice !== '0'
+    ? `<span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span>` : '';
+
+  const hl = c.headline
+    ? `<span class="dm-headline-lbl">${c.headline}</span>` : '';
+
+  return `
+    <div class="dm-content">
+      <div class="dm-tagline">${tag}</div>
+      <div class="dm-one-block">
+        <div class="dm-one-pair">
+          <div class="dm-bprod is-main">
+            <div class="dm-bprod-img">
+              <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+            </div>
+            <div class="dm-bprod-name">${mp.name}</div>
+          </div>
+          ${giftCol}
+        </div>
+        <div class="dm-one-price-row">
+          ${hl}
+          <span class="dm-price-num">${fmt(c.price)}</span>
+          <span class="dm-price-unit">元</span>
+          ${orig}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════
+   MAIN RENDER
+══════════════════════════════════════════════ */
+const HDR = '../沙龍DM公版/公版DM_1.jpg';
+const FTR = '../沙龍DM公版/公版DM_2.jpg';
+
+function renderDM() {
+  const tag = document.getElementById('dm-tagline')?.value || '';
+  const body = layout === 'four' ? renderFour(tag)
+             : layout === 'two'  ? renderTwo(tag)
+             : renderOne(tag);
+  document.getElementById('dm-sheet').innerHTML =
+    `<div class="dm-hdr"><img src="${enc(HDR)}" alt="header"></div>` +
+    body +
+    `<div class="dm-ftr"><img src="${enc(FTR)}" alt="footer"></div>`;
+}
+
+/* ══════════════════════════════════════════════
+   EDITOR BLOCKS
+══════════════════════════════════════════════ */
+function opts(selectedId) {
+  return PRODUCTS.map(p =>
+    `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name}</option>`
+  ).join('');
+}
+
+function cellEditor(idx, title) {
+  const c = state[layout][idx], mp = getProd(c.prodId);
+  const gp = c.giftId ? getProd(c.giftId) : PRODUCTS[0];
+  return `
+    <div class="block-ed">
+      <div class="block-ed-title">${title}</div>
+      <div class="prod-pair">
+        <div class="prod-slot">
+          <div class="prod-slot-lbl">主商品</div>
+          <div class="prod-thumb-row">
+            <img class="prod-thumb" id="th${idx}m" src="${enc(mp.img)}" alt="">
+          </div>
+          <select class="prod-sel" onchange="onProd(${idx},'prodId',this.value)">
+            ${opts(c.prodId)}
+          </select>
+        </div>
+        <div class="prod-slot">
+          <div class="prod-slot-lbl">贈品（可不選）</div>
+          <div class="prod-thumb-row">
+            <img class="prod-thumb" id="th${idx}g" src="${enc(gp.img)}" alt="">
+          </div>
+          <select class="prod-sel" onchange="onProd(${idx},'giftId',this.value)">
+            <option value="">— 不顯示贈品 —</option>
+            ${opts(c.giftId)}
+          </select>
+        </div>
+      </div>
+      <div class="headline-field">
+        <label class="field-lbl">標題／促銷標語（選填）</label>
+        <input type="text" class="field-input" style="padding:5px 8px"
+          value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
+          oninput="onField(${idx},'headline',this.value)">
+      </div>
+      <div class="price-pair">
+        <div class="price-slot">
+          <label>售價（元）</label>
+          <input type="text" class="price-input" value="${c.price}"
+            oninput="onField(${idx},'price',this.value)">
+        </div>
+        <div class="price-slot">
+          <label>原價（元）</label>
+          <input type="text" class="price-input" value="${c.origPrice}"
+            oninput="onField(${idx},'origPrice',this.value)">
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildEditorBlocks() {
+  let html = '';
+  if (layout === 'four') {
+    html = cellEditor(0,'格 A（左上）') + cellEditor(1,'格 B（右上）') +
+           cellEditor(2,'格 C（左下）') + cellEditor(3,'格 D（右下）');
+  } else if (layout === 'two') {
+    html = cellEditor(0,'上方區塊') + cellEditor(1,'下方區塊');
+  } else {
+    html = cellEditor(0,'商品');
+  }
+  document.getElementById('block-editors').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════
+   EVENT HANDLERS
+══════════════════════════════════════════════ */
+function onProd(idx, field, val) {
+  state[layout][idx][field] = val;
+  // update thumbnail
+  const tid = field === 'prodId' ? `th${idx}m` : `th${idx}g`;
+  const th = document.getElementById(tid);
+  if (th) {
+    const p = val ? getProd(val) : null;
+    th.src = p ? enc(p.img) : '';
+  }
+  renderDM();
+}
+
+function onField(idx, field, val) {
+  state[layout][idx][field] = val;
+  renderDM();
+}
+
+function setLayout(l) {
+  taglines[layout] = document.getElementById('dm-tagline')?.value || '';
+  layout = l;
+  ['four','two','one'].forEach(k =>
+    document.getElementById('opt-'+k).classList.toggle('active', k === l));
+  document.getElementById('dm-tagline').value = taglines[l];
+  buildEditorBlocks();
+  renderDM();
+}
+
+function toggleEditor() {
+  const ep = document.getElementById('editorPane');
+  ep.style.display = ep.style.display === 'none' ? 'flex' : 'none';
+  setTimeout(scaleSheet, 50);
+}
+
+/* ══════════════════════════════════════════════
+   SCALING  (vertical + horizontal centre)
+══════════════════════════════════════════════ */
+function scaleSheet() {
+  const pane = document.getElementById('previewPane');
+  const wrap = document.getElementById('dmWrap');
+  const scale = Math.min(
+    (pane.offsetWidth  - 48) / 595,
+    (pane.offsetHeight - 36) / 842
+  );
+  wrap.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+/* ══════════════════════════════════════════════
+   PDF EXPORT
+══════════════════════════════════════════════ */
+function exportPDF() { window.print(); }
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  buildEditorBlocks();
+  renderDM();
+  scaleSheet();
+});
+window.addEventListener('resize', scaleSheet);
+</script>
+</body>
+</html>
