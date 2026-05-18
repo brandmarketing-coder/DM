@@ -361,6 +361,8 @@ body {
     box-shadow: none !important; overflow: visible !important;
     display: flex !important;
   }
+  /* iOS Safari prints at 72dpi → A4 already = 595×842px; no zoom needed */
+  html[data-print-platform="ios"] { zoom: 1 !important; }
 }
 </style>
 </head>
@@ -491,8 +493,9 @@ const PRODUCTS = [
 ══════════════════════════════════════════════ */
 let layout = 'four';
 
-const mkCell = (pid, gid, hl, price, orig) => ({
-  prodId: pid, giftId: gid||'', headline: hl||'', price: price||'', origPrice: orig||''
+const mkCell = (pid, gid, hl, price, orig, gl) => ({
+  prodId: pid, giftId: gid||'', headline: hl||'', price: price||'', origPrice: orig||'',
+  giftLabel: gl || '致贈'
 });
 
 /* Each layout has its own independent content */
@@ -546,7 +549,7 @@ function cellHTML(c) {
       <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
     </div>` : '';
 
-  const giftName = gp ? `<br><span class="dm-cell-gift-name">（附贈）${gp.name}</span>` : '';
+  const giftName = gp ? `<br><span class="dm-cell-gift-name">（${c.giftLabel}）${gp.name}</span>` : '';
 
   const orig = c.origPrice && c.origPrice !== '0'
     ? `<span class="dm-cell-orig">原價NT$${fmt(c.origPrice)}</span>` : '';
@@ -590,7 +593,7 @@ function bundleRowHTML(c) {
 
   const giftCol = gp ? `
     <div class="dm-bprod is-gift">
-      <div class="dm-gift-badge">致贈</div>
+      <div class="dm-gift-badge">${c.giftLabel}</div>
       <div class="dm-bprod-img">
         <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
       </div>
@@ -644,7 +647,7 @@ function renderOne(tag) {
 
   const giftCol = gp ? `
     <div class="dm-bprod is-gift">
-      <div class="dm-gift-badge">致贈</div>
+      <div class="dm-gift-badge">${c.giftLabel}</div>
       <div class="dm-bprod-img">
         <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
       </div>
@@ -733,6 +736,12 @@ function cellEditor(idx, title) {
           </select>
         </div>
       </div>
+      <div class="gift-label-field" id="gl-field-${idx}" style="${c.giftId ? '' : 'display:none'}">
+        <label class="field-lbl">贈品標籤文字（如：致贈、附贈、組合）</label>
+        <input type="text" class="field-input" style="padding:5px 8px"
+          value="${c.giftLabel}" placeholder="致贈"
+          oninput="onField(${idx},'giftLabel',this.value)">
+      </div>
       <div class="headline-field">
         <label class="field-lbl">標題／促銷標語（選填）</label>
         <input type="text" class="field-input" style="padding:5px 8px"
@@ -772,12 +781,15 @@ function buildEditorBlocks() {
 ══════════════════════════════════════════════ */
 function onProd(idx, field, val) {
   state[layout][idx][field] = val;
-  // update thumbnail
   const tid = field === 'prodId' ? `th${idx}m` : `th${idx}g`;
   const th = document.getElementById(tid);
   if (th) {
     const p = val ? getProd(val) : null;
     th.src = p ? enc(p.img) : '';
+  }
+  if (field === 'giftId') {
+    const glField = document.getElementById(`gl-field-${idx}`);
+    if (glField) glField.style.display = val ? '' : 'none';
   }
   renderDM();
 }
@@ -819,7 +831,13 @@ function scaleSheet() {
 /* ══════════════════════════════════════════════
    PDF EXPORT
 ══════════════════════════════════════════════ */
-function exportPDF() { window.print(); }
+function exportPDF() {
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) document.documentElement.dataset.printPlatform = 'ios';
+  window.print();
+  setTimeout(() => { delete document.documentElement.dataset.printPlatform; }, 1500);
+}
 
 /* ══════════════════════════════════════════════
    INIT
