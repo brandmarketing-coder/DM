@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O'right PRO | DM 編輯器</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -361,9 +363,6 @@ body {
     box-shadow: none !important; overflow: visible !important;
     display: flex !important;
   }
-  /* iOS Safari prints at 72dpi → A4 already = 595×842px; no zoom needed.
-     Class is added via beforeprint event (more reliable than pre-print setAttribute). */
-  html.ios-print { zoom: 1 !important; }
 }
 </style>
 </head>
@@ -832,21 +831,30 @@ function scaleSheet() {
 /* ══════════════════════════════════════════════
    PDF EXPORT
 ══════════════════════════════════════════════ */
-/* iOS fix: wire up beforeprint/afterprint so the class is set inside the
-   browser's own print-render pipeline — more reliable than setting before window.print() */
-(function () {
-  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (!isIOS) return;
-  window.addEventListener('beforeprint', function () {
-    document.documentElement.classList.add('ios-print');
-  });
-  window.addEventListener('afterprint', function () {
-    document.documentElement.classList.remove('ios-print');
-  });
-}());
+async function exportPDF() {
+  const btns = [...document.querySelectorAll('.nav-btn-export, .btn-export-main')];
+  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
 
-function exportPDF() { window.print(); }
+  try {
+    const canvas = await html2canvas(document.getElementById('dm-sheet'), {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+    pdf.save("O'right PRO DM.pdf");
+
+  } catch (e) {
+    console.error('PDF export failed:', e);
+    alert('PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。');
+  } finally {
+    btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
+  }
+}
 
 /* ══════════════════════════════════════════════
    INIT
