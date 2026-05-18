@@ -361,8 +361,9 @@ body {
     box-shadow: none !important; overflow: visible !important;
     display: flex !important;
   }
-  /* iOS Safari prints at 72dpi → A4 already = 595×842px; no zoom needed */
-  html[data-print-platform="ios"] { zoom: 1 !important; }
+  /* iOS Safari prints at 72dpi → A4 already = 595×842px; no zoom needed.
+     Class is added via beforeprint event (more reliable than pre-print setAttribute). */
+  html.ios-print { zoom: 1 !important; }
 }
 </style>
 </head>
@@ -831,13 +832,21 @@ function scaleSheet() {
 /* ══════════════════════════════════════════════
    PDF EXPORT
 ══════════════════════════════════════════════ */
-function exportPDF() {
+/* iOS fix: wire up beforeprint/afterprint so the class is set inside the
+   browser's own print-render pipeline — more reliable than setting before window.print() */
+(function () {
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (isIOS) document.documentElement.dataset.printPlatform = 'ios';
-  window.print();
-  setTimeout(() => { delete document.documentElement.dataset.printPlatform; }, 1500);
-}
+  if (!isIOS) return;
+  window.addEventListener('beforeprint', function () {
+    document.documentElement.classList.add('ios-print');
+  });
+  window.addEventListener('afterprint', function () {
+    document.documentElement.classList.remove('ios-print');
+  });
+}());
+
+function exportPDF() { window.print(); }
 
 /* ══════════════════════════════════════════════
    INIT
