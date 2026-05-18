@@ -835,9 +835,33 @@ async function exportPDF() {
   const btns = [...document.querySelectorAll('.nav-btn-export, .btn-export-main')];
   btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
 
+  /* Build an isolated, transform-free proxy for html2canvas.
+     The live #dm-sheet sits inside .dm-wrap which has a CSS scale() transform;
+     getBoundingClientRect() would return the shrunken visual size and cause
+     distorted output. We copy the innerHTML into a plain div at natural 595×842px
+     with no ancestor transform, positioned off-screen so the user sees nothing. */
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;top:-9999px;left:0;pointer-events:none;';
+  const proxy = document.createElement('div');
+  proxy.style.cssText =
+    'width:595px;height:842px;display:flex;flex-direction:column;' +
+    'background:white;overflow:hidden;flex-shrink:0;';
+  proxy.innerHTML = document.getElementById('dm-sheet').innerHTML;
+  host.appendChild(proxy);
+  document.body.appendChild(host);
+
   try {
-    const canvas = await html2canvas(document.getElementById('dm-sheet'), {
+    // Wait for images inside the proxy to finish loading (may already be cached)
+    await Promise.all([...proxy.querySelectorAll('img')].map(img =>
+      img.complete ? Promise.resolve() :
+        new Promise(r => { img.onload = r; img.onerror = r; })
+    ));
+    await new Promise(r => requestAnimationFrame(r));
+
+    const canvas = await html2canvas(proxy, {
       scale: 2,
+      width: 595,
+      height: 842,
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
@@ -852,6 +876,7 @@ async function exportPDF() {
     console.error('PDF export failed:', e);
     alert('PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。');
   } finally {
+    document.body.removeChild(host);
     btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
   }
 }
