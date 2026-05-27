@@ -206,7 +206,8 @@ body {
 }
 
 /* One-grid specific text overrides to make them really stand out */
-.dm-one-block .dm-headline-lbl { font-size: 36pt; font-weight: 500; display: block; width: 100%; text-align: center; margin-bottom: 8px; }
+.is-one-grid .dm-tagline { font-size: 32pt; font-weight: 300; padding: 18px 24px 10px; }
+.dm-one-block .dm-headline-lbl { font-size: 24px; font-weight: 500; }
 .dm-one-block .dm-price-num { font-size: 42px; font-weight: 500; }
 .dm-one-block .dm-price-unit { font-size: 22px; }
 .dm-one-block .dm-orig-price { font-size: 15px; }
@@ -673,7 +674,7 @@ function renderOne(tag) {
     ? `<span class="dm-headline-lbl">${c.headline}</span>` : '';
 
   return `
-    <div class="dm-content">
+    <div class="dm-content is-one-grid">
       <div class="dm-tagline">${tag}</div>
       <div class="dm-one-block">
         <div class="dm-one-pair">
