@@ -210,16 +210,17 @@ body {
   gap: 8px; flex-wrap: wrap; padding-top: 10px;
   justify-content: center;
 }
-.dm-one-headline-row {
-  flex-shrink: 0;
-  display: flex; justify-content: center;
-  padding-top: 12px;
-  text-align: center;
-}
 
 /* One-grid specific text overrides to make them really stand out */
 .is-two-grid .dm-tagline { font-size: 24pt; }
 .is-one-grid .dm-tagline { font-size: 32pt; font-weight: 300; padding: 18px 24px 10px; }
+.dm-one-pair .dm-gift-badge {
+  font-size: 22px;
+  height: 38px;
+  padding: 0 18px 0 19px;
+  border-radius: 19px;
+  margin-bottom: 18px;
+}
 .dm-one-block .dm-headline-lbl { font-size: 24px; font-weight: 500; }
 .dm-one-block .dm-price-num { font-size: 42px; font-weight: 500; }
 .dm-one-block .dm-price-unit { font-size: 22px; }
@@ -548,7 +549,7 @@ const state = {
 
 const taglines = {
   four: '永續美妝 Sustainable Beauty',
-  two:  '永續美妝 Sustainable Beauty',
+  two:  '永續美妝',
   one:  '永續美妝',
 };
 
@@ -711,8 +712,8 @@ function renderOne(tag, subtitle) {
           </div>
           ${giftCol}
         </div>
-        ${hl ? `<div class="dm-one-headline-row">${hl}</div>` : ''}
         <div class="dm-one-price-row">
+          ${hl}
           <span class="dm-price-num">${fmt(c.price)}</span>
           <span class="dm-price-unit">元</span>
           ${orig}
