@@ -32,6 +32,8 @@ body {
 }
 .nav-btn-export { background: #3a7d44; color: white; }
 .nav-btn-export:hover { background: #2d6235; }
+.nav-btn-export-jpg { background: #5c8f52; color: white; }
+.nav-btn-export-jpg:hover { background: #4b7543; }
 .nav-btn-preview { background: transparent; color: #bbb; border: 1px solid #444; }
 .nav-btn-preview:hover { border-color: #888; color: white; }
 
@@ -69,7 +71,7 @@ body {
 .dm-tagline {
   flex-shrink: 0;
   text-align: center; padding: 11px 24px 5px;
-  font-size: 13px; letter-spacing: 4px; color: #666; font-weight: 300;
+  font-size: 16px; letter-spacing: 4px; color: #666; font-weight: 300;
 }
 
 /* ══════════════════════════════════════════
@@ -114,13 +116,13 @@ body {
 
 /* Cell text */
 .dm-cell-text { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 4px; }
-.dm-cell-headline { font-size: 11px; font-weight: 700; color: #1a1a1a; line-height: 1.35; margin-bottom: 2px; }
-.dm-cell-names { font-size: 8.5px; color: #aaa; line-height: 1.5; margin-bottom: 3px; }
+.dm-cell-headline { font-size: 14px; font-weight: 700; color: #1a1a1a; line-height: 1.35; margin-bottom: 2px; }
+.dm-cell-names { font-size: 10.5px; color: #aaa; line-height: 1.5; margin-bottom: 3px; }
 .dm-cell-gift-name { color: #c0bbb5; }
 .dm-cell-price-row { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
-.dm-cell-price     { font-size: 17px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
-.dm-cell-unit      { font-size: 11px; color: #555; }
-.dm-cell-orig      { font-size: 8.5px; color: #c0bbb5; }
+.dm-cell-price     { font-size: 20px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
+.dm-cell-unit      { font-size: 13px; color: #555; }
+.dm-cell-orig      { font-size: 10.5px; color: #c0bbb5; }
 
 /* ══════════════════════════════════════════
    TWO-GRID  (2 stacked bundles)
@@ -146,12 +148,12 @@ body {
 }
 .dm-bprod-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 .dm-gift-badge {
-  font-size: 10px; background: #19322F; color: white;
+  font-size: 12px; background: #19322F; color: white;
   padding: 2px 9px 2px 10px; border-radius: 9px; margin-bottom: 14px;
   letter-spacing: 1px; font-style: normal; line-height: 1.4;
 }
 .dm-bprod-name {
-  font-size: 9.5px; color: #999; text-align: center;
+  font-size: 12px; color: #999; text-align: center;
   margin-top: 5px; line-height: 1.3;
 }
 /* Two-grid image sizes: gift ~2/3 height of main, bottoms align via flex-end on parent */
@@ -165,10 +167,10 @@ body {
   gap: 8px; flex-wrap: wrap; padding-top: 5px;
   justify-content: center;
 }
-.dm-headline-lbl { font-size: 12px; color: #555; letter-spacing: 0.5px; }
-.dm-price-num   { font-size: 26px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
-.dm-price-unit  { font-size: 15px; color: #444; }
-.dm-orig-price  { font-size: 10px; color: #c0bbb5; }
+.dm-headline-lbl { font-size: 15px; color: #555; letter-spacing: 0.5px; }
+.dm-price-num   { font-size: 32px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
+.dm-price-unit  { font-size: 18px; color: #444; }
+.dm-orig-price  { font-size: 12px; color: #c0bbb5; }
 
 /* ══════════════════════════════════════════
    ONE-GRID  (single centred product)
@@ -189,7 +191,7 @@ body {
 .dm-one-pair .dm-bprod.is-main .dm-bprod-img  { width: 190px; height: 268px; }
 .dm-one-pair .dm-bprod.is-gift .dm-bprod-img   { width: 128px; height: 180px; }
 .dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 220px; height: 310px; }
-.dm-one-pair .dm-bprod-name { font-size: 10.5px; }
+.dm-one-pair .dm-bprod-name { font-size: 13.5px; }
 
 .dm-one-price-row {
   flex-shrink: 0;
@@ -375,6 +377,10 @@ body {
   <span style="color:#3a3a3a;margin:0 10px">|</span>
   <span class="nav-title">DM 編輯器</span>
   <div class="nav-spacer"></div>
+  <button class="nav-btn nav-btn-export-jpg" onclick="exportJPG()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    匯出 JPG
+  </button>
   <button class="nav-btn nav-btn-export" onclick="exportPDF()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     匯出 PDF (A4)
@@ -826,15 +832,7 @@ function scaleSheet() {
 /* ══════════════════════════════════════════════
    PDF EXPORT
 ══════════════════════════════════════════════ */
-async function exportPDF() {
-  const btns = [...document.querySelectorAll('.nav-btn-export, .btn-export-main')];
-  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
-
-  /* Build an isolated, transform-free proxy for html2canvas.
-     The live #dm-sheet sits inside .dm-wrap which has a CSS scale() transform;
-     getBoundingClientRect() would return the shrunken visual size and cause
-     distorted output. We copy the innerHTML into a plain div at natural 595×842px
-     with no ancestor transform, positioned off-screen so the user sees nothing. */
+async function generateCanvas() {
   const host = document.createElement('div');
   host.style.cssText = 'position:fixed;top:-9999px;left:0;pointer-events:none;';
   const proxy = document.createElement('div');
@@ -861,17 +859,45 @@ async function exportPDF() {
       backgroundColor: '#ffffff',
       logging: false,
     });
+    return canvas;
+  } finally {
+    document.body.removeChild(host);
+  }
+}
 
+async function exportPDF() {
+  const btns = [...document.querySelectorAll('.nav-btn, .btn-export-main')];
+  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
+
+  try {
+    const canvas = await generateCanvas();
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
     pdf.save("O'right PRO DM.pdf");
-
   } catch (e) {
     console.error('PDF export failed:', e);
     alert('PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。');
   } finally {
-    document.body.removeChild(host);
+    btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
+  }
+}
+
+async function exportJPG() {
+  const btns = [...document.querySelectorAll('.nav-btn, .btn-export-main')];
+  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
+
+  try {
+    const canvas = await generateCanvas();
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    const link = document.createElement('a');
+    link.download = "O'right PRO DM.jpg";
+    link.href = dataUrl;
+    link.click();
+  } catch (e) {
+    console.error('JPG export failed:', e);
+    alert('JPG 產生失敗。');
+  } finally {
     btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
   }
 }
