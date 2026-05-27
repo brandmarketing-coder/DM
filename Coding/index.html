@@ -73,6 +73,12 @@ body {
   text-align: center; padding: 11px 24px 5px;
   font-size: 16px; letter-spacing: 4px; color: #666; font-weight: 300;
 }
+.dm-subtitle {
+  flex-shrink: 0;
+  text-align: center; padding: 0 24px 8px;
+  font-size: 18pt; letter-spacing: 1px; color: #666; font-weight: 300;
+  line-height: 1.35;
+}
 
 /* ══════════════════════════════════════════
    FOUR-GRID  (2 × 2 independent cells)
@@ -204,8 +210,15 @@ body {
   gap: 8px; flex-wrap: wrap; padding-top: 10px;
   justify-content: center;
 }
+.dm-one-headline-row {
+  flex-shrink: 0;
+  display: flex; justify-content: center;
+  padding-top: 12px;
+  text-align: center;
+}
 
 /* One-grid specific text overrides to make them really stand out */
+.is-two-grid .dm-tagline { font-size: 24pt; }
 .is-one-grid .dm-tagline { font-size: 32pt; font-weight: 300; padding: 18px 24px 10px; }
 .dm-one-block .dm-headline-lbl { font-size: 24px; font-weight: 500; }
 .dm-one-block .dm-price-num { font-size: 42px; font-weight: 500; }
@@ -435,6 +448,11 @@ body {
           <input type="text" id="dm-tagline" class="field-input"
             value="永續美妝 Sustainable Beauty" oninput="renderDM()">
         </div>
+        <div id="dm-subtitle-field" style="margin-bottom:4px; display:none">
+          <label class="field-lbl">副標題（選填）</label>
+          <input type="text" id="dm-subtitle" class="field-input"
+            value="" placeholder="例：抗暑，從頭噴到腳底的救星" oninput="renderDM()">
+        </div>
         <div id="block-editors"></div>
       </div>
     </div>
@@ -531,7 +549,13 @@ const state = {
 const taglines = {
   four: '永續美妝 Sustainable Beauty',
   two:  '永續美妝 Sustainable Beauty',
-  one:  '永續美妝 Sustainable Beauty',
+  one:  '永續美妝',
+};
+
+const subtitles = {
+  four: '',
+  two:  '',
+  one:  '',
 };
 
 /* ══════════════════════════════════════════════
@@ -641,7 +665,7 @@ function bundleRowHTML(c) {
 
 function renderTwo(tag) {
   return `
-    <div class="dm-content">
+    <div class="dm-content is-two-grid">
       <div class="dm-tagline">${tag}</div>
       <div class="dm-two-rows">
         ${bundleRowHTML(state.two[0])}
@@ -653,7 +677,7 @@ function renderTwo(tag) {
 /* ══════════════════════════════════════════════
    DM RENDER — ONE  (single centred)
 ══════════════════════════════════════════════ */
-function renderOne(tag) {
+function renderOne(tag, subtitle) {
   const c  = state.one[0];
   const mp = getProd(c.prodId);
   const gp = getProdOrNull(c.giftId);
@@ -676,6 +700,7 @@ function renderOne(tag) {
   return `
     <div class="dm-content is-one-grid">
       <div class="dm-tagline">${tag}</div>
+      ${subtitle ? `<div class="dm-subtitle">${subtitle}</div>` : ''}
       <div class="dm-one-block">
         <div class="dm-one-pair">
           <div class="dm-bprod is-main">
@@ -686,8 +711,8 @@ function renderOne(tag) {
           </div>
           ${giftCol}
         </div>
+        ${hl ? `<div class="dm-one-headline-row">${hl}</div>` : ''}
         <div class="dm-one-price-row">
-          ${hl}
           <span class="dm-price-num">${fmt(c.price)}</span>
           <span class="dm-price-unit">元</span>
           ${orig}
@@ -704,9 +729,10 @@ const FTR = '../沙龍DM公版/公版DM_2.jpg';
 
 function renderDM() {
   const tag = document.getElementById('dm-tagline')?.value || '';
+  const subtitle = document.getElementById('dm-subtitle')?.value || '';
   const body = layout === 'four' ? renderFour(tag)
              : layout === 'two'  ? renderTwo(tag)
-             : renderOne(tag);
+             : renderOne(tag, subtitle);
   document.getElementById('dm-sheet').innerHTML =
     `<div class="dm-hdr"><img src="${enc(HDR)}" alt="header"></div>` +
     body +
@@ -814,10 +840,15 @@ function onField(idx, field, val) {
 
 function setLayout(l) {
   taglines[layout] = document.getElementById('dm-tagline')?.value || '';
+  subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
   layout = l;
   ['four','two','one'].forEach(k =>
     document.getElementById('opt-'+k).classList.toggle('active', k === l));
   document.getElementById('dm-tagline').value = taglines[l];
+  const subtitleField = document.getElementById('dm-subtitle-field');
+  const subtitleInput = document.getElementById('dm-subtitle');
+  if (subtitleField) subtitleField.style.display = l === 'one' ? '' : 'none';
+  if (subtitleInput) subtitleInput.value = subtitles[l];
   buildEditorBlocks();
   renderDM();
 }
