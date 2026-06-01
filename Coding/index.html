@@ -543,7 +543,15 @@ const state = {
     mkCell('sh3-500', 'mini10', '修護受損 重建結構', '3,800', '6,200'),
   ],
   one: [
-    mkCell('c100', 'mini10', '強健髮根 甦醒美麗', '5,000', '8,300'),
+    {
+      products: [
+        { prodId: 'c100', role: 'main', giftLabel: '致贈' },
+        { prodId: 'mini10', role: 'sub', giftLabel: '致贈' }
+      ],
+      headline: '強健髮根 甦醒美麗',
+      price: '5,000',
+      origPrice: '8,300'
+    }
   ],
 };
 
@@ -679,18 +687,32 @@ function renderTwo(tag) {
    DM RENDER — ONE  (single centred)
 ══════════════════════════════════════════════ */
 function renderOne(tag, subtitle) {
-  const c  = state.one[0];
-  const mp = getProd(c.prodId);
-  const gp = getProdOrNull(c.giftId);
-
-  const giftCol = gp ? `
-    <div class="dm-bprod is-gift">
-      <div class="dm-gift-badge">${c.giftLabel}</div>
-      <div class="dm-bprod-img">
-        <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
-      </div>
-      <div class="dm-bprod-name">${gp.name}</div>
-    </div>` : '';
+  const c = state.one[0];
+  
+  // Render each product dynamically based on its role
+  const prodsHtml = c.products.map(p => {
+    const prod = getProd(p.prodId);
+    if (p.role === 'main') {
+      return `
+        <div class="dm-bprod is-main">
+          <div class="dm-bprod-img">
+            <img src="${enc(prod.img)}" alt="${prod.name}" onerror="this.style.opacity=0.1">
+          </div>
+          <div class="dm-bprod-name">${prod.name}</div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="dm-bprod is-gift">
+          <div class="dm-gift-badge">${p.giftLabel || '致贈'}</div>
+          <div class="dm-bprod-img">
+            <img src="${enc(prod.img)}" alt="${prod.name}" onerror="this.style.opacity=0.1">
+          </div>
+          <div class="dm-bprod-name">${prod.name}</div>
+        </div>
+      `;
+    }
+  }).join('');
 
   const orig = c.origPrice && c.origPrice !== '0'
     ? `<span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span>` : '';
@@ -704,13 +726,7 @@ function renderOne(tag, subtitle) {
       ${subtitle ? `<div class="dm-subtitle">${subtitle}</div>` : ''}
       <div class="dm-one-block">
         <div class="dm-one-pair">
-          <div class="dm-bprod is-main">
-            <div class="dm-bprod-img">
-              <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
-            </div>
-            <div class="dm-bprod-name">${mp.name}</div>
-          </div>
-          ${giftCol}
+          ${prodsHtml}
         </div>
         <div class="dm-one-price-row">
           ${hl}
@@ -750,6 +766,52 @@ function opts(selectedId) {
 }
 
 function cellEditor(idx, title) {
+  if (layout === 'one') {
+    const c = state.one[0];
+    const prodsHtml = c.products.map((p, i) => oneGridProductEditor(p, i)).join('');
+    
+    const addProdBtn = c.products.length < 2 ? `
+      <button type="button" style="width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s;"
+        onclick="addOneProd()"
+        onmouseover="this.style.background='#2d6235'" 
+        onmouseout="this.style.background='#3a7d44'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增商品
+      </button>
+    ` : '';
+
+    return `
+      <div class="block-ed">
+        <div class="block-ed-title">${title}</div>
+        
+        <div style="margin-bottom: 12px;">
+          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">商品清單 (最多 2 個)</span>
+          ${prodsHtml}
+          ${addProdBtn}
+        </div>
+        
+        <div class="headline-field">
+          <label class="field-lbl">標題／促銷標語（選填）</label>
+          <input type="text" class="field-input" style="padding:5px 8px"
+            value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
+            oninput="onField(${idx},'headline',this.value)">
+        </div>
+        <div class="price-pair">
+          <div class="price-slot">
+            <label>售價（元）</label>
+            <input type="text" class="price-input" value="${c.price}"
+              oninput="onField(${idx},'price',this.value)">
+          </div>
+          <div class="price-slot">
+            <label>原價（元）</label>
+            <input type="text" class="price-input" value="${c.origPrice}"
+              oninput="onField(${idx},'origPrice',this.value)">
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   const c = state[layout][idx], mp = getProd(c.prodId);
   const gp = c.giftId ? getProd(c.giftId) : PRODUCTS[0];
   return `
@@ -836,6 +898,105 @@ function onProd(idx, field, val) {
 
 function onField(idx, field, val) {
   state[layout][idx][field] = val;
+  renderDM();
+}
+
+function oneGridProductEditor(p, prodIdx) {
+  const prod = getProd(p.prodId);
+  const isMain = p.role === 'main';
+  const isSub = p.role === 'sub';
+  
+  // Role selector (Main/Sub)
+  const roleSelect = `
+    <div style="margin-bottom: 6px;">
+      <span class="field-lbl">商品類型</span>
+      <div style="display: flex; gap: 12px; margin-top: 4px;">
+        <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+          <input type="radio" name="one-role-${prodIdx}" value="main" ${isMain ? 'checked' : ''} onchange="onOneProdRole(${prodIdx}, 'main')">
+          主商品
+        </label>
+        <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+          <input type="radio" name="one-role-${prodIdx}" value="sub" ${isSub ? 'checked' : ''} onchange="onOneProdRole(${prodIdx}, 'sub')">
+          輔助商品 (贈品)
+        </label>
+      </div>
+    </div>
+  `;
+
+  // Gift label input (only shown if Sub)
+  const giftLabelInput = isSub ? `
+    <div style="margin-top: 6px;">
+      <label class="field-lbl">贈品標籤文字（如：致贈、附贈）</label>
+      <input type="text" class="field-input" style="padding: 5px 8px;"
+        value="${p.giftLabel || '致贈'}" placeholder="致贈"
+        oninput="onOneProdField(${prodIdx}, 'giftLabel', this.value)">
+    </div>
+  ` : '';
+
+  // Delete button (only for the second product, i.e., prodIdx === 1)
+  const deleteBtn = prodIdx === 1 ? `
+    <button type="button" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 8px; transition: background 0.15s;" 
+      onclick="deleteOneProd(${prodIdx})"
+      onmouseover="this.style.background='#c53030'" 
+      onmouseout="this.style.background='#e53e3e'">
+      刪除此商品
+    </button>
+  ` : '';
+
+  return `
+    <div style="background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 11px; font-weight: 700; color: #555;">商品 ${prodIdx + 1}</span>
+      </div>
+      <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+        <img class="prod-thumb" id="th-one-${prodIdx}" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
+        <select class="prod-sel" style="flex: 1;" onchange="onOneProdId(${prodIdx}, this.value)">
+          ${opts(p.prodId)}
+        </select>
+      </div>
+      ${roleSelect}
+      ${giftLabelInput}
+      ${deleteBtn}
+    </div>
+  `;
+}
+
+function addOneProd() {
+  if (state.one[0].products.length < 2) {
+    state.one[0].products.push({
+      prodId: 'mini10',
+      role: 'sub',
+      giftLabel: '致贈'
+    });
+    buildEditorBlocks();
+    renderDM();
+  }
+}
+
+function deleteOneProd(idx) {
+  state.one[0].products.splice(idx, 1);
+  buildEditorBlocks();
+  renderDM();
+}
+
+function onOneProdId(idx, val) {
+  state.one[0].products[idx].prodId = val;
+  const th = document.getElementById(`th-one-${idx}`);
+  if (th) {
+    const p = getProd(val);
+    th.src = enc(p.img);
+  }
+  renderDM();
+}
+
+function onOneProdRole(idx, role) {
+  state.one[0].products[idx].role = role;
+  buildEditorBlocks();
+  renderDM();
+}
+
+function onOneProdField(idx, field, val) {
+  state.one[0].products[idx][field] = val;
   renderDM();
 }
 
