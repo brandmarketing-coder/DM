@@ -204,6 +204,29 @@ body {
 .dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 220px; height: 310px; }
 .dm-one-pair .dm-bprod-name { font-size: 16px; }
 
+/* Styling adjustments when there are 3 products in one-grid layout */
+.dm-one-pair.has-3-prods {
+  gap: 12px;
+}
+.dm-one-pair.has-3-prods .dm-bprod.is-main .dm-bprod-img {
+  width: 130px;
+  height: 185px;
+}
+.dm-one-pair.has-3-prods .dm-bprod.is-gift .dm-bprod-img {
+  width: 90px;
+  height: 125px;
+}
+.dm-one-pair.has-3-prods .dm-bprod-name {
+  font-size: 11px;
+}
+.dm-one-pair.has-3-prods .dm-gift-badge {
+  font-size: 15px;
+  height: 26px;
+  padding: 0 12px 0 13px;
+  border-radius: 13px;
+  margin-bottom: 10px;
+}
+
 .dm-one-price-row {
   flex-shrink: 0;
   display: flex; align-items: baseline;
@@ -720,12 +743,15 @@ function renderOne(tag, subtitle) {
   const hl = c.headline
     ? `<span class="dm-headline-lbl">${c.headline}</span>` : '';
 
+  const has3Prods = c.products.length >= 3;
+  const pairClass = has3Prods ? 'dm-one-pair has-3-prods' : 'dm-one-pair';
+
   return `
     <div class="dm-content is-one-grid">
       <div class="dm-tagline">${tag}</div>
       ${subtitle ? `<div class="dm-subtitle">${subtitle}</div>` : ''}
       <div class="dm-one-block">
-        <div class="dm-one-pair">
+        <div class="${pairClass}">
           ${prodsHtml}
         </div>
         <div class="dm-one-price-row">
@@ -770,7 +796,7 @@ function cellEditor(idx, title) {
     const c = state.one[0];
     const prodsHtml = c.products.map((p, i) => oneGridProductEditor(p, i)).join('');
     
-    const addProdBtn = c.products.length < 2 ? `
+    const addProdBtn = c.products.length < 3 ? `
       <button type="button" style="width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s;"
         onclick="addOneProd()"
         onmouseover="this.style.background='#2d6235'" 
@@ -785,7 +811,7 @@ function cellEditor(idx, title) {
         <div class="block-ed-title">${title}</div>
         
         <div style="margin-bottom: 12px;">
-          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">商品清單 (最多 2 個)</span>
+          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">商品清單 (最多 3 個)</span>
           ${prodsHtml}
           ${addProdBtn}
         </div>
@@ -933,8 +959,8 @@ function oneGridProductEditor(p, prodIdx) {
     </div>
   ` : '';
 
-  // Delete button (only for the second product, i.e., prodIdx === 1)
-  const deleteBtn = prodIdx === 1 ? `
+  // Delete button (for any product other than the first one)
+  const deleteBtn = prodIdx > 0 ? `
     <button type="button" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 8px; transition: background 0.15s;" 
       onclick="deleteOneProd(${prodIdx})"
       onmouseover="this.style.background='#c53030'" 
@@ -962,7 +988,7 @@ function oneGridProductEditor(p, prodIdx) {
 }
 
 function addOneProd() {
-  if (state.one[0].products.length < 2) {
+  if (state.one[0].products.length < 3) {
     state.one[0].products.push({
       prodId: 'mini10',
       role: 'sub',
