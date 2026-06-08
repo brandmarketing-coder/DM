@@ -235,8 +235,12 @@ body {
   flex-shrink: 0;
   font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
   text-align: center; padding: 8px 24px 0;
-  max-width: 500px; white-space: pre-line;
+  max-width: 520px; white-space: pre-line;
 }
+/* 多商品時，各商品用途分列並標示品名 */
+.dm-one-usage-item { margin-bottom: 4px; }
+.dm-one-usage-item:last-child { margin-bottom: 0; }
+.dm-one-usage-name { color: #3a7d44; font-weight: 600; margin-right: 6px; }
 
 .dm-one-price-row {
   flex-shrink: 0;
@@ -664,11 +668,10 @@ const state = {
   one: [
     {
       products: [
-        { prodId: 'c100', role: 'main', giftLabel: '致贈' },
-        { prodId: 'mini10', role: 'sub', giftLabel: '致贈' }
+        { prodId: 'c100', role: 'main', giftLabel: '致贈', usage: '' },
+        { prodId: 'mini10', role: 'sub', giftLabel: '致贈', usage: '' }
       ],
       headline: '強健髮根 甦醒美麗',
-      usage: '活絡頭皮健康，打造良好養髮環境，滋養髮根強韌健康，徹底破解所有頭髮問題，激活秀髮甦醒美麗。',
       price: '5,000',
       origPrice: '8,300'
     }
@@ -870,6 +873,18 @@ function renderOne(tag, subtitle) {
   const has3Prods = c.products.length >= 3;
   const pairClass = has3Prods ? 'dm-one-pair has-3-prods' : 'dm-one-pair';
 
+  // 用途：主商品與輔助商品各自顯示；只有一筆時不加品名前綴（維持簡潔），多筆時加品名以區分
+  const usageItems = c.products.filter(p => (p.usage || '').trim());
+  let usageHtml = '';
+  if (usageItems.length === 1) {
+    usageHtml = `<div class="dm-one-usage">${usageItems[0].usage}</div>`;
+  } else if (usageItems.length > 1) {
+    const lines = usageItems.map(p =>
+      `<div class="dm-one-usage-item"><span class="dm-one-usage-name">${getProd(p.prodId).name}</span>${p.usage}</div>`
+    ).join('');
+    usageHtml = `<div class="dm-one-usage">${lines}</div>`;
+  }
+
   return `
     <div class="dm-content is-one-grid">
       <div class="dm-tagline">${tag}</div>
@@ -878,7 +893,7 @@ function renderOne(tag, subtitle) {
         <div class="${pairClass}">
           ${prodsHtml}
         </div>
-        ${c.usage ? `<div class="dm-one-usage">${c.usage}</div>` : ''}
+        ${usageHtml}
         <div class="dm-one-price-row">
           <div class="dm-one-price-main">
             ${hl}
@@ -982,12 +997,6 @@ function cellEditor(idx, title) {
           <input type="text" class="field-input" style="padding:5px 8px"
             value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
             oninput="onField(${idx},'headline',this.value)">
-        </div>
-        <div class="headline-field">
-          <label class="field-lbl">用途說明（自動帶入主商品「用途」，可修改）</label>
-          <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:48px; line-height:1.5"
-            placeholder="選擇主商品後自動帶入"
-            oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
         </div>
         <div class="price-pair">
           <div class="price-slot">
@@ -1126,6 +1135,16 @@ function oneGridProductEditor(p, prodIdx) {
     </div>
   ` : '';
 
+  // Usage field (每個商品各自的用途，自動帶入、可修改)
+  const usageInput = `
+    <div style="margin-top: 6px;">
+      <label class="field-lbl">用途說明（自動帶入該商品「用途」，可修改）</label>
+      <textarea class="field-input" style="padding: 5px 8px; resize: vertical; min-height: 44px; line-height: 1.5;"
+        placeholder="選擇商品後自動帶入"
+        oninput="onOneProdField(${prodIdx}, 'usage', this.value)">${p.usage || ''}</textarea>
+    </div>
+  `;
+
   // Delete button (for any product other than the first one)
   const deleteBtn = prodIdx > 0 ? `
     <button type="button" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 8px; transition: background 0.15s;" 
@@ -1149,6 +1168,7 @@ function oneGridProductEditor(p, prodIdx) {
       </div>
       ${roleSelect}
       ${giftLabelInput}
+      ${usageInput}
       ${deleteBtn}
     </div>
   `;
@@ -1156,12 +1176,10 @@ function oneGridProductEditor(p, prodIdx) {
 
 function addOneProd() {
   if (state.one[0].products.length < 3) {
-    state.one[0].products.push({
-      prodId: 'mini10',
-      role: 'sub',
-      giftLabel: '致贈'
-    });
-    applyOneCopy();
+    const np = { prodId: 'mini10', role: 'sub', giftLabel: '致贈', usage: '' };
+    setProductUsage(np);
+    state.one[0].products.push(np);
+    applyOneMeta();
     buildEditorBlocks();
     renderDM();
   }
@@ -1169,33 +1187,39 @@ function addOneProd() {
 
 function deleteOneProd(idx) {
   state.one[0].products.splice(idx, 1);
-  applyOneCopy();
+  applyOneMeta();
   buildEditorBlocks();
   renderDM();
 }
 
-/* 一格：標題/用途取「主商品」；原價＝所有所選商品建議售價加總，定價預設＝原價（無則 5000） */
-function applyOneCopy() {
+/* 帶入單一商品自己的用途（換商品時用，不影響其他商品已手改的用途） */
+function setProductUsage(prod) {
+  const cp = getCopy(prod.prodId);
+  prod.usage = cp ? cp.usage : '';
+}
+
+/* 一格：標題取「主商品」介紹；原價＝所有所選商品建議售價加總，定價預設＝原價（無則 5000）。
+   用途為各商品各自擁有（見 setProductUsage），此處不更動。 */
+function applyOneMeta() {
   const c = state.one[0];
   const main = c.products.find(p => p.role === 'main');
   const cp = main ? getCopy(main.prodId) : null;
   c.headline = cp ? cp.intro : '';
-  c.usage    = cp ? cp.usage : '';
   applyPricing(c, c.products.map(p => p.prodId));
 }
 
 function onOneProdId(idx, val) {
   const prod = state.one[0].products[idx];
   prod.prodId = val;
-  // 任一商品變動都會影響加總原價；主商品變動還會換標題/用途
-  applyOneCopy();
+  setProductUsage(prod);   // 換商品→帶入該商品自己的用途
+  applyOneMeta();          // 主商品可能變→標題；價格加總
   buildEditorBlocks();
   renderDM();
 }
 
 function onOneProdRole(idx, role) {
   state.one[0].products[idx].role = role;
-  applyOneCopy();
+  applyOneMeta();          // 主商品改變→標題；用途維持各商品自己的
   buildEditorBlocks();
   renderDM();
 }
@@ -1319,7 +1343,8 @@ window.addEventListener('load', () => {
   // 以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
   state.four.forEach(applyMainCopy);
   state.two.forEach(applyMainCopy);
-  applyOneCopy();
+  state.one[0].products.forEach(setProductUsage);
+  applyOneMeta();
   buildEditorBlocks();
   renderDM();
   scaleSheet();
