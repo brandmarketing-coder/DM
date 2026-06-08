@@ -6,6 +6,8 @@
 <title>O'right PRO | DM 編輯器</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<!-- 產品文案資料（由 tools/build-copy.mjs 從 產品文字彙整.xlsx 自動產生） -->
+<script src="product-copy.js"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -225,6 +227,14 @@ body {
   padding: 0 12px 0 13px;
   border-radius: 13px;
   margin-bottom: 10px;
+}
+
+/* 一格「用途說明」：主管指定 8~10pt */
+.dm-one-usage {
+  flex-shrink: 0;
+  font-size: 9pt; line-height: 1.6; color: #777;
+  text-align: center; padding: 10px 24px 0;
+  max-width: 480px; white-space: pre-line;
 }
 
 .dm-one-price-row {
@@ -496,129 +506,132 @@ body {
 ══════════════════════════════════════════════ */
 const PRO = '../產品圖片/PRO系列/';
 const SU  = '../產品圖片/Salon USE系列/';
+/* copyKey 對應「產品文字彙整.xlsx」的官網名稱，用以帶入文案（介紹／用途／售價）。
+   同一文案可被多個容量 SKU 共用；未列於 Excel 的品項 copyKey 留空（不自動帶文字）。
+   新增產品時：放圖片 → 在此新增一筆並填 copyKey（= Excel 官網名稱）→ 執行 node tools/build-copy.mjs */
 const PRODUCTS = [
   // ── PRO No.1 強健頭皮 ──
-  { id:'c100',      name:'咖啡因養髮液 100mL',                  img:PRO+'No_1 強健頭皮/100mL_02_Caffeine Botanical Scalp Revitalizer_咖啡因養髮液-長噴頭.jpg' },
-  { id:'c50',       name:'咖啡因養髮液 50mL',                   img:PRO+'No_1 強健頭皮/50mL_Caffeine Botanical Scalp Revitalizer_咖啡因養髮液.jpg' },
-  { id:'cm100',     name:'咖啡因麥拉寧養髮液 100mL',            img:PRO+'No_1 強健頭皮/100mL_02_Caffeine Melanin Botanical Scalp Revitalizer_咖啡因麥拉寧養髮液-長噴頭.jpg' },
-  { id:'him70',     name:'男士養髮液 70mL',                     img:PRO+'No_1 強健頭皮/70mL_01_Botanical Scalp Revitalizer for Him_PRO Series_男士養髮液.jpg' },
-  { id:'her70',     name:'女士養髮液 70mL',                     img:PRO+'No_1 強健頭皮/70mL_01_Botanical Scalp Revitalizer for Her_PRO Series_女士養髮液.jpg' },
-  { id:'sh1-500',   name:'強健頭皮洗髮露 500mL',                img:PRO+'No_1 強健頭皮/500mL_01_Scalp & Hair Reinforcing Shampoo_強健頭皮洗髮露.jpg' },
-  { id:'sh1-260',   name:'強健頭皮洗髮露 260mL',                img:PRO+'No_1 強健頭皮/260mL_01_Scalp & Hair Reinforcing Shampoo_強健頭皮洗髮露.jpg' },
-  { id:'sh1-400',   name:'強健頭皮洗髮露補充包 400mL',          img:PRO+'No_1 強健頭皮/400mL_01_Scalp & Hair Reinforcing Shampoo R-Pack 強健頭皮洗髮露補充包400mL.jpg' },
-  { id:'prf1',      name:'PRO 香水 1號 70mL',                   img:PRO+'No_1 強健頭皮/70mL_PRO Eau de Parfum No 1_PRO香水1號.jpg' },
-  { id:'bw1-260',   name:'PRO 1號香氛沐浴露 260mL',             img:PRO+'No_1 強健頭皮/260mL_PRO No. 1 Body Wash_PRO1號香氛沐浴露.jpg' },
-  { id:'bw1r-750',  name:'PRO 1號香氛沐浴露補充薄瓶 750mL',     img:PRO+'No_1 強健頭皮/750mL_01_香氛沐浴露Re補充薄瓶.jpg' },
+  { id:'c100',      name:'咖啡因養髮液 100mL',                  copyKey:'咖啡因養髮液',           img:PRO+'No_1 強健頭皮/100mL_02_Caffeine Botanical Scalp Revitalizer_咖啡因養髮液-長噴頭.jpg' },
+  { id:'c50',       name:'咖啡因養髮液 50mL',                   copyKey:'咖啡因養髮液',           img:PRO+'No_1 強健頭皮/50mL_Caffeine Botanical Scalp Revitalizer_咖啡因養髮液.jpg' },
+  { id:'cm100',     name:'咖啡因麥拉寧養髮液 100mL',            copyKey:'咖啡因麥拉寧養髮液',     img:PRO+'No_1 強健頭皮/100mL_02_Caffeine Melanin Botanical Scalp Revitalizer_咖啡因麥拉寧養髮液-長噴頭.jpg' },
+  { id:'him70',     name:'男士養髮液 70mL',                     copyKey:'男士養髮液',             img:PRO+'No_1 強健頭皮/70mL_01_Botanical Scalp Revitalizer for Him_PRO Series_男士養髮液.jpg' },
+  { id:'her70',     name:'女士養髮液 70mL',                     copyKey:'女士養髮液',             img:PRO+'No_1 強健頭皮/70mL_01_Botanical Scalp Revitalizer for Her_PRO Series_女士養髮液.jpg' },
+  { id:'sh1-500',   name:'強健頭皮洗髮露 500mL',                copyKey:'強健頭皮洗髮露',         img:PRO+'No_1 強健頭皮/500mL_01_Scalp & Hair Reinforcing Shampoo_強健頭皮洗髮露.jpg' },
+  { id:'sh1-260',   name:'強健頭皮洗髮露 260mL',                copyKey:'強健頭皮洗髮露',         img:PRO+'No_1 強健頭皮/260mL_01_Scalp & Hair Reinforcing Shampoo_強健頭皮洗髮露.jpg' },
+  { id:'sh1-400',   name:'強健頭皮洗髮露補充包 400mL',          copyKey:'強健頭皮洗髮露',         img:PRO+'No_1 強健頭皮/400mL_01_Scalp & Hair Reinforcing Shampoo R-Pack 強健頭皮洗髮露補充包400mL.jpg' },
+  { id:'prf1',      name:'PRO 香水 1號 70mL',                   copyKey:'PRO香水1號',             img:PRO+'No_1 強健頭皮/70mL_PRO Eau de Parfum No 1_PRO香水1號.jpg' },
+  { id:'bw1-260',   name:'PRO 1號香氛沐浴露 260mL',             copyKey:'PRO 1號香氛沐浴露',      img:PRO+'No_1 強健頭皮/260mL_PRO No. 1 Body Wash_PRO1號香氛沐浴露.jpg' },
+  { id:'bw1r-750',  name:'PRO 1號香氛沐浴露補充薄瓶 750mL',     copyKey:'PRO 1號香氛沐浴露',      img:PRO+'No_1 強健頭皮/750mL_01_香氛沐浴露Re補充薄瓶.jpg' },
   // ── PRO No.2 豐盈彈韌 ──
-  { id:'sh2-500',   name:'豐盈彈韌洗髮露 500mL',                img:PRO+'No_2 豐盈彈韌/500mL_02_Volumizing & Strengthening Shampoo_豐盈彈韌洗髮露.jpg' },
-  { id:'sh2-400',   name:'豐盈彈韌洗髮露補充包 400mL',          img:PRO+'No_2 豐盈彈韌/400mL_02_Volumizing & Strengthening Shampoo_R-Pack 豐盈彈韌洗髮露.jpg' },
-  { id:'eo2-70',    name:'豐盈彈韌精華油升級版 70mL',            img:PRO+'No_2 豐盈彈韌/70mL_02_Volumizing & Strengthening Essential Oil_豐盈彈韌精華油升級版.jpg' },
-  { id:'eo2-750',   name:'豐盈彈韌精華油 750mL',                img:PRO+'No_2 豐盈彈韌/750mL_02_Volumizing & Strengthening Essential Oil_豐盈彈韌精華油.jpg' },
-  { id:'sr2-220',   name:'豐盈彈韌調理精華 220mL',              img:PRO+'No_2 豐盈彈韌/220mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
-  { id:'sr2-260',   name:'豐盈彈韌調理精華 260mL',              img:PRO+'No_2 豐盈彈韌/260mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
-  { id:'sr2-750',   name:'豐盈彈韌調理精華 750mL',              img:PRO+'No_2 豐盈彈韌/750mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
-  { id:'ho2-10',    name:'豐盈彈韌護髮油 10mL',                 img:PRO+'No_2 豐盈彈韌/10mL_豐盈彈韌_染燙護色護髮油_正面.jpg' },
-  { id:'hl2-750',   name:'輕盈髮妝水 750mL',                    img:PRO+'No_2 豐盈彈韌/750mL_02_Smoothing Hair Lotion_輕盈髮妝水.jpg' },
-  { id:'cd2-250',   name:'護髮素 250mL',                        img:PRO+'No_2 豐盈彈韌/250mL_護髮素共用瓶.jpg' },
-  { id:'bw2r-750',  name:'PRO 2號香氛沐浴露補充薄瓶 750mL',     img:PRO+'No_2 豐盈彈韌/750mL_02_香氛沐浴露Re補充薄瓶.jpg' },
-  { id:'prf2',      name:'PRO 香水 2號 70mL',                   img:PRO+'No_2 豐盈彈韌/70mL_PRO Eau de Parfum No 2_PRO香水2號.jpg' },
+  { id:'sh2-500',   name:'豐盈彈韌洗髮露 500mL',                copyKey:'豐盈彈韌洗髮露',         img:PRO+'No_2 豐盈彈韌/500mL_02_Volumizing & Strengthening Shampoo_豐盈彈韌洗髮露.jpg' },
+  { id:'sh2-400',   name:'豐盈彈韌洗髮露補充包 400mL',          copyKey:'豐盈彈韌洗髮露',         img:PRO+'No_2 豐盈彈韌/400mL_02_Volumizing & Strengthening Shampoo_R-Pack 豐盈彈韌洗髮露.jpg' },
+  { id:'eo2-70',    name:'豐盈彈韌精華油升級版 70mL',            copyKey:'豐盈彈韌精華油',         img:PRO+'No_2 豐盈彈韌/70mL_02_Volumizing & Strengthening Essential Oil_豐盈彈韌精華油升級版.jpg' },
+  { id:'eo2-750',   name:'豐盈彈韌精華油 750mL',                copyKey:'豐盈彈韌精華油',         img:PRO+'No_2 豐盈彈韌/750mL_02_Volumizing & Strengthening Essential Oil_豐盈彈韌精華油.jpg' },
+  { id:'sr2-220',   name:'豐盈彈韌調理精華 220mL',              copyKey:'豐盈彈韌調理精華',       img:PRO+'No_2 豐盈彈韌/220mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
+  { id:'sr2-260',   name:'豐盈彈韌調理精華 260mL',              copyKey:'豐盈彈韌調理精華',       img:PRO+'No_2 豐盈彈韌/260mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
+  { id:'sr2-750',   name:'豐盈彈韌調理精華 750mL',              copyKey:'豐盈彈韌調理精華',       img:PRO+'No_2 豐盈彈韌/750mL_02_Volumizing & Strengthening Serum_豐盈彈韌調理精華.jpg' },
+  { id:'ho2-10',    name:'豐盈彈韌護髮油 10mL',                 copyKey:'豐盈彈韌精華油',         img:PRO+'No_2 豐盈彈韌/10mL_豐盈彈韌_染燙護色護髮油_正面.jpg' },
+  { id:'hl2-750',   name:'輕盈髮妝水 750mL',                    copyKey:'輕盈髮妝水',             img:PRO+'No_2 豐盈彈韌/750mL_02_Smoothing Hair Lotion_輕盈髮妝水.jpg' },
+  { id:'cd2-250',   name:'護髮素 250mL',                        copyKey:'豐盈彈韌護髮素',         img:PRO+'No_2 豐盈彈韌/250mL_護髮素共用瓶.jpg' },
+  { id:'bw2r-750',  name:'PRO 2號香氛沐浴露補充薄瓶 750mL',     copyKey:'PRO 2號香氛沐浴露',      img:PRO+'No_2 豐盈彈韌/750mL_02_香氛沐浴露Re補充薄瓶.jpg' },
+  { id:'prf2',      name:'PRO 香水 2號 70mL',                   copyKey:'PRO香水2號',             img:PRO+'No_2 豐盈彈韌/70mL_PRO Eau de Parfum No 2_PRO香水2號.jpg' },
   // ── PRO No.3 結構修護 ──
-  { id:'sh3-500',   name:'結構修護洗髮露 500mL',                img:PRO+'No_3 結構修護/500mL_03_Bond Building Shampoo_結構修護洗髮露.jpg' },
-  { id:'sh3-260',   name:'結構修護洗髮露 260mL',                img:PRO+'No_3 結構修護/260mL_03_Bond Building Shampoo_結構修護洗髮露.jpg' },
-  { id:'sh3-400',   name:'結構修護洗髮露補充包 400mL',          img:PRO+'No_3 結構修護/400mL_03_Bond Building Shampoo_R-Pack 結構修護洗髮露.jpg' },
-  { id:'el3-70',    name:'結構修護精華乳 70mL',                 img:PRO+'No_3 結構修護/70mL_03_Bond Building Essence Lotion_結構修護精華乳.jpg' },
-  { id:'el3-750',   name:'結構修護精華乳 750mL',                img:PRO+'No_3 結構修護/750mL_03_Bond Building Essence Lotion_結構修護精華乳.jpg' },
-  { id:'cd3-250',   name:'結構修護護髮素 250mL',                img:PRO+'No_3 結構修護/250mL_03_Bond Building Conditioner_結構修護護髮素.jpg' },
-  { id:'prf3',      name:'PRO 香水 3號 70mL',                   img:PRO+'No_3 結構修護/70mL_PRO Eau de Parfum No 3_PRO香水3號.jpg' },
+  { id:'sh3-500',   name:'結構修護洗髮露 500mL',                copyKey:'結構修護洗髮露',         img:PRO+'No_3 結構修護/500mL_03_Bond Building Shampoo_結構修護洗髮露.jpg' },
+  { id:'sh3-260',   name:'結構修護洗髮露 260mL',                copyKey:'結構修護洗髮露',         img:PRO+'No_3 結構修護/260mL_03_Bond Building Shampoo_結構修護洗髮露.jpg' },
+  { id:'sh3-400',   name:'結構修護洗髮露補充包 400mL',          copyKey:'結構修護洗髮露',         img:PRO+'No_3 結構修護/400mL_03_Bond Building Shampoo_R-Pack 結構修護洗髮露.jpg' },
+  { id:'el3-70',    name:'結構修護精華乳 70mL',                 copyKey:'結構修護精華乳',         img:PRO+'No_3 結構修護/70mL_03_Bond Building Essence Lotion_結構修護精華乳.jpg' },
+  { id:'el3-750',   name:'結構修護精華乳 750mL',                copyKey:'結構修護精華乳',         img:PRO+'No_3 結構修護/750mL_03_Bond Building Essence Lotion_結構修護精華乳.jpg' },
+  { id:'cd3-250',   name:'結構修護護髮素 250mL',                copyKey:'結構修護護髮素',         img:PRO+'No_3 結構修護/250mL_03_Bond Building Conditioner_結構修護護髮素.jpg' },
+  { id:'prf3',      name:'PRO 香水 3號 70mL',                   copyKey:'PRO香水3號',             img:PRO+'No_3 結構修護/70mL_PRO Eau de Parfum No 3_PRO香水3號.jpg' },
   // ── PRO No.4 染燙護色 ──
-  { id:'sh4-500',   name:'染燙護色洗髮露 500mL',                img:PRO+'No_4 染燙護色/500mL_04_Color & Perm Care Shampoo_染燙護色洗髮露.jpg' },
-  { id:'sh4-260',   name:'染燙護色洗髮露 260mL',                img:PRO+'No_4 染燙護色/260mL_04_Color & Perm Care Shampoo_染燙護色洗髮露.jpg' },
-  { id:'sh4-400',   name:'染燙護色洗髮露補充包 400mL',          img:PRO+'No_4 染燙護色/400mL_04_Color & Perm Care Shampoo_R-Pack 染燙護色洗髮露.jpg' },
-  { id:'eo4-70',    name:'染燙護色精華油 70mL',                 img:PRO+'No_4 染燙護色/70mL_04_Color & Perm Care Essential Oil_染燙護色精華油.jpg' },
-  { id:'eo4-70u',   name:'染燙護色精華油升級版 70mL',           img:PRO+'No_4 染燙護色/70mL_04_Color & Perm Care Essential Oil_染燙護色精華油升級版.jpg' },
-  { id:'eo4-750',   name:'染燙護色精華油 750mL',                img:PRO+'No_4 染燙護色/750mL_ 04_Color & Perm Care Essential Oil_染燙護色精華油.jpg' },
-  { id:'ho4-10',    name:'染燙護色精華油 10mL',                 img:PRO+'No_4 染燙護色/10mL_Color&Perm Care Essential Oil_正面.jpg' },
-  { id:'cd4-250',   name:'染燙護色護髮素 250mL',                img:PRO+'No_4 染燙護色/250mL_04_Color & Perm Care Conditioner_染燙護色護髮素.jpg' },
-  { id:'prf4',      name:'PRO 香水 4號 70mL',                   img:PRO+'No_4 染燙護色/70mL_PRO Eau de Parfum No 1_PRO香水4號.jpg' },
+  { id:'sh4-500',   name:'染燙護色洗髮露 500mL',                copyKey:'染燙護色洗髮露',         img:PRO+'No_4 染燙護色/500mL_04_Color & Perm Care Shampoo_染燙護色洗髮露.jpg' },
+  { id:'sh4-260',   name:'染燙護色洗髮露 260mL',                copyKey:'染燙護色洗髮露',         img:PRO+'No_4 染燙護色/260mL_04_Color & Perm Care Shampoo_染燙護色洗髮露.jpg' },
+  { id:'sh4-400',   name:'染燙護色洗髮露補充包 400mL',          copyKey:'染燙護色洗髮露',         img:PRO+'No_4 染燙護色/400mL_04_Color & Perm Care Shampoo_R-Pack 染燙護色洗髮露.jpg' },
+  { id:'eo4-70',    name:'染燙護色精華油 70mL',                 copyKey:'染燙護色精華油',         img:PRO+'No_4 染燙護色/70mL_04_Color & Perm Care Essential Oil_染燙護色精華油.jpg' },
+  { id:'eo4-70u',   name:'染燙護色精華油升級版 70mL',           copyKey:'染燙護色精華油',         img:PRO+'No_4 染燙護色/70mL_04_Color & Perm Care Essential Oil_染燙護色精華油升級版.jpg' },
+  { id:'eo4-750',   name:'染燙護色精華油 750mL',                copyKey:'染燙護色精華油',         img:PRO+'No_4 染燙護色/750mL_ 04_Color & Perm Care Essential Oil_染燙護色精華油.jpg' },
+  { id:'ho4-10',    name:'染燙護色精華油 10mL',                 copyKey:'染燙護色精華油',         img:PRO+'No_4 染燙護色/10mL_Color&Perm Care Essential Oil_正面.jpg' },
+  { id:'cd4-250',   name:'染燙護色護髮素 250mL',                copyKey:'染燙護色護髮素',         img:PRO+'No_4 染燙護色/250mL_04_Color & Perm Care Conditioner_染燙護色護髮素.jpg' },
+  { id:'prf4',      name:'PRO 香水 4號 70mL',                   copyKey:'PRO香水4號',             img:PRO+'No_4 染燙護色/70mL_PRO Eau de Parfum No 1_PRO香水4號.jpg' },
   // ── PRO No.5 濃縮咖啡因養髮洗髮露 ──
-  { id:'sh5-500',   name:'濃縮咖啡因養髮洗髮露 500mL',          img:PRO+'No_5 濃縮咖啡因養髮洗髮露/500mL_01_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
-  { id:'sh5-260',   name:'濃縮咖啡因養髮洗髮露 260mL',          img:PRO+'No_5 濃縮咖啡因養髮洗髮露/260mL_01_01_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
-  { id:'sh5-750',   name:'濃縮咖啡因養髮洗髮露 750mL',          img:PRO+'No_5 濃縮咖啡因養髮洗髮露/750mL_05_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
-  { id:'prf5',      name:'PRO 香水 5號 70mL',                   img:PRO+'No_5 濃縮咖啡因養髮洗髮露/70mL_PRO Eau de Parfum No 5_PRO香水5號.jpg' },
+  { id:'sh5-500',   name:'濃縮咖啡因養髮洗髮露 500mL',          copyKey:'濃縮咖啡因養髮洗髮露',   img:PRO+'No_5 濃縮咖啡因養髮洗髮露/500mL_01_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
+  { id:'sh5-260',   name:'濃縮咖啡因養髮洗髮露 260mL',          copyKey:'濃縮咖啡因養髮洗髮露',   img:PRO+'No_5 濃縮咖啡因養髮洗髮露/260mL_01_01_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
+  { id:'sh5-750',   name:'濃縮咖啡因養髮洗髮露 750mL',          copyKey:'濃縮咖啡因養髮洗髮露',   img:PRO+'No_5 濃縮咖啡因養髮洗髮露/750mL_05_Caffeine Fortifying Scalp Shampoo_濃縮咖啡因養髮洗髮露.jpg' },
+  { id:'prf5',      name:'PRO 香水 5號 70mL',                   copyKey:'PRO香水5號',             img:PRO+'No_5 濃縮咖啡因養髮洗髮露/70mL_PRO Eau de Parfum No 5_PRO香水5號.jpg' },
   // ── PRO No.6 頭皮噴霧 ──
-  { id:'sp-r60',    name:'舒活抗菌頭皮噴霧 60mL',               img:PRO+'No_6 頭皮噴霧/舒活抗菌頭皮噴霧 60mL.jpg' },
-  { id:'sp-c60',    name:'沁涼控油頭皮噴霧 60mL',               img:PRO+'No_6 頭皮噴霧/沁涼控油頭皮噴霧  60mL.jpg' },
-  { id:'sp-r750',   name:'舒活抗菌頭皮噴霧 750mL',              img:PRO+'No_6 頭皮噴霧/750mL_Scalp Relief Spray 舒活抗菌頭皮噴霧.jpg' },
-  { id:'sp-c750',   name:'沁涼控油頭皮噴霧 750mL',              img:PRO+'No_6 頭皮噴霧/750mL_Scalp Cooling & Refreshing Spray 沁涼控油頭皮噴霧.jpg' },
-  { id:'sp-c220m',  name:'沁涼控油頭皮噴霧 220mL（曼都聯名）',  img:PRO+'No_6 頭皮噴霧/曼都聯名_220mL_Scalp Cooling & Refreshing Spray 沁涼控油頭皮噴霧.jpg' },
+  { id:'sp-r60',    name:'舒活抗菌頭皮噴霧 60mL',               copyKey:'舒活抗菌頭皮噴霧',       img:PRO+'No_6 頭皮噴霧/舒活抗菌頭皮噴霧 60mL.jpg' },
+  { id:'sp-c60',    name:'沁涼控油頭皮噴霧 60mL',               copyKey:'沁涼控油頭皮噴霧',       img:PRO+'No_6 頭皮噴霧/沁涼控油頭皮噴霧  60mL.jpg' },
+  { id:'sp-r750',   name:'舒活抗菌頭皮噴霧 750mL',              copyKey:'舒活抗菌頭皮噴霧',       img:PRO+'No_6 頭皮噴霧/750mL_Scalp Relief Spray 舒活抗菌頭皮噴霧.jpg' },
+  { id:'sp-c750',   name:'沁涼控油頭皮噴霧 750mL',              copyKey:'沁涼控油頭皮噴霧',       img:PRO+'No_6 頭皮噴霧/750mL_Scalp Cooling & Refreshing Spray 沁涼控油頭皮噴霧.jpg' },
+  { id:'sp-c220m',  name:'沁涼控油頭皮噴霧 220mL（曼都聯名）',  copyKey:'沁涼控油頭皮噴霧',       img:PRO+'No_6 頭皮噴霧/曼都聯名_220mL_Scalp Cooling & Refreshing Spray 沁涼控油頭皮噴霧.jpg' },
   // ── PRO No.7 按摩油 ──
-  { id:'mo-s',      name:'靜謐舒緩按摩油 220mL',                img:PRO+'No_7按摩油/220mL_Soothing Massage Oil_靜謐舒緩按摩油.jpg' },
-  { id:'mo-r',      name:'舒活身體按摩油 220mL',                img:PRO+'No_7按摩油/220mL_Relaxing Massage Oil_舒活身體按摩油.jpg' },
-  { id:'mo-g',      name:'生薑按摩油 220mL',                    img:PRO+'No_7按摩油/220mL_Ginger Thermal  Massage Oil_生薑按摩油.jpg' },
+  { id:'mo-s',      name:'靜謐舒緩按摩油 220mL',                copyKey:'靜謐舒緩按摩油',         img:PRO+'No_7按摩油/220mL_Soothing Massage Oil_靜謐舒緩按摩油.jpg' },
+  { id:'mo-r',      name:'舒活身體按摩油 220mL',                copyKey:'舒活身體按摩油',         img:PRO+'No_7按摩油/220mL_Relaxing Massage Oil_舒活身體按摩油.jpg' },
+  { id:'mo-g',      name:'生薑按摩油 220mL',                    copyKey:'生薑按摩油',             img:PRO+'No_7按摩油/220mL_Ginger Thermal  Massage Oil_生薑按摩油.jpg' },
   // ── PRO No.8 沐浴露 ──
-  { id:'bw1',       name:'PRO 1號香氛沐浴露 500mL',             img:PRO+'No_8沐浴露/500mL_01_PRO1號香氛沐浴露.png' },
-  { id:'bw2',       name:'PRO 2號香氛沐浴露 500mL',             img:PRO+'No_8沐浴露/500mL_02_PRO2號香氛沐浴露.png' },
-  { id:'bw1r-p',    name:'PRO 1號香氛沐浴露補充薄瓶 750mL',     img:PRO+'No_8沐浴露/750mL_01_香氛沐浴露Re補充薄瓶.png' },
-  { id:'bw2r-p',    name:'PRO 2號香氛沐浴露補充薄瓶 750mL',     img:PRO+'No_8沐浴露/750mL_02_香氛沐浴露Re補充薄瓶.png' },
+  { id:'bw1',       name:'PRO 1號香氛沐浴露 500mL',             copyKey:'PRO 1號香氛沐浴露',      img:PRO+'No_8沐浴露/500mL_01_PRO1號香氛沐浴露.png' },
+  { id:'bw2',       name:'PRO 2號香氛沐浴露 500mL',             copyKey:'PRO 2號香氛沐浴露',      img:PRO+'No_8沐浴露/500mL_02_PRO2號香氛沐浴露.png' },
+  { id:'bw1r-p',    name:'PRO 1號香氛沐浴露補充薄瓶 750mL',     copyKey:'PRO 1號香氛沐浴露',      img:PRO+'No_8沐浴露/750mL_01_香氛沐浴露Re補充薄瓶.png' },
+  { id:'bw2r-p',    name:'PRO 2號香氛沐浴露補充薄瓶 750mL',     copyKey:'PRO 2號香氛沐浴露',      img:PRO+'No_8沐浴露/750mL_02_香氛沐浴露Re補充薄瓶.png' },
   // ── PRO No.9 氣霧瓶 ──
-  { id:'hsp',       name:'定型液 350mL',                        img:PRO+'No_9氣霧瓶/定型液350mL灰字綠底.jpg' },
-  { id:'hsp-wood',  name:'木頭蓋定型液 350mL',                  img:PRO+'No_9氣霧瓶/木頭蓋_定型液350mL灰字綠底.jpg' },
+  { id:'hsp',       name:'定型液 350mL',                        copyKey:'BioAir強力造型噴霧',     img:PRO+'No_9氣霧瓶/定型液350mL灰字綠底.jpg' },
+  { id:'hsp-wood',  name:'木頭蓋定型液 350mL',                  copyKey:'BioAir強力造型噴霧',     img:PRO+'No_9氣霧瓶/木頭蓋_定型液350mL灰字綠底.jpg' },
   // ── PRO No.10 造型品 ──
-  { id:'cdo',       name:'植萃彈力造型油 70mL',                 img:PRO+'No_10 造型品/70mL_4S Botanical Curl Defining Oil_植萃彈力造型油.png' },
-  { id:'scr-160',   name:'造型乳 160mL',                        img:PRO+'No_10 造型品/160mL_4S Styling Cream_造型乳.png' },
+  { id:'cdo',       name:'植萃彈力造型油 70mL',                 copyKey:'4S植萃彈力造型油',       img:PRO+'No_10 造型品/70mL_4S Botanical Curl Defining Oil_植萃彈力造型油.png' },
+  { id:'scr-160',   name:'造型乳 160mL',                        copyKey:'4S造型掌控乳',           img:PRO+'No_10 造型品/160mL_4S Styling Cream_造型乳.png' },
   // ── PRO No.99 其他副品 ──
-  { id:'comb',      name:'PRO 經典氣墊梳',                      img:PRO+'No_99 其他系列 副品/PRO經典氣墊梳.jpg' },
-  { id:'ai-set',    name:'PRO 頭皮檢測儀套組',                  img:PRO+'No_99 其他系列 副品/PRO 頭皮檢測儀套組.jpg' },
-  { id:'bag-m',     name:'PRO 芬恩環保提袋 M',                  img:PRO+'No_99 其他系列 副品/PRO芬恩環保提袋M.jpg' },
-  { id:'bag-s',     name:'PRO 芬恩環保提袋 S',                  img:PRO+'No_99 其他系列 副品/PRO芬恩環保提袋S.jpg' },
+  { id:'comb',      name:'PRO 經典氣墊梳',                      copyKey:"O'right｜PRO 經典氣墊梳", img:PRO+'No_99 其他系列 副品/PRO經典氣墊梳.jpg' },
+  { id:'ai-set',    name:'PRO 頭皮檢測儀套組',                  copyKey:'',                       img:PRO+'No_99 其他系列 副品/PRO 頭皮檢測儀套組.jpg' },
+  { id:'bag-m',     name:'PRO 芬恩環保提袋 M',                  copyKey:'',                       img:PRO+'No_99 其他系列 副品/PRO芬恩環保提袋M.jpg' },
+  { id:'bag-s',     name:'PRO 芬恩環保提袋 S',                  copyKey:'',                       img:PRO+'No_99 其他系列 副品/PRO芬恩環保提袋S.jpg' },
   // ── PRO 養髮液隨行瓶 ──
-  { id:'mini10',    name:'PRO 養髮液隨行瓶 10mL',               img:PRO+'PRO養髮液隨行瓶10mL/PRO養髮隨行瓶10mL.jpg' },
+  { id:'mini10',    name:'PRO 養髮液隨行瓶 10mL',               copyKey:'',                       img:PRO+'PRO養髮液隨行瓶10mL/PRO養髮隨行瓶10mL.jpg' },
   // ── PRO AI 頭皮檢測儀 ──
-  { id:'ai-detect', name:'AI 頭皮檢測儀',                       img:PRO+'AI頭皮檢測儀/頭皮檢測儀側面.jpg' },
-  { id:'ai-stand',  name:'AI 頭皮檢測儀＋置物架',              img:PRO+'AI頭皮檢測儀/頭皮檢測儀＋置物架.jpg' },
+  { id:'ai-detect', name:'AI 頭皮檢測儀',                       copyKey:'',                       img:PRO+'AI頭皮檢測儀/頭皮檢測儀側面.jpg' },
+  { id:'ai-stand',  name:'AI 頭皮檢測儀＋置物架',              copyKey:'',                       img:PRO+'AI頭皮檢測儀/頭皮檢測儀＋置物架.jpg' },
   // ── PRO 補充薄瓶 ──
-  { id:'refill',    name:'補充薄瓶',                            img:PRO+'補充薄瓶/補充薄瓶-正面款無背景.png' },
+  { id:'refill',    name:'補充薄瓶',                            copyKey:'',                       img:PRO+'補充薄瓶/補充薄瓶-正面款無背景.png' },
 
   // ── Salon USE 洗髮 ──
-  { id:'su-sh-rose-22',   name:'薔薇護色洗髮精 2.2L',      img:SU+'01_洗 shampoo/2.2L_Color Care Shampoo-Rose scented 沙龍用薔薇護色洗髮精.jpg' },
-  { id:'su-sh-cedar-32',  name:'雪松橙控油洗髮精 3.2L',    img:SU+'01_洗 shampoo/3.2L_Oil Contorl Shampoo-Cedarwood & prtitgrain scented 沙龍用雪松橙控油洗髮精.jpg' },
-  { id:'su-sh-repair-42', name:'香檸草修護洗髮精 4.2L',    img:SU+'01_洗 shampoo/4.2L_Repair Shampoo-Monarda scented 沙龍用香檸草修護洗髮精.jpg' },
-  { id:'su-sh-deep-52',   name:'深層洗髮精 5.2L',          img:SU+'01_洗 shampoo/5.2L_Deep Cleansing Shampoo-Lavender scented沙龍用深層洗髮精.jpg' },
-  { id:'su-sh-rose-5l',   name:'薔薇護色洗髮精 5L',        img:SU+'01_洗 shampoo/5L_Color Care Shampoo-Rose scented 沙龍用薔薇護色洗髮精.jpg' },
-  { id:'su-sh-repair-5l', name:'香檸草修護洗髮精 5L',      img:SU+'01_洗 shampoo/5L_Repair Shampoo-Monarda scented 沙龍用香檸草洗髮精.jpg' },
+  { id:'su-sh-rose-22',   name:'薔薇護色洗髮精 2.2L',      copyKey:'薔薇護色洗髮精',     img:SU+'01_洗 shampoo/2.2L_Color Care Shampoo-Rose scented 沙龍用薔薇護色洗髮精.jpg' },
+  { id:'su-sh-cedar-32',  name:'雪松橙控油洗髮精 3.2L',    copyKey:'雪松橙控油洗髮精',   img:SU+'01_洗 shampoo/3.2L_Oil Contorl Shampoo-Cedarwood & prtitgrain scented 沙龍用雪松橙控油洗髮精.jpg' },
+  { id:'su-sh-repair-42', name:'香檸草修護洗髮精 4.2L',    copyKey:'香檸草修護洗髮精',   img:SU+'01_洗 shampoo/4.2L_Repair Shampoo-Monarda scented 沙龍用香檸草修護洗髮精.jpg' },
+  { id:'su-sh-deep-52',   name:'深層洗髮精 5.2L',          copyKey:'薰衣草深層洗髮精',   img:SU+'01_洗 shampoo/5.2L_Deep Cleansing Shampoo-Lavender scented沙龍用深層洗髮精.jpg' },
+  { id:'su-sh-rose-5l',   name:'薔薇護色洗髮精 5L',        copyKey:'薔薇護色洗髮精',     img:SU+'01_洗 shampoo/5L_Color Care Shampoo-Rose scented 沙龍用薔薇護色洗髮精.jpg' },
+  { id:'su-sh-repair-5l', name:'香檸草修護洗髮精 5L',      copyKey:'香檸草修護洗髮精',   img:SU+'01_洗 shampoo/5L_Repair Shampoo-Monarda scented 沙龍用香檸草洗髮精.jpg' },
   // ── Salon USE 護髮素 ──
-  { id:'su-cd-mag-12',    name:'木蘭保濕護髮素 1.2L',      img:SU+'02.護conditioner/1.2L_Moisturizing Conditioner - Magnolia scented  沙龍用木蘭保濕護髮素.jpg' },
-  { id:'su-cd-rose-22',   name:'薔薇護色護髮素 2.2L',      img:SU+'02.護conditioner/2.2L_Color Care Conditioner - Rose scented  沙龍用薔薇護色護髮素.jpg' },
-  { id:'su-cd-mag-5l',    name:'木蘭保濕護髮素 5L',        img:SU+'02.護conditioner/5L_Moisturizing Conditioner - Magnolia scented  沙龍用木蘭保濕護髮素.jpg' },
-  { id:'su-cd-rose-5l',   name:'薔薇護色護髮素 5L',        img:SU+'02.護conditioner/5L_Color Care Conditioner - Rose scented  沙龍用薔薇護色護髮素.jpg' },
+  { id:'su-cd-mag-12',    name:'木蘭保濕護髮素 1.2L',      copyKey:'木蘭保濕護髮素',     img:SU+'02.護conditioner/1.2L_Moisturizing Conditioner - Magnolia scented  沙龍用木蘭保濕護髮素.jpg' },
+  { id:'su-cd-rose-22',   name:'薔薇護色護髮素 2.2L',      copyKey:'薔薇護色護髮素',     img:SU+'02.護conditioner/2.2L_Color Care Conditioner - Rose scented  沙龍用薔薇護色護髮素.jpg' },
+  { id:'su-cd-mag-5l',    name:'木蘭保濕護髮素 5L',        copyKey:'木蘭保濕護髮素',     img:SU+'02.護conditioner/5L_Moisturizing Conditioner - Magnolia scented  沙龍用木蘭保濕護髮素.jpg' },
+  { id:'su-cd-rose-5l',   name:'薔薇護色護髮素 5L',        copyKey:'薔薇護色護髮素',     img:SU+'02.護conditioner/5L_Color Care Conditioner - Rose scented  沙龍用薔薇護色護髮素.jpg' },
   // ── Salon USE 4D 結構護理 ──
-  { id:'su-4d-1',   name:'4D結構護理第一劑 500mL',          img:SU+'02.護conditioner/500mL_1 4D Smart Bond Treatment 4D結構護理第一劑.jpg' },
-  { id:'su-4d-2',   name:'4D結構護理第二劑 500mL',          img:SU+'02.護conditioner/500mL_2 4D Smart Bond Treatment 4D結構護理第二劑.jpg' },
-  { id:'su-4d-3',   name:'4D結構護理第三劑 500mL',          img:SU+'02.護conditioner/500mL_3 4D Smart Bond Treatment 4D結構護理第三劑.jpg' },
-  { id:'su-4d-4',   name:'4D結構護理第四劑 250mL',          img:SU+'02.護conditioner/250mL_4 4D Smart Bond Treatment 4D結構護理第四劑.jpg' },
-  { id:'su-4d-5',   name:'4D結構護理第五劑 100mL（居家）',  img:SU+'02.護conditioner/100mL_4D Smart Bond Treatment @Home 4D結構護理第五劑.jpg' },
+  { id:'su-4d-1',   name:'4D結構護理第一劑 500mL',          copyKey:'',   img:SU+'02.護conditioner/500mL_1 4D Smart Bond Treatment 4D結構護理第一劑.jpg' },
+  { id:'su-4d-2',   name:'4D結構護理第二劑 500mL',          copyKey:'',   img:SU+'02.護conditioner/500mL_2 4D Smart Bond Treatment 4D結構護理第二劑.jpg' },
+  { id:'su-4d-3',   name:'4D結構護理第三劑 500mL',          copyKey:'',   img:SU+'02.護conditioner/500mL_3 4D Smart Bond Treatment 4D結構護理第三劑.jpg' },
+  { id:'su-4d-4',   name:'4D結構護理第四劑 250mL',          copyKey:'',   img:SU+'02.護conditioner/250mL_4 4D Smart Bond Treatment 4D結構護理第四劑.jpg' },
+  { id:'su-4d-5',   name:'4D結構護理第五劑 100mL（居家）',  copyKey:'',   img:SU+'02.護conditioner/100mL_4D Smart Bond Treatment @Home 4D結構護理第五劑.jpg' },
   // ── Salon USE 頭皮養護 ──
-  { id:'su-sp-cool-220', name:'沁涼控油頭皮噴霧 220mL',    img:SU+'03.頭皮養護/220mL_Scalp Cooling & Refreshing Spray 沁涼控油頭皮噴霧.jpg' },
-  { id:'su-bamboo-a',    name:'竹萃頭皮油脂調理精華A 240mL',img:SU+'03.頭皮養護/240mL A Bamboo Anti-Grease Scalp Serum 竹萃頭皮油脂調理精華A.jpg' },
-  { id:'su-bamboo-b',    name:'竹萃頭皮油脂調理精華B 240mL',img:SU+'03.頭皮養護/240mL B Bamboo Scalp Nourishing Gel 竹萃頭皮油脂調理精華B.jpg' },
-  { id:'su-caf-gel',     name:'咖啡因頭皮賦活凍膜 240mL',  img:SU+'03.頭皮養護/240mL Caffeine Invigorating Scalp Gel 咖啡因頭皮賦活凍膜.jpg' },
-  { id:'su-hinoki',      name:'檜木頭皮去角質凝露 240mL',  img:SU+'03.頭皮養護/240mL Hinoki檜木頭皮去角質凝露 inoki Scalp Exfoliating Gel.jpg' },
-  { id:'su-algae',       name:'活岩藻頭皮精萃 55mL',       img:SU+'03.頭皮養護/55mL  Brown Algae Purifying Scalp Serum 活岩藻頭皮精萃.jpg' },
-  { id:'su-caf-serum',   name:'咖啡因頭皮賦活精萃 55mL',   img:SU+'03.頭皮養護/55mL Caffeine Invigorating Scalp Serum 咖啡因頭皮賦活精萃.jpg' },
-  { id:'su-catechin',    name:'兒茶滋養頭皮保護凝露 14mL', img:SU+'03.頭皮養護/14mL Catechin Scalp Protection Gel 兒茶滋養頭皮保護凝露.jpg' },
+  { id:'su-sp-cool-220', name:'沁涼控油頭皮噴霧 220mL',    copyKey:'沁涼控油頭皮噴霧',          img:SU+'03.頭皮養護/220mL_Scalp Cooling & Refreshing Spray 沁涼控油頭皮噴霧.jpg' },
+  { id:'su-bamboo-a',    name:'竹萃頭皮油脂調理精華A 240mL',copyKey:'竹萃頭皮油脂調理精華',      img:SU+'03.頭皮養護/240mL A Bamboo Anti-Grease Scalp Serum 竹萃頭皮油脂調理精華A.jpg' },
+  { id:'su-bamboo-b',    name:'竹萃頭皮油脂調理精華B 240mL',copyKey:'竹萃頭皮滋養凍膜',          img:SU+'03.頭皮養護/240mL B Bamboo Scalp Nourishing Gel 竹萃頭皮油脂調理精華B.jpg' },
+  { id:'su-caf-gel',     name:'咖啡因頭皮賦活凍膜 240mL',  copyKey:'咖啡因頭皮賦活凍膜',        img:SU+'03.頭皮養護/240mL Caffeine Invigorating Scalp Gel 咖啡因頭皮賦活凍膜.jpg' },
+  { id:'su-hinoki',      name:'檜木頭皮去角質凝露 240mL',  copyKey:'Hinoki檜木頭皮去角質凝露',  img:SU+'03.頭皮養護/240mL Hinoki檜木頭皮去角質凝露 inoki Scalp Exfoliating Gel.jpg' },
+  { id:'su-algae',       name:'活岩藻頭皮精萃 55mL',       copyKey:'活岩藻頭皮淨衡精萃',        img:SU+'03.頭皮養護/55mL  Brown Algae Purifying Scalp Serum 活岩藻頭皮精萃.jpg' },
+  { id:'su-caf-serum',   name:'咖啡因頭皮賦活精萃 55mL',   copyKey:'咖啡因頭皮賦活精萃',        img:SU+'03.頭皮養護/55mL Caffeine Invigorating Scalp Serum 咖啡因頭皮賦活精萃.jpg' },
+  { id:'su-catechin',    name:'兒茶滋養頭皮保護凝露 14mL', copyKey:'兒茶滋養頭皮保護凝露',      img:SU+'03.頭皮養護/14mL Catechin Scalp Protection Gel 兒茶滋養頭皮保護凝露.jpg' },
   // ── Salon USE 護髮包 ──
-  { id:'su-ht-bamboo', name:'竹萃極致保濕護髮包 70mL',     img:SU+'04.護髮包/70mL_1 Bamboo Moisturizing Hair Treatment 竹萃極致保濕護髮包.jpg' },
-  { id:'su-ht-rose',   name:'薔薇極光護色護髮包 70mL',     img:SU+'04.護髮包/70mL_2 Rose Vibrant Color Care Hair Treatment 薔薇極光護色護髮包.jpg' },
+  { id:'su-ht-bamboo', name:'竹萃極致保濕護髮包 70mL',     copyKey:'竹萃極致保濕護髮包',  img:SU+'04.護髮包/70mL_1 Bamboo Moisturizing Hair Treatment 竹萃極致保濕護髮包.jpg' },
+  { id:'su-ht-rose',   name:'薔薇極光護色護髮包 70mL',     copyKey:'薔薇極光護色護髮包',  img:SU+'04.護髮包/70mL_2 Rose Vibrant Color Care Hair Treatment 薔薇極光護色護髮包.jpg' },
   // ── Salon USE 香水 ──
-  { id:'su-prf-1', name:'香水 I 號 70mL',   img:SU+'05.香水/70mL_salon-use香水I號.jpg' },
-  { id:'su-prf-2', name:'香水 II 號 70mL',  img:SU+'05.香水/70mL_salon-use香水II號.jpg' },
-  { id:'su-prf-3', name:'香水 III 號 70mL', img:SU+'05.香水/70mL_salon-use香水III號.jpg' },
-  { id:'su-prf-4', name:'香水 IV 號 70mL',  img:SU+'05.香水/70mL_salon-use香水IV號.jpg' },
-  { id:'su-prf-5', name:'香水 V 號 70mL',   img:SU+'05.香水/70mL_salon-use香水V號.jpg' },
+  { id:'su-prf-1', name:'香水 I 號 70mL',   copyKey:'', img:SU+'05.香水/70mL_salon-use香水I號.jpg' },
+  { id:'su-prf-2', name:'香水 II 號 70mL',  copyKey:'', img:SU+'05.香水/70mL_salon-use香水II號.jpg' },
+  { id:'su-prf-3', name:'香水 III 號 70mL', copyKey:'', img:SU+'05.香水/70mL_salon-use香水III號.jpg' },
+  { id:'su-prf-4', name:'香水 IV 號 70mL',  copyKey:'', img:SU+'05.香水/70mL_salon-use香水IV號.jpg' },
+  { id:'su-prf-5', name:'香水 V 號 70mL',   copyKey:'', img:SU+'05.香水/70mL_salon-use香水V號.jpg' },
   // ── Salon USE 髮油 ──
-  { id:'su-ho-both',   name:'印加果油＆海洋藤竹護髮油 10mL', img:SU+'07.髮油/10mL_印加果油_ 海洋藤竹油_正面.jpg' },
-  { id:'su-ho-inca',   name:'印加果油 10mL',                 img:SU+'07.髮油/10mL_Inca Omega Hair Oil印加果油_背面.jpg' },
-  { id:'su-ho-bamboo', name:'海洋藤竹護髮油 10mL',           img:SU+'07.髮油/10mL_Marine 10mL_Bamboo Hair Oil 海洋藤竹護髮油 背面.jpg' },
+  { id:'su-ho-both',   name:'印加果油＆海洋藤竹護髮油 10mL', copyKey:'', img:SU+'07.髮油/10mL_印加果油_ 海洋藤竹油_正面.jpg' },
+  { id:'su-ho-inca',   name:'印加果油 10mL',                 copyKey:'', img:SU+'07.髮油/10mL_Inca Omega Hair Oil印加果油_背面.jpg' },
+  { id:'su-ho-bamboo', name:'海洋藤竹護髮油 10mL',           copyKey:'', img:SU+'07.髮油/10mL_Marine 10mL_Bamboo Hair Oil 海洋藤竹護髮油 背面.jpg' },
 ];
 
 /* ══════════════════════════════════════════════
@@ -641,7 +654,7 @@ const state = {
     mkCell('c100',  'mini10', '強健髮根 甦醒美麗',     '5,000', '8,300'),
     mkCell('cm100', 'mini10', '不染髮的黑科技',        '6,000', '9,900'),
     mkCell('him70', 'mini10', '滋養頭皮 澄透魅力',     '2,500', ''),
-    mkCell('her70', 'mini10', '豐厚專屬妳的自信美麗',  '2,500', ''),
+    mkCell('her70', 'mini10', '滋潤頭皮 迷人氣場',      '2,500', ''),
   ],
   two: [
     mkCell('sh2-500', 'mini10', '豐盈彈韌 輕盈飽滿', '3,800', '6,200'),
@@ -654,6 +667,7 @@ const state = {
         { prodId: 'mini10', role: 'sub', giftLabel: '致贈' }
       ],
       headline: '強健髮根 甦醒美麗',
+      usage: '活絡頭皮健康，打造良好養髮環境，滋養髮根強韌健康，徹底破解所有頭髮問題，激活秀髮甦醒美麗。',
       price: '5,000',
       origPrice: '8,300'
     }
@@ -677,6 +691,22 @@ const subtitles = {
 ══════════════════════════════════════════════ */
 const getProd = id => PRODUCTS.find(p => p.id === id) || PRODUCTS[0];
 const getProdOrNull = id => id ? (PRODUCTS.find(p => p.id === id) || null) : null;
+
+/* 取得某商品在「產品文字彙整.xlsx」中的文案；查不到回 null */
+function getCopy(prodId) {
+  const p = getProdOrNull(prodId);
+  if (!p || !p.copyKey) return null;
+  return (window.PRODUCT_COPY || {})[p.copyKey] || null;
+}
+
+/* 依「主商品」帶入文案：標題←介紹、原價←建議售價、（一格）用途←用途。
+   沒寫的欄位一律留空（不亂填），介紹一律取主商品。 */
+function applyMainCopy(cell) {
+  const cp = getCopy(cell.prodId);
+  cell.headline  = cp ? cp.intro : '';
+  cell.origPrice = cp ? cp.orig  : '';
+  if ('usage' in cell) cell.usage = cp ? cp.usage : '';
+}
 
 function fmt(v) {
   const n = v ? v.toString().replace(/,/g, '') : '';
@@ -836,6 +866,7 @@ function renderOne(tag, subtitle) {
         <div class="${pairClass}">
           ${prodsHtml}
         </div>
+        ${c.usage ? `<div class="dm-one-usage">${c.usage}</div>` : ''}
         <div class="dm-one-price-row">
           <div class="dm-one-price-main">
             ${hl}
@@ -906,6 +937,12 @@ function cellEditor(idx, title) {
           <input type="text" class="field-input" style="padding:5px 8px"
             value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
             oninput="onField(${idx},'headline',this.value)">
+        </div>
+        <div class="headline-field">
+          <label class="field-lbl">用途說明（自動帶入主商品「用途」，可修改）</label>
+          <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:48px; line-height:1.5"
+            placeholder="選擇主商品後自動帶入"
+            oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
         </div>
         <div class="price-pair">
           <div class="price-slot">
@@ -994,8 +1031,16 @@ function buildEditorBlocks() {
 ══════════════════════════════════════════════ */
 function onProd(idx, field, val) {
   state[layout][idx][field] = val;
-  const tid = field === 'prodId' ? `th${idx}m` : `th${idx}g`;
-  const th = document.getElementById(tid);
+
+  // 換「主商品」→ 依文案自動帶入標題與原價，並重建欄位讓輸入框同步更新
+  if (field === 'prodId') {
+    applyMainCopy(state[layout][idx]);
+    buildEditorBlocks();
+    renderDM();
+    return;
+  }
+
+  const th = document.getElementById(`th${idx}g`);
   if (th) {
     const p = val ? getProd(val) : null;
     th.src = p ? enc(p.img) : '';
@@ -1090,18 +1135,32 @@ function deleteOneProd(idx) {
   renderDM();
 }
 
+/* 一格：依「主商品」帶入標題／原價／用途（介紹與用途皆取主商品） */
+function applyOneCopy() {
+  const c = state.one[0];
+  const main = c.products.find(p => p.role === 'main');
+  const cp = main ? getCopy(main.prodId) : null;
+  c.headline  = cp ? cp.intro : '';
+  c.origPrice = cp ? cp.orig  : '';
+  c.usage     = cp ? cp.usage : '';
+}
+
 function onOneProdId(idx, val) {
-  state.one[0].products[idx].prodId = val;
+  const prod = state.one[0].products[idx];
+  prod.prodId = val;
   const th = document.getElementById(`th-one-${idx}`);
-  if (th) {
-    const p = getProd(val);
-    th.src = enc(p.img);
+  if (th) th.src = enc(getProd(val).img);
+  // 換的是主商品 → 重新帶入文案並重建欄位
+  if (prod.role === 'main') {
+    applyOneCopy();
+    buildEditorBlocks();
   }
   renderDM();
 }
 
 function onOneProdRole(idx, role) {
   state.one[0].products[idx].role = role;
+  applyOneCopy();
   buildEditorBlocks();
   renderDM();
 }

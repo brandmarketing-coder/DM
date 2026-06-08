@@ -4,18 +4,36 @@
 ```
 沙龍DM/
 ├── Coding/
-│   ├── index.html       ← 主程式（單一 HTML，無外部依賴）
+│   ├── index.html       ← 主程式（單一 HTML）
+│   ├── product-copy.js  ← 產品文案資料（自動產生，勿手改）
 │   ├── Plan.md          ← 技術規格
 │   ├── Roadmap.md       ← 功能進度
 │   └── Handoff.md       ← 本文件
+├── tools/
+│   └── build-copy.mjs   ← 由 Excel 產生 product-copy.js 的工具（Node）
+├── 產品文案/
+│   └── 產品文字彙整.xlsx ← 沙龍部門整理的文案來源（文案的單一真實來源）
 ├── 沙龍DM公版/
 │   ├── 公版DM_1.jpg     ← 頁首圖（2480×875）
 │   └── 公版DM_2.jpg     ← 頁尾圖（2480×294）
 └── 產品圖片/            ← 各產品圖，依系列分資料夾
     ├── No_1 強健頭皮/
     ├── No_2 豐盈彈韌/
-    └── ...（共 44 支產品）
+    └── ...
 ```
+
+## 文案資料流（重點）
+產品的「標題、用途、原價」文字一律以 `產品文案/產品文字彙整.xlsx` 為準：
+
+```
+產品文字彙整.xlsx ──(node tools/build-copy.mjs)──▶ Coding/product-copy.js ──▶ index.html 自動帶入
+   官網名稱/介紹/用途/建議售價                     window.PRODUCT_COPY[官網名稱]
+```
+
+- 選擇「主商品」時，系統自動帶入：**標題←介紹**、**原價←建議售價**（取第一個 TWD 數字）、（一格）**用途←用途**。
+- Excel 沒寫介紹 → 標題留空；沒寫價格（無 TWD）→ 原價留空。**不會亂填。**
+- 介紹／用途／原價一律取「主商品」，贈品不影響。
+- 帶入後欄位仍可手動修改（檔案為預設值、優先值）。
 
 ## 使用方式
 1. 用瀏覽器（建議 Chrome）開啟 `Coding/index.html`
@@ -23,22 +41,44 @@
 3. 填入標題、各格商品、促銷標語、售價
 4. 點「匯出 PDF (A4)」→ 瀏覽器列印對話框 → 選擇「另存為 PDF」
 
-## 新增/修改產品
-在 `index.html` 找到 `const PRODUCTS = [` 陣列，每筆格式：
-```js
-{ id: 'unique-id', name: '顯示名稱', img: BASE + '資料夾/檔名.jpg' }
+## 維護：更新文案（Excel 有增修時）
+沙龍部門更新 `產品文案/產品文字彙整.xlsx` 後，只要重新產生資料即可，**不必手改 index.html**：
+```bash
+node tools/build-copy.mjs
 ```
-`BASE` 已設為 `'../產品圖片/'`，路徑從該資料夾開始。
+這會重新產生 `Coding/product-copy.js`（以「官網名稱」為 key）。完成後重新整理頁面即生效。
+> 需安裝 Node.js；本工具零依賴，會自行解析 .xlsx。
+
+## 維護：新增產品
+1. 把產品圖放進 `產品圖片/` 對應資料夾。
+2. 在 `index.html` 的 `const PRODUCTS = [` 陣列新增一筆：
+   ```js
+   { id:'unique-id', name:'顯示名稱', copyKey:'Excel官網名稱', img:PRO+'資料夾/檔名.jpg' }
+   ```
+   - `copyKey` = 該產品在 Excel「官網名稱」欄的文字（多種容量可共用同一 `copyKey`）。
+   - 未列於 Excel 的品項，`copyKey` 留空字串 `''`（不自動帶文字）。
+3. 若 Excel 也新增了該產品文案，記得跑一次 `node tools/build-copy.mjs`。
 
 ## 資料狀態
-`cells[]` 陣列（4 筆），切換版面時資料保留：
+`state.four[0..3]`、`state.two[0..1]` 每格：
 ```js
 {
   prodId,    // 主商品 id
   giftId,    // 贈品 id（空字串 = 不顯示贈品）
-  headline,  // 標題文字（四格為格標題；兩格/一格為促銷標語）
+  headline,  // 標題文字（自動帶入主商品「介紹」，可改）
   price,     // 售價（字串，允許逗號，如 "5,000"）
-  origPrice, // 原價（可空，空則不顯示）
+  origPrice, // 原價（自動帶入主商品「建議售價」，可空，空則不顯示）
+  giftLabel, // 贈品標籤（如「致贈」）
+}
+```
+`state.one[0]`（一格）：
+```js
+{
+  products: [ { prodId, role:'main'|'sub', giftLabel } ],  // 最多 3 個，1 主 + 最多 2 輔
+  headline,   // 標題（主商品「介紹」）
+  usage,      // 用途說明（主商品「用途」，DM 上以 9pt 顯示；主管指定 8~10pt）
+  price,      // 售價
+  origPrice,  // 原價（主商品「建議售價」）
 }
 ```
 
