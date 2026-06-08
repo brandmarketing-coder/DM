@@ -235,11 +235,13 @@ body {
   flex-shrink: 0; width: 100%;
   display: flex; justify-content: center; align-items: flex-start; gap: 22px;
   font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
-  padding: 8px 24px 0; white-space: pre-line;
+  padding: 8px 24px 0;
 }
-.dm-one-usage-col { flex: 1 1 0; min-width: 0; text-align: center; }
-/* 單欄時不要撐滿整列，置中且限制寬度，維持易讀 */
+/* 每欄：整體在商品下方置中對齊 */
+.dm-one-usage-col { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
 .dm-one-usage-col:only-child { flex: 0 1 auto; max-width: 460px; }
+/* 用途文字本身靠左對齊（多行成左對齊段落） */
+.dm-one-usage-text { text-align: left; white-space: pre-line; }
 
 .dm-one-price-row {
   flex-shrink: 0;
@@ -875,7 +877,7 @@ function renderOne(tag, subtitle) {
   // 用途：左右分欄，幾個商品就幾欄；相同用途（同產品）只寫一次；不顯示品名
   const uniqUsages = [...new Set(c.products.map(p => (p.usage || '').trim()).filter(Boolean))];
   const usageHtml = uniqUsages.length
-    ? `<div class="dm-one-usage">${uniqUsages.map(u => `<div class="dm-one-usage-col">${u}</div>`).join('')}</div>`
+    ? `<div class="dm-one-usage">${uniqUsages.map(u => `<div class="dm-one-usage-col"><span class="dm-one-usage-text">${u}</span></div>`).join('')}</div>`
     : '';
 
   return `
