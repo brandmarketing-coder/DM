@@ -233,13 +233,13 @@ body {
   flex-shrink: 0; width: 100%;
   display: flex; justify-content: center; align-items: flex-start; gap: var(--colGap, 24px);
   font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
-  padding: 8px 24px 0;
+  padding: 8px 0 0;   /* 不加左右內距，使用途欄寬與上方商品欄完全一致 */
 }
-/* 每欄與上方商品同寬對齊；欄內整體置中（對齊商品圖），文字本身靠左 */
-.dm-one-usage-col { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
-.dm-one-usage-col:only-child { flex: 0 1 auto; max-width: 460px; }
-/* 用途文字本身靠左對齊（多行成左對齊段落） */
-.dm-one-usage-text { text-align: left; white-space: pre-line; }
+/* 每欄與上方商品同寬；用途文字區塊靠各欄左界對齊（兩段文字左邊緣一致 → 整齊兩欄、不歪）
+   區塊本身為內容寬（最長行）故香調等短行不被強制換行，僅長段落於欄寬處自動換行 */
+.dm-one-usage-col { flex: 1 1 0; min-width: 0; display: flex; justify-content: flex-start; }
+.dm-one-usage-col:only-child { flex: 0 1 460px; justify-content: center; }
+.dm-one-usage-text { display: inline-block; max-width: 100%; text-align: left; white-space: pre-line; }
 
 .dm-one-price-row {
   flex-shrink: 0;
