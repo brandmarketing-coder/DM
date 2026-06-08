@@ -201,9 +201,10 @@ body {
   display: flex; align-items: flex-end; justify-content: center;
   gap: 24px; overflow: hidden;
 }
-.dm-one-pair .dm-bprod.is-main .dm-bprod-img  { width: 170px; height: 240px; }
-.dm-one-pair .dm-bprod.is-gift .dm-bprod-img   { width: 115px; height: 161px; }
-.dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 195px; height: 275px; }
+/* 圖片尺寸乘上 --imgScale（預設 1），供自動縮放避免長用途文字爆版 */
+.dm-one-pair .dm-bprod.is-main .dm-bprod-img  { width: calc(170px * var(--imgScale, 1)); height: calc(240px * var(--imgScale, 1)); }
+.dm-one-pair .dm-bprod.is-gift .dm-bprod-img   { width: calc(115px * var(--imgScale, 1)); height: calc(161px * var(--imgScale, 1)); }
+.dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: calc(195px * var(--imgScale, 1)); height: calc(275px * var(--imgScale, 1)); }
 .dm-one-pair .dm-bprod-name { font-size: 19px; }
 
 /* Styling adjustments when there are 3 products in one-grid layout */
@@ -211,12 +212,12 @@ body {
   gap: 20px;
 }
 .dm-one-pair.has-3-prods .dm-bprod.is-main .dm-bprod-img {
-  width: 155px;
-  height: 220px;
+  width: calc(155px * var(--imgScale, 1));
+  height: calc(220px * var(--imgScale, 1));
 }
 .dm-one-pair.has-3-prods .dm-bprod.is-gift .dm-bprod-img {
-  width: 105px;
-  height: 148px;
+  width: calc(105px * var(--imgScale, 1));
+  height: calc(148px * var(--imgScale, 1));
 }
 .dm-one-pair.has-3-prods .dm-bprod-name {
   font-size: 14px;
@@ -229,12 +230,12 @@ body {
   margin-bottom: 10px;
 }
 
-/* 一格「用途說明」：主管指定 8~10pt */
+/* 一格「用途說明」：主管指定 8~10pt；--usageFS 由自動縮放在 8~10pt 間調整 */
 .dm-one-usage {
   flex-shrink: 0;
-  font-size: 9pt; line-height: 1.6; color: #777;
-  text-align: center; padding: 10px 24px 0;
-  max-width: 480px; white-space: pre-line;
+  font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
+  text-align: center; padding: 8px 24px 0;
+  max-width: 500px; white-space: pre-line;
 }
 
 .dm-one-price-row {
@@ -644,7 +645,7 @@ const PRODUCTS = [
 let layout = 'four';
 
 const mkCell = (pid, gid, hl, price, orig, gl) => ({
-  prodId: pid, giftId: gid||'', headline: hl||'', price: price||'', origPrice: orig||'',
+  prodId: pid, giftId: gid||'', headline: hl||'', usage: '', price: price||'', origPrice: orig||'',
   giftLabel: gl || '致贈'
 });
 
@@ -699,13 +700,24 @@ function getCopy(prodId) {
   return (window.PRODUCT_COPY || {})[p.copyKey] || null;
 }
 
-/* 依「主商品」帶入文案：標題←介紹、原價←建議售價、（一格）用途←用途。
-   沒寫的欄位一律留空（不亂填），介紹一律取主商品。 */
+/* 某商品在資料中的建議售價（第一個 TWD 數字）；無則 0 */
+const getOrigNum = id => { const cp = getCopy(id); return cp && cp.orig ? Number(cp.orig) : 0; };
+
+/* 原價＝所選產品（主商品＋贈品/輔助商品）建議售價「加總」。
+   定價預設＝原價；若無原價（加總為 0）則定價寫 5000、原價留空（不顯示）。 */
+function applyPricing(cell, prodIds) {
+  const sum = prodIds.filter(Boolean).reduce((s, id) => s + getOrigNum(id), 0);
+  cell.origPrice = sum > 0 ? String(sum) : '';
+  cell.price     = sum > 0 ? String(sum) : '5000';
+}
+
+/* 依「主商品」帶入文字：標題←介紹、用途←用途；沒寫的留空（不亂填）。
+   介紹／用途一律取主商品，價格依所選產品加總。 */
 function applyMainCopy(cell) {
   const cp = getCopy(cell.prodId);
-  cell.headline  = cp ? cp.intro : '';
-  cell.origPrice = cp ? cp.orig  : '';
-  if ('usage' in cell) cell.usage = cp ? cp.usage : '';
+  cell.headline = cp ? cp.intro : '';
+  cell.usage    = cp ? cp.usage : '';
+  applyPricing(cell, [cell.prodId, cell.giftId]);
 }
 
 function fmt(v) {
@@ -891,10 +903,43 @@ function renderDM() {
   const body = layout === 'four' ? renderFour(tag)
              : layout === 'two'  ? renderTwo(tag)
              : renderOne(tag, subtitle);
-  document.getElementById('dm-sheet').innerHTML =
+  const sheet = document.getElementById('dm-sheet');
+  sheet.innerHTML =
     `<div class="dm-hdr"><img src="${enc(HDR)}" alt="header"></div>` +
     body +
     `<div class="dm-ftr"><img src="${enc(FTR)}" alt="footer"></div>`;
+
+  if (layout === 'one') {
+    fitOneGrid();
+    // 頁首/頁尾圖載入後內容高度才確定，載完再校正一次
+    sheet.querySelectorAll('.dm-hdr img, .dm-ftr img').forEach(img => {
+      if (!img.complete) img.addEventListener('load', fitOneGrid, { once: true });
+    });
+  }
+}
+
+/* ── 一格自動縮放：用途文字 3 行以上時，先縮字級（10→8pt），仍超出再等比縮小商品圖，
+      確保內容不爆版、且文字不刪減 ── */
+function fitOneGrid() {
+  const block = document.querySelector('#dm-sheet .dm-one-block');
+  if (!block) return;
+  const overflow = () => {
+    const prev = block.style.justifyContent;
+    block.style.justifyContent = 'flex-start';   // 攤平以正確量測總高
+    const over = block.scrollHeight - block.clientHeight;
+    block.style.justifyContent = prev;
+    return over;
+  };
+  let fs = 10, scale = 1, guard = 0;
+  block.style.setProperty('--usageFS', fs + 'pt');
+  block.style.setProperty('--imgScale', scale);
+  while (overflow() > 1 && fs > 8 && guard++ < 20) {        // 1) 縮用途字級到 8pt
+    fs -= 0.5; block.style.setProperty('--usageFS', fs + 'pt');
+  }
+  guard = 0;
+  while (overflow() > 1 && scale > 0.6 && guard++ < 40) {   // 2) 仍超出→縮商品圖
+    scale -= 0.05; block.style.setProperty('--imgScale', scale.toFixed(2));
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -998,6 +1043,12 @@ function cellEditor(idx, title) {
           value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
           oninput="onField(${idx},'headline',this.value)">
       </div>
+      <div class="headline-field">
+        <label class="field-lbl">用途說明（自動帶入主商品「用途」，可修改）</label>
+        <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:44px; line-height:1.5"
+          placeholder="選擇主商品後自動帶入"
+          oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
+      </div>
       <div class="price-pair">
         <div class="price-slot">
           <label>售價（元）</label>
@@ -1030,25 +1081,17 @@ function buildEditorBlocks() {
    EVENT HANDLERS
 ══════════════════════════════════════════════ */
 function onProd(idx, field, val) {
-  state[layout][idx][field] = val;
+  const cell = state[layout][idx];
+  cell[field] = val;
 
-  // 換「主商品」→ 依文案自動帶入標題與原價，並重建欄位讓輸入框同步更新
+  // 換「主商品」→ 帶入標題/用途，並依加總重算原價與定價
   if (field === 'prodId') {
-    applyMainCopy(state[layout][idx]);
-    buildEditorBlocks();
-    renderDM();
-    return;
+    applyMainCopy(cell);
+  } else if (field === 'giftId') {
+    // 換「贈品」→ 標題/用途維持主商品，但原價(加總)與定價需重算
+    applyPricing(cell, [cell.prodId, cell.giftId]);
   }
-
-  const th = document.getElementById(`th${idx}g`);
-  if (th) {
-    const p = val ? getProd(val) : null;
-    th.src = p ? enc(p.img) : '';
-  }
-  if (field === 'giftId') {
-    const glField = document.getElementById(`gl-field-${idx}`);
-    if (glField) glField.style.display = val ? '' : 'none';
-  }
+  buildEditorBlocks();
   renderDM();
 }
 
@@ -1124,6 +1167,7 @@ function addOneProd() {
       role: 'sub',
       giftLabel: '致贈'
     });
+    applyOneCopy();
     buildEditorBlocks();
     renderDM();
   }
@@ -1131,30 +1175,27 @@ function addOneProd() {
 
 function deleteOneProd(idx) {
   state.one[0].products.splice(idx, 1);
+  applyOneCopy();
   buildEditorBlocks();
   renderDM();
 }
 
-/* 一格：依「主商品」帶入標題／原價／用途（介紹與用途皆取主商品） */
+/* 一格：標題/用途取「主商品」；原價＝所有所選商品建議售價加總，定價預設＝原價（無則 5000） */
 function applyOneCopy() {
   const c = state.one[0];
   const main = c.products.find(p => p.role === 'main');
   const cp = main ? getCopy(main.prodId) : null;
-  c.headline  = cp ? cp.intro : '';
-  c.origPrice = cp ? cp.orig  : '';
-  c.usage     = cp ? cp.usage : '';
+  c.headline = cp ? cp.intro : '';
+  c.usage    = cp ? cp.usage : '';
+  applyPricing(c, c.products.map(p => p.prodId));
 }
 
 function onOneProdId(idx, val) {
   const prod = state.one[0].products[idx];
   prod.prodId = val;
-  const th = document.getElementById(`th-one-${idx}`);
-  if (th) th.src = enc(getProd(val).img);
-  // 換的是主商品 → 重新帶入文案並重建欄位
-  if (prod.role === 'main') {
-    applyOneCopy();
-    buildEditorBlocks();
-  }
+  // 任一商品變動都會影響加總原價；主商品變動還會換標題/用途
+  applyOneCopy();
+  buildEditorBlocks();
   renderDM();
 }
 
@@ -1281,6 +1322,10 @@ async function exportJPG() {
    INIT
 ══════════════════════════════════════════════ */
 window.addEventListener('load', () => {
+  // 以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
+  state.four.forEach(applyMainCopy);
+  state.two.forEach(applyMainCopy);
+  applyOneCopy();
   buildEditorBlocks();
   renderDM();
   scaleSheet();
