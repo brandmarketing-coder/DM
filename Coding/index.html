@@ -195,22 +195,20 @@ body {
   padding: 10px 36px 14px; overflow: hidden;
 }
 
-/* One-grid pair: same column structure as two-grid, larger sizes */
+/* One-grid pair: 每個商品為等寬欄（與下方用途欄對齊），圖置中、底部對齊 */
 .dm-one-pair {
-  flex-shrink: 0;
+  flex-shrink: 0; width: 100%;
   display: flex; align-items: flex-end; justify-content: center;
-  gap: 24px; overflow: hidden;
+  gap: var(--colGap, 24px); overflow: hidden;
 }
+.dm-one-pair > .dm-bprod { flex: 1 1 0; min-width: 0; }
 /* 圖片尺寸乘上 --imgScale（預設 1），供自動縮放避免長用途文字爆版 */
 .dm-one-pair .dm-bprod.is-main .dm-bprod-img  { width: calc(170px * var(--imgScale, 1)); height: calc(240px * var(--imgScale, 1)); }
 .dm-one-pair .dm-bprod.is-gift .dm-bprod-img   { width: calc(115px * var(--imgScale, 1)); height: calc(161px * var(--imgScale, 1)); }
 .dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: calc(195px * var(--imgScale, 1)); height: calc(275px * var(--imgScale, 1)); }
 .dm-one-pair .dm-bprod-name { font-size: 19px; }
 
-/* Styling adjustments when there are 3 products in one-grid layout */
-.dm-one-pair.has-3-prods {
-  gap: 20px;
-}
+/* Styling adjustments when there are 3 products in one-grid layout（欄距改由 --colGap 控制） */
 .dm-one-pair.has-3-prods .dm-bprod.is-main .dm-bprod-img {
   width: calc(155px * var(--imgScale, 1));
   height: calc(220px * var(--imgScale, 1));
@@ -233,11 +231,11 @@ body {
 /* 一格「用途說明」：左右分欄（幾個商品幾欄）；主管指定 8~10pt，--usageFS 由自動縮放調整 */
 .dm-one-usage {
   flex-shrink: 0; width: 100%;
-  display: flex; justify-content: center; align-items: flex-start; gap: 22px;
+  display: flex; justify-content: center; align-items: flex-start; gap: var(--colGap, 24px);
   font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
   padding: 8px 24px 0;
 }
-/* 每欄：整體在商品下方置中對齊 */
+/* 每欄與上方商品同寬對齊；欄內整體置中（對齊商品圖），文字本身靠左 */
 .dm-one-usage-col { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
 .dm-one-usage-col:only-child { flex: 0 1 auto; max-width: 460px; }
 /* 用途文字本身靠左對齊（多行成左對齊段落） */
@@ -873,18 +871,24 @@ function renderOne(tag, subtitle) {
 
   const has3Prods = c.products.length >= 3;
   const pairClass = has3Prods ? 'dm-one-pair has-3-prods' : 'dm-one-pair';
+  const colGap = has3Prods ? 16 : 28;
 
-  // 用途：左右分欄，幾個商品就幾欄；相同用途（同產品）只寫一次；不顯示品名
-  const uniqUsages = [...new Set(c.products.map(p => (p.usage || '').trim()).filter(Boolean))];
-  const usageHtml = uniqUsages.length
-    ? `<div class="dm-one-usage">${uniqUsages.map(u => `<div class="dm-one-usage-col"><span class="dm-one-usage-text">${u}</span></div>`).join('')}</div>`
-    : '';
+  // 用途：每個商品一欄，與上方商品對齊；相同用途（同產品）只寫一次（重複者留空）；不顯示品名
+  const seenUsage = new Set();
+  let anyUsage = false;
+  const usageCols = c.products.map(p => {
+    const u = (p.usage || '').trim();
+    if (!u || seenUsage.has(u)) return `<div class="dm-one-usage-col"></div>`;
+    seenUsage.add(u); anyUsage = true;
+    return `<div class="dm-one-usage-col"><span class="dm-one-usage-text">${u}</span></div>`;
+  }).join('');
+  const usageHtml = anyUsage ? `<div class="dm-one-usage">${usageCols}</div>` : '';
 
   return `
     <div class="dm-content is-one-grid">
       <div class="dm-tagline">${tag}</div>
       ${subtitle ? `<div class="dm-subtitle">${subtitle}</div>` : ''}
-      <div class="dm-one-block">
+      <div class="dm-one-block" style="--colGap:${colGap}px">
         <div class="${pairClass}">
           ${prodsHtml}
         </div>
