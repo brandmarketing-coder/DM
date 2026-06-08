@@ -1043,12 +1043,6 @@ function cellEditor(idx, title) {
           value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
           oninput="onField(${idx},'headline',this.value)">
       </div>
-      <div class="headline-field">
-        <label class="field-lbl">用途說明（自動帶入主商品「用途」，可修改）</label>
-        <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:44px; line-height:1.5"
-          placeholder="選擇主商品後自動帶入"
-          oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
-      </div>
       <div class="price-pair">
         <div class="price-slot">
           <label>售價（元）</label>
