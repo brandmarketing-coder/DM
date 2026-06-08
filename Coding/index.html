@@ -230,17 +230,16 @@ body {
   margin-bottom: 10px;
 }
 
-/* 一格「用途說明」：主管指定 8~10pt；--usageFS 由自動縮放在 8~10pt 間調整 */
+/* 一格「用途說明」：左右分欄（幾個商品幾欄）；主管指定 8~10pt，--usageFS 由自動縮放調整 */
 .dm-one-usage {
-  flex-shrink: 0;
+  flex-shrink: 0; width: 100%;
+  display: flex; justify-content: center; align-items: flex-start; gap: 22px;
   font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
-  text-align: center; padding: 8px 24px 0;
-  max-width: 520px; white-space: pre-line;
+  padding: 8px 24px 0; white-space: pre-line;
 }
-/* 多商品時，各商品用途分列並標示品名 */
-.dm-one-usage-item { margin-bottom: 4px; }
-.dm-one-usage-item:last-child { margin-bottom: 0; }
-.dm-one-usage-name { color: #3a7d44; font-weight: 600; margin-right: 6px; }
+.dm-one-usage-col { flex: 1 1 0; min-width: 0; text-align: center; }
+/* 單欄時不要撐滿整列，置中且限制寬度，維持易讀 */
+.dm-one-usage-col:only-child { flex: 0 1 auto; max-width: 460px; }
 
 .dm-one-price-row {
   flex-shrink: 0;
@@ -873,17 +872,11 @@ function renderOne(tag, subtitle) {
   const has3Prods = c.products.length >= 3;
   const pairClass = has3Prods ? 'dm-one-pair has-3-prods' : 'dm-one-pair';
 
-  // 用途：主商品與輔助商品各自顯示；只有一筆時不加品名前綴（維持簡潔），多筆時加品名以區分
-  const usageItems = c.products.filter(p => (p.usage || '').trim());
-  let usageHtml = '';
-  if (usageItems.length === 1) {
-    usageHtml = `<div class="dm-one-usage">${usageItems[0].usage}</div>`;
-  } else if (usageItems.length > 1) {
-    const lines = usageItems.map(p =>
-      `<div class="dm-one-usage-item"><span class="dm-one-usage-name">${getProd(p.prodId).name}</span>${p.usage}</div>`
-    ).join('');
-    usageHtml = `<div class="dm-one-usage">${lines}</div>`;
-  }
+  // 用途：左右分欄，幾個商品就幾欄；相同用途（同產品）只寫一次；不顯示品名
+  const uniqUsages = [...new Set(c.products.map(p => (p.usage || '').trim()).filter(Boolean))];
+  const usageHtml = uniqUsages.length
+    ? `<div class="dm-one-usage">${uniqUsages.map(u => `<div class="dm-one-usage-col">${u}</div>`).join('')}</div>`
+    : '';
 
   return `
     <div class="dm-content is-one-grid">
