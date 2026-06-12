@@ -174,7 +174,8 @@ body {
 /* Two-grid image sizes: gift ~2/3 height of main, bottoms align via flex-end on parent */
 .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 118px; height: 152px; }
 .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 78px;  height: 102px; }
-.dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 130px; height: 165px; }
+/* 單一商品（無贈品）：高度同主商品(152)以免超出容器被裁切，寬度略大維持存在感 */
+.dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 124px; height: 152px; }
 
 /* Bundle price */
 .dm-bundle-price-row {
