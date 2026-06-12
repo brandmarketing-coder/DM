@@ -1,16 +1,7 @@
 /* eslint-disable */
-/*
- * product-copy.js — 自動產生，請勿手動編輯
- * 來源：產品文案/產品文字彙整.xlsx
+/* product-copy.js — 產品文案（key = 官網名稱）
+ * 自動產生，請勿手動編輯。來源：產品文案/PRO.csv、Salon.csv 與 產品圖片/
  * 重新產生：node tools/build-copy.mjs
- *
- * 結構：window.PRODUCT_COPY[官網名稱] = {
- *   intro: 介紹（DM 標題用）,
- *   usage: 用途（一格版面說明用）,
- *   price: 建議售價原字串,
- *   orig:  原價（從建議售價解析的第一個 TWD 數字，無則為空）,
- *   sheet: 來源工作表（PRO / SALON USE）
- * }
  */
 window.PRODUCT_COPY = {
   "強健頭皮洗髮露": {
@@ -18,356 +9,356 @@ window.PRODUCT_COPY = {
     "usage": "深入清潔淨化問題頭皮，使秀髮恢復柔軟光澤感。",
     "price": "260mL/TWD1300\n500mL/TWD2200\n750mL/TWD2200",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "男士養髮液": {
     "intro": "滋養頭皮 澄透魅力",
     "usage": "滋潤調理頭皮髮根，增添自信魅力風采。",
     "price": "70mL/TWD2500",
     "orig": "2500",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "女士養髮液": {
     "intro": "滋潤頭皮 迷人氣場",
     "usage": "滋潤調理頭皮髮根，增添精緻迷人光采。",
     "price": "70mL/TWD2500",
     "orig": "2500",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "咖啡因養髮液": {
     "intro": "強健髮根 甦醒美麗",
     "usage": "活絡頭皮健康，打造良好養髮環境，滋養髮根強韌健康，徹底破解所有頭髮問題，激活秀髮甦醒美麗。",
     "price": "100mL/TWD5000\n50mL/TWD3300\n10mL/TWD1000",
     "orig": "5000",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "咖啡因麥拉寧養髮液": {
     "intro": "不染髮的黑科技",
     "usage": "一次解決兩大頭髮根本問題，富含獨家天然椰棗萃取麥拉寧成分，強健髮根深入頭皮肌膚高效抵禦老化因子，養髮同時回復秀髮年輕光采。",
     "price": "100mL/TWD6000\n50mL/TWD3900\n10mL/TWD1100",
     "orig": "6000",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "豐盈彈韌洗髮露": {
     "intro": "清爽蓬鬆 豐盈彈潤",
     "usage": "清爽溫和洗淨髮絲，賦予髮根彈力支撐，全方位綻放秀髮豐厚蓬鬆。",
     "price": "260mL/TWD1300\n500mL/TWD2200\n750mL/TWD2200",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "輕盈髮妝水": {
     "intro": "",
     "usage": "撫平毛躁髮絲，輕盈細緻秀髮，為髮絲注入水分，維持長效保濕，讓秀髮柔順水潤。",
     "price": "220mL/TWD1200",
     "orig": "1200",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "豐盈彈韌調理精華": {
     "intro": "清爽蓬鬆 豐盈彈潤",
     "usage": "幫助髮絲補充水份，輕鬆重塑髮型，綻放秀髮彈韌蓬鬆。",
     "price": "220mL/TWD1600",
     "orig": "1600",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "豐盈彈韌護髮素": {
     "intro": "清爽蓬鬆 豐盈彈潤",
     "usage": "",
     "price": "250mL/TWD1500",
     "orig": "1500",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "豐盈彈韌精華油": {
     "intro": "清爽蓬鬆 豐盈彈潤",
     "usage": "輕盈質地，賦予髮絲彈力支撐，提供秀髮水潤光澤感，重現蓬鬆柔順髮質。",
     "price": "70mL/TWD1300\n10mL/TWD300\n750mL/TWD9600",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "結構修護洗髮露": {
     "intro": "滲透修護 結構強韌",
     "usage": "柔和潔淨髮絲，修護毛躁糾結，強韌髮質結構改善斷裂，展現自然柔順亮澤的絲滑觸感。",
-    "price": "260mL/TWD1300\n500mL/TWD2200\n750mL/TWD2200",
+    "price": "260mL/TWD1300\n500mL/TWD2200",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "結構修護精華乳": {
     "intro": "滲透修護 結構強韌",
     "usage": "快速深入髮絲，修護毛躁糾結，強韌髮質結構改善斷裂，展現自然亮澤的柔順秀髮。",
     "price": "70mL/TWD1300\n750mL/TWD9600",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "結構修護護髮素": {
     "intro": "滲透修護 結構強韌",
     "usage": "快速深入髮絲，修護毛躁糾結，強韌髮質結構改善斷裂，展現自然亮澤的柔順秀髮。",
     "price": "250mL/TWD1500",
     "orig": "1500",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "染燙護色洗髮露": {
     "intro": "潤澤護色 柔順煥彩",
     "usage": "溫和潔淨髮絲，超導保濕滲透，撫平頭髮鱗片，鎖住秀髮光澤持色力。",
     "price": "260mL/TWD1300\n500mL/TWD2200\n750mL/TWD2200",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "染燙護色護髮素": {
     "intro": "潤澤護色 柔順煥彩",
     "usage": "針對漂染燙受損髮專屬設計，超導保濕滲透，鎖住秀髮光澤持色力。",
     "price": "250mL/TWD1500",
     "orig": "1500",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "染燙護色精華油": {
     "intro": "潤澤護色 柔順煥彩",
     "usage": "針對漂染燙受損髮專屬設計，修護，隔絕高溫保護髮絲。",
     "price": "70mL/TWD1300\n10mL/TWD300\n750mL/TWD9600",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "濃縮咖啡因養髮洗髮露": {
     "intro": "濃縮升級 強健髮根",
     "usage": "天然咖啡因與植萃修護配方，活絡頭皮、滋養髮根，展現蓬鬆彈性的健康髮感。",
     "price": "260mL/TWD1300\n500mL/TWD2200\n750mL/TWD2200",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "沁涼控油頭皮噴霧": {
     "intro": "沁涼舒緩 控油調理",
     "usage": "調理舒暢頭皮清新沁涼。",
     "price": "60mL/TWD450\n750mL/TWD4500",
     "orig": "450",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "舒活抗菌頭皮噴霧": {
     "intro": "舒活頭皮 抗菌淨化",
     "usage": "調理淨化頭皮維持健康。",
     "price": "60mL/TWD450\n750mL/TWD4500",
     "orig": "450",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "BioAir強力造型噴霧": {
     "intro": "",
     "usage": "打造秀髮專業線條與質感風格，天然咖啡因為頭皮注入活力，帶來自然持久的定型效果。",
     "price": "350mL",
     "orig": "",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "4S植萃彈力造型油": {
     "intro": "彈力精質美感 柔亮有型",
     "usage": "作為 4S 翎羽燙後的收尾打底，輕盈包覆髮絲，帶來彈性支撐與清晰捲度線條；呈現柔亮的絲緞光澤與俐落輪廓，同時維持輕盈不厚重的觸感。",
     "price": "70mL/TWD1300",
     "orig": "1300",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "4S造型掌控乳": {
     "intro": "為4S強韌捲度而生，延續完美植萃掌控",
     "usage": "提供髮絲強韌支撐，同時長效潤澤，有效改善乾燥毛躁。延續植萃完美掌控，讓秀髮提亮捲度更加立體。",
     "price": "160mL/TWD980",
     "orig": "980",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "O'right｜PRO 經典氣墊梳": {
     "intro": "",
     "usage": "梳順髮絲，按摩頭部肌膚促進新陳代謝。",
     "price": "",
     "orig": "",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO 1號香氛沐浴露": {
     "intro": "溫潤木質，淨衡緊緻",
     "usage": "輕盈配方溫和包覆潔淨肌膚，維持肌膚油水平衡，幫助對抗環境傷害，提升外在防禦力。",
     "price": "260mL/TWD900\n500mL/TWD1500\n750mL/TWD1500",
     "orig": "900",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO 2號香氛沐浴露": {
     "intro": "清新晨柚，柔嫩細緻",
     "usage": "獨創配方輕柔潔淨肌膚，結合精選植物萃取賦予肌膚彈性，淡化細紋，讓肌膚重獲豐盈彈潤感。",
     "price": "260mL/TWD900\n500mL/TWD1500\n750mL/TWD1500",
     "orig": "900",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO香水1號": {
     "intro": "",
-    "usage": "香氛\n前 味：薰衣草、康乃馨、佛手柑\n中 味：迷迭香、丁香、百里香、月桂葉\n後 味：廣藿香、秘魯香脂",
+    "usage": "前味：薰衣草、康乃馨、佛手柑\n中味：迷迭香、丁香、百里香、月桂葉\n後味：廣藿香、秘魯香脂",
     "price": "70mL/TWD5600",
     "orig": "5600",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO香水2號": {
     "intro": "",
     "usage": "前味：柑橘、葡萄柚、佛手柑\n中味：鼠尾草、鈴蘭花、茉莉花、雪松木\n後味：麝香、琥珀、柏木",
     "price": "70mL/TWD5600",
     "orig": "5600",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO香水3號": {
     "intro": "",
-    "usage": "前味：檸檬、蜜桃、甜李\n中味：玫瑰、紫羅蘭、蜂蜜\n後味：廣藿香、麝香、琥珀",
+    "usage": "前 味：檸檬、蜜桃、甜李\n中 味：玫瑰、紫羅蘭、蜂蜜\n後 味：廣藿香、麝香、琥珀",
     "price": "70mL/TWD5600",
     "orig": "5600",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO香水4號": {
     "intro": "",
     "usage": "前味：佛手柑、檸檬、粉紅胡椒、\n中味：玫瑰、茉莉花、紫羅蘭、雪松木\n後味：香根草、琥珀、麝香、廣藿香",
     "price": "70mL/TWD5600",
     "orig": "5600",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "PRO香水5號": {
     "intro": "",
     "usage": "前味：梨子、萊姆、葡萄柚、香橙、冷杉葉\n中味：玫瑰、茉莉、鈴蘭、椴樹花、依蘭依蘭\n後味：檀香、雪松、琥珀、橡苔、麝香",
     "price": "70mL/TWD5600",
     "orig": "5600",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "舒活身體按摩油": {
     "intro": "",
     "usage": "自然涼感，舒緩日常沈積的疲勞與不適。",
     "price": "220mL/TWD2200",
     "orig": "2200",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "靜謐舒緩按摩油": {
     "intro": "",
     "usage": "潤澤肌膚，舒緩深層的壓力與不適。",
     "price": "220mL/TWD2200",
     "orig": "2200",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "生薑按摩油": {
     "intro": "自然能量 舒緩疲憊",
     "usage": "自然能量注入肌膚，微微溫感滋潤調理，舒緩壓力與疲憊感。",
     "price": "220mL/TWD2200",
     "orig": "2200",
-    "sheet": "PRO"
+    "series": "PRO"
   },
   "竹萃極致保濕護髮包": {
     "intro": "極致水潤保濕",
     "usage": "適用乾燥受損髮質，賦予極致保濕潤澤。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "薔薇極光護色護髮包": {
     "intro": "煥彩護色 柔順優雅",
     "usage": "防止染後秀髮掉色，賦予染燙髮閃耀光澤與柔順優雅魅力。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "咖啡因頭皮賦活精萃": {
     "intro": "奇激賦活 珍萃逆齡",
     "usage": "深層淨化頭皮肌膚，活絡強健頭皮，釋放逆齡養護能量。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "活岩藻頭皮淨衡精萃": {
     "intro": "藻萃淨衡 煥然綻生",
     "usage": "深層淨化頭皮肌膚，釋放舒緩養護能量，頭皮肌底煥然綻放。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "竹萃頭皮油脂調理精華": {
     "intro": "純淨天然能量",
     "usage": "平衡潔淨頭皮油脂。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "竹萃頭皮滋養凍膜": {
     "intro": "純淨天然能量",
     "usage": "保濕滋潤、調理頭皮，延緩頭皮老化。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "Hinoki檜木頭皮去角質凝露": {
     "intro": "天然平衡淨化",
     "usage": "平衡頭皮油脂，淨化老廢角質，促進煥新。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "咖啡因頭皮賦活凍膜": {
     "intro": "奇激強韌 金萃逆齡",
     "usage": "滋養髮根健康強韌，注入水潤，釋放逆齡養護能量，延緩頭皮老化。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "兒茶滋養頭皮保護凝露": {
     "intro": "溫和的染燙防護",
     "usage": "針對所有頭皮類型的染燙前護理設計，兒茶素賦予頭皮防護屏障，減緩染燙不適，同時保養頭皮健康。",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "印加果｜極萃鎏金養護高訂喚活套盒": {
     "intro": "一盒實現沙龍養護 × 進階修護的絲滑銜接\n\n高效質感沙龍護理體驗",
     "usage": "專為燙後、染後、乾燥受損髮質設計研發\n針對粗硬髮打造專屬護養療程\n結合即效感 × 漸進式修護，打造髮絲健康彈韌\n提升髮型完成度，延長造型效果與護髮壽命\n臻選天然植萃成分，打造如絲綢般的髮絲光采",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "海洋藤竹｜極萃鎏金養護高訂喚活套盒": {
     "intro": "一盒實現沙龍養護 × 進階修護的絲滑銜接\n\n高效質感沙龍護理體驗",
     "usage": "專為燙後、染後、乾燥受損髮質設計研發\n針對粗硬髮打造專屬護養療程\n結合即效感 × 漸進式修護，打造髮絲健康彈韌\n提升髮型完成度，延長造型效果與護髮壽命\n臻選天然植萃成分，打造如絲綢般的髮絲光采",
     "price": "",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "木蘭保濕洗髮精": {
     "intro": "保濕柔順",
     "usage": "一般、乾燥髮質保濕修護，輕柔潔淨。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "薔薇護色洗髮精": {
     "intro": "護色豐盈柔亮",
     "usage": "染燙髮質潔淨，秀髮柔亮。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "雪松橙控油洗髮精": {
     "intro": "平衡調理油脂",
     "usage": "深層潔淨，平衡油脂。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "香檸草修護洗髮精": {
     "intro": "清新淨化舒緩",
     "usage": "淨化修護，頭皮清新舒暢。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "薰衣草深層洗髮精": {
     "intro": "深層潔淨",
     "usage": "染燙護髮前深層潔淨頭皮與髮絲殘留物。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "木蘭保濕護髮素": {
     "intro": "保濕補水",
     "usage": "調理乾燥受損髮，保濕補水。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   },
   "薔薇護色護髮素": {
     "intro": "豐潤亮澤",
     "usage": "滋潤修護染燙受損髮質。",
     "price": "2000mL",
     "orig": "",
-    "sheet": "SALON USE"
+    "series": "Salon USE"
   }
 };

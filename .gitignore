@@ -13,6 +13,9 @@ logo_new.png
 PRO產品文案(給Jenny)/
 .claude/
 
-# 產品文案：只追蹤彙整後的 xlsx，原始 docx 來源（約 13MB）不入庫
+# 產品文案：追蹤 CSV（文案來源），原始 docx 來源（約 13MB）不入庫
 產品文案/PRO/
 產品文案/Salon USE/
+
+# 雜項
+__pycache__/

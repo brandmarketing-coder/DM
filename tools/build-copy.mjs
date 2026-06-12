@@ -1,167 +1,130 @@
 #!/usr/bin/env node
 /*
- * build-copy.mjs — 從沙龍部門的 Excel 產生 Coding/product-copy.js
+ * build-copy.mjs — 由「產品文案 CSV」+「產品圖片資料夾」產生 DM 編輯器的資料檔
  *
- * 用途：
- *   沙龍部門更新「產品文案/產品文字彙整.xlsx」後，執行本程式即可
- *   重新產生 DM 編輯器使用的文案資料，無需手動改 index.html。
+ * 產生兩個檔（皆放在 Coding/，由 index.html 以 <script> 載入）：
+ *   1) product-copy.js  → window.PRODUCT_COPY[官網名稱] = { intro, usage, price, orig, series }
+ *   2) products.js      → window.PRODUCTS = [ { id, name, series, copyKey, img }, ... ]
  *
- * 執行（需安裝 Node.js）：
- *   node tools/build-copy.mjs
+ * 規則：
+ *   - 每個圖片檔 = 一個項目；名稱 = 圖片檔名（去副檔名），系列依資料夾（PRO系列／Salon USE系列）。
+ *   - copyKey：以 CSV 的「官網名稱」去比對圖片檔名（取最長且為檔名子字串者），用來帶入文案／價格。
+ *   - 原價 orig：自「建議售價」取第一個 TWD 數字；無 TWD（如 2000mL 或空白）則為空。
  *
- * 來源 Excel 欄位（兩個工作表 PRO / SALON USE，第一列為標題）：
- *   A 官網名稱 | B 介紹 | C 用途 | D 建議售價
+ * 維護：沙龍部門更新 產品文案/PRO.csv、Salon.csv（請存成 UTF-8），或增減 產品圖片/ 內的圖檔後，
+ *       執行： node tools/build-copy.mjs    即可重新產生上述兩個檔，無需手改 index.html。
  *
- * 產生檔：Coding/product-copy.js  （以「官網名稱」為 key）
- *
- * 本程式不依賴任何 npm 套件，自行解析 .xlsx（zip + XML）。
+ * 零依賴（僅用 Node 內建模組）。
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
-const xlsxPath = process.argv[2] || path.join(repoRoot, '產品文案', '產品文字彙整.xlsx');
-const outPath = path.join(repoRoot, 'Coding', 'product-copy.js');
+const copyDir = path.join(repoRoot, '產品文案');
+const imgRoot = path.join(repoRoot, '產品圖片');
+const outCopy = path.join(repoRoot, 'Coding', 'product-copy.js');
+const outProducts = path.join(repoRoot, 'Coding', 'products.js');
 
-/* ── 極簡 ZIP 讀取（透過中央目錄，零依賴） ── */
-function readZipEntries(buf) {
-  // 找 End Of Central Directory (EOCD) 簽章 0x06054b50
-  let eocd = -1;
-  for (let i = buf.length - 22; i >= 0; i--) {
-    if (buf.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+/* ── 極簡 CSV 解析（支援雙引號內含逗號／換行、"" 跳脫） ── */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
   }
-  if (eocd < 0) throw new Error('不是有效的 .xlsx（找不到 ZIP 中央目錄）');
-  const cdOffset = buf.readUInt32LE(eocd + 16);
-  const cdCount = buf.readUInt16LE(eocd + 10);
-
-  const entries = {};
-  let p = cdOffset;
-  for (let n = 0; n < cdCount; n++) {
-    if (buf.readUInt32LE(p) !== 0x02014b50) break;
-    const method = buf.readUInt16LE(p + 10);
-    const compSize = buf.readUInt32LE(p + 20);
-    const nameLen = buf.readUInt16LE(p + 28);
-    const extraLen = buf.readUInt16LE(p + 30);
-    const commentLen = buf.readUInt16LE(p + 32);
-    const localOff = buf.readUInt32LE(p + 42);
-    const name = buf.toString('utf8', p + 46, p + 46 + nameLen);
-
-    // 讀本地檔頭以取得資料起點
-    const lNameLen = buf.readUInt16LE(localOff + 26);
-    const lExtraLen = buf.readUInt16LE(localOff + 28);
-    const dataStart = localOff + 30 + lNameLen + lExtraLen;
-    const raw = buf.subarray(dataStart, dataStart + compSize);
-    entries[name] = method === 0 ? raw : zlib.inflateRawSync(raw);
-
-    p += 46 + nameLen + extraLen + commentLen;
-  }
-  return entries;
-}
-
-const decodeXml = s => (s || '')
-  .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-  .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
-  .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-  .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
-  .replace(/&amp;/g, '&');
-
-function parseSharedStrings(xml) {
-  if (!xml) return [];
-  const out = [];
-  for (const m of xml.matchAll(/<si>([\s\S]*?)<\/si>/g)) {
-    let s = '';
-    for (const t of m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) s += t[1];
-    out.push(decodeXml(s));
-  }
-  return out;
-}
-
-const colToNum = col => { let n = 0; for (const c of col) n = n * 26 + (c.charCodeAt(0) - 64); return n; };
-
-function parseSheet(xml, shared) {
-  const rows = {};
-  const cRe = /<c\s+r="([A-Z]+)(\d+)"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
-  let c;
-  while ((c = cRe.exec(xml))) {
-    const col = colToNum(c[1]);
-    const row = parseInt(c[2], 10);
-    const attrs = c[3] || '';
-    const body = c[4] || '';
-    const t = (attrs.match(/t="([^"]+)"/) || [])[1] || 'n';
-    let val = '';
-    const v = body.match(/<v>([\s\S]*?)<\/v>/);
-    if (t === 's' && v) val = shared[parseInt(v[1], 10)] || '';
-    else if (t === 'inlineStr') { const im = body.match(/<t[^>]*>([\s\S]*?)<\/t>/); val = im ? decodeXml(im[1]) : ''; }
-    else if (v) val = decodeXml(v[1]);
-    (rows[row] = rows[row] || {})[col] = val;
-  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
   return rows;
 }
 
-/* 規整文字：CRLF→\n、去除前後空白 */
-const clean = s => (s || '').replace(/\r\n?/g, '\n').replace(/ /g, ' ').trim();
+const clean = s => (s || '').replace(/\r\n?/g, '\n').replace(/　/g, ' ').trim();
+const parseOrig = p => { const m = (p || '').match(/TWD\s*([\d,]+)/i); return m ? m[1].replace(/,/g, '') : ''; };
 
-/* 從「建議售價」抽出第一個 TWD 數字作為原價；沒有 TWD 則回空字串 */
-function parseOrig(priceStr) {
-  const m = (priceStr || '').match(/TWD\s*([\d,]+)/i);
-  return m ? m[1].replace(/,/g, '') : '';
+/* 依「該 SKU 容量」自建議售價取對應價格（無容量或找不到 → 取第一個 TWD；皆無 → 空） */
+const sizeOf = name => { const m = (name || '').match(/(\d+)\s*mL/i); return m ? m[1] : ''; };
+function origForSize(name, priceStr) {
+  if (!priceStr) return '';
+  const size = sizeOf(name);
+  if (size) {
+    const m = priceStr.match(new RegExp('(?:^|\\n)\\s*' + size + '\\s*mL\\s*/\\s*TWD\\s*([\\d,]+)', 'i'));
+    if (m) return m[1].replace(/,/g, '');
+  }
+  return parseOrig(priceStr);
 }
 
-/* ── 主流程 ── */
-const buf = fs.readFileSync(xlsxPath);
-const entries = readZipEntries(buf);
-const shared = parseSharedStrings(entries['xl/sharedStrings.xml']?.toString('utf8'));
-
-// 依 workbook 順序取得工作表名稱與對應檔案
-const wb = entries['xl/workbook.xml'].toString('utf8');
-const rels = entries['xl/_rels/workbook.xml.rels'].toString('utf8');
-const relMap = {};
-for (const m of rels.matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"/g)) relMap[m[1]] = m[2];
-const sheetFiles = [];
-for (const m of wb.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*r:id="([^"]+)"/g)) {
-  const target = relMap[m[2]] || '';
-  sheetFiles.push({ name: m[1], file: 'xl/' + target.replace(/^\/?xl\//, '') });
+/* ── 讀 CSV → 文案 map（key = 官網名稱） ── */
+function loadCopy(file, series) {
+  const rows = parseCSV(fs.readFileSync(path.join(copyDir, file), 'utf8'));
+  const map = {};
+  for (let r = 1; r < rows.length; r++) {       // 跳過標題列
+    const [name, intro, usage, price] = rows[r];
+    const key = clean(name);
+    if (!key) continue;                          // 略過空白列
+    map[key] = { intro: clean(intro), usage: clean(usage), price: clean(price), orig: parseOrig(price), series };
+  }
+  return map;
 }
 
-const copy = {};
-let count = 0;
-for (const { name, file } of sheetFiles) {
-  const xml = entries[file]?.toString('utf8');
-  if (!xml) continue;
-  const rows = parseSheet(xml, shared);
-  const rowNums = Object.keys(rows).map(Number).sort((a, b) => a - b);
-  for (const r of rowNums) {
-    if (r === 1) continue; // 標題列
-    const cells = rows[r];
-    const key = clean(cells[1]);            // A 官網名稱
-    if (!key) continue;
-    const intro = clean(cells[2]);          // B 介紹
-    const usage = clean(cells[3]);          // C 用途
-    const price = clean(cells[4]);          // D 建議售價
-    copy[key] = { intro, usage, price, orig: parseOrig(price), sheet: name };
-    count++;
+const copy = { ...loadCopy('PRO.csv', 'PRO'), ...loadCopy('Salon.csv', 'Salon USE') };
+const copyKeys = Object.keys(copy);
+
+/* ── 比對圖片檔名 → 官網名稱（取最長且為檔名子字串者） ── */
+const norm = s => s.replace(/\s/g, '');
+function matchKey(nameNoExt) {
+  const fn = norm(nameNoExt);
+  let best = '';
+  for (const k of copyKeys) {
+    const nk = norm(k);
+    if (fn.includes(nk) && nk.length > norm(best).length) best = k;
+  }
+  return best;
+}
+
+/* ── 掃描圖片資料夾 → PRODUCTS ── */
+const FOLDERS = [
+  { dir: 'PRO系列', series: 'PRO' },
+  { dir: 'Salon USE系列', series: 'Salon USE' },
+];
+const IMG_RE = /\.(png|jpe?g)$/i;
+const products = [];
+const unmatched = [];
+for (const { dir, series } of FOLDERS) {
+  const full = path.join(imgRoot, dir);
+  if (!fs.existsSync(full)) continue;
+  const files = fs.readdirSync(full).filter(f => IMG_RE.test(f)).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+  for (const f of files) {
+    const nameNoExt = f.replace(IMG_RE, '');
+    const copyKey = matchKey(nameNoExt);
+    if (!copyKey) unmatched.push(`${dir}/${f}`);
+    const orig = copyKey ? origForSize(nameNoExt, copy[copyKey].price) : '';
+    products.push({ id: nameNoExt, name: nameNoExt, series, copyKey, orig, img: `../產品圖片/${dir}/${f}` });
   }
 }
 
-const header = `/* eslint-disable */
-/*
- * product-copy.js — 自動產生，請勿手動編輯
- * 來源：產品文案/產品文字彙整.xlsx
+/* ── 輸出 ── */
+const head = (title) => `/* eslint-disable */
+/* ${title}
+ * 自動產生，請勿手動編輯。來源：產品文案/PRO.csv、Salon.csv 與 產品圖片/
  * 重新產生：node tools/build-copy.mjs
- *
- * 結構：window.PRODUCT_COPY[官網名稱] = {
- *   intro: 介紹（DM 標題用）,
- *   usage: 用途（一格版面說明用）,
- *   price: 建議售價原字串,
- *   orig:  原價（從建議售價解析的第一個 TWD 數字，無則為空）,
- *   sheet: 來源工作表（PRO / SALON USE）
- * }
  */
 `;
+fs.writeFileSync(outCopy, head('product-copy.js — 產品文案（key = 官網名稱）') + 'window.PRODUCT_COPY = ' + JSON.stringify(copy, null, 2) + ';\n', 'utf8');
+fs.writeFileSync(outProducts, head('products.js — 商品清單（每個圖片檔一筆）') + 'window.PRODUCTS = ' + JSON.stringify(products, null, 2) + ';\n', 'utf8');
 
-const body = 'window.PRODUCT_COPY = ' + JSON.stringify(copy, null, 2) + ';\n';
-fs.writeFileSync(outPath, header + body, 'utf8');
-console.log(`✓ 已寫入 ${path.relative(repoRoot, outPath)}（${count} 筆產品文案，來自 ${sheetFiles.map(s => s.name).join(' / ')}）`);
+console.log(`✓ products.js：${products.length} 個項目（PRO ${products.filter(p=>p.series==='PRO').length} ／ Salon USE ${products.filter(p=>p.series==='Salon USE').length}）`);
+console.log(`✓ product-copy.js：${copyKeys.length} 筆文案`);
+if (unmatched.length) console.log(`⚠ 無對應文案的圖片（copyKey 留空）：\n  ${unmatched.join('\n  ')}`);
+else console.log('✓ 全部圖片都對應到文案');

@@ -5,30 +5,35 @@
 沙龍DM/
 ├── Coding/
 │   ├── index.html       ← 主程式（單一 HTML）
+│   ├── products.js      ← 商品清單（自動產生，勿手改）：每個圖片檔一筆
 │   ├── product-copy.js  ← 產品文案資料（自動產生，勿手改）
-│   ├── Plan.md          ← 技術規格
-│   ├── Roadmap.md       ← 功能進度
-│   └── Handoff.md       ← 本文件
+│   ├── Plan.md / Roadmap.md / Handoff.md
 ├── tools/
-│   └── build-copy.mjs   ← 由 Excel 產生 product-copy.js 的工具（Node）
+│   └── build-copy.mjs   ← 由「圖片資料夾＋CSV」產生上述兩個檔的工具（Node）
 ├── 產品文案/
-│   └── 產品文字彙整.xlsx ← 沙龍部門整理的文案來源（文案的單一真實來源）
+│   ├── PRO.csv          ← PRO 系列文案來源（UTF-8）
+│   └── Salon.csv        ← Salon USE 系列文案來源（UTF-8）
 ├── 沙龍DM公版/
-│   ├── 公版DM_1.jpg     ← 頁首圖（2480×875）
-│   └── 公版DM_2.jpg     ← 頁尾圖（2480×294）
-└── 產品圖片/            ← 各產品圖，依系列分資料夾
-    ├── No_1 強健頭皮/
-    ├── No_2 豐盈彈韌/
-    └── ...
+│   ├── 公版DM_1.jpg     ← 頁首圖
+│   └── 公版DM_2.jpg     ← 頁尾圖
+└── 產品圖片/
+    ├── PRO系列/         ← PRO 商品圖（檔名即品名，如「咖啡因養髮液100mL.png」）
+    └── Salon USE系列/   ← Salon USE 商品圖
 ```
 
-## 文案資料流（重點）
-產品的「標題、用途、原價」文字一律以 `產品文案/產品文字彙整.xlsx` 為準：
+## 資料流（重點）
+商品清單由「圖片資料夾」決定，文案／價格由「CSV」決定，兩者用 `node tools/build-copy.mjs` 合併產生：
 
 ```
-產品文字彙整.xlsx ──(node tools/build-copy.mjs)──▶ Coding/product-copy.js ──▶ index.html 自動帶入
-   官網名稱/介紹/用途/建議售價                     window.PRODUCT_COPY[官網名稱]
+產品圖片/PRO系列、Salon USE系列  ─┐
+                                  ├─(build-copy.mjs)→ Coding/products.js（window.PRODUCTS：74 筆）
+產品文案/PRO.csv、Salon.csv       ─┘                  Coding/product-copy.js（window.PRODUCT_COPY）
 ```
+
+- **每個圖片檔＝一個項目**，`name` ＝ 圖片檔名（去副檔名），`series` 依資料夾（PRO／Salon USE）。
+- 下拉選單顯示 **【PRO】/【Salon USE】＋圖片檔名**。
+- `copyKey`：自動以 CSV「官網名稱」比對圖片檔名（取最長子字串），用來帶入文案／價格。
+- 每筆 `orig`（建議售價）依該 SKU 的**容量**自 CSV 售價對應（如 10mL→該 10mL 價）。
 
 - 選擇商品時自動帶入：
   - **標題 ← 介紹**（取主商品；沒寫 → 留空，不亂填）
@@ -46,23 +51,16 @@
 3. 填入標題、各格商品、促銷標語、售價
 4. 點「匯出 PDF (A4)」→ 瀏覽器列印對話框 → 選擇「另存為 PDF」
 
-## 維護：更新文案（Excel 有增修時）
-沙龍部門更新 `產品文案/產品文字彙整.xlsx` 後，只要重新產生資料即可，**不必手改 index.html**：
-```bash
-node tools/build-copy.mjs
-```
-這會重新產生 `Coding/product-copy.js`（以「官網名稱」為 key）。完成後重新整理頁面即生效。
-> 需安裝 Node.js；本工具零依賴，會自行解析 .xlsx。
-
-## 維護：新增產品
-1. 把產品圖放進 `產品圖片/` 對應資料夾。
-2. 在 `index.html` 的 `const PRODUCTS = [` 陣列新增一筆：
-   ```js
-   { id:'unique-id', name:'顯示名稱', copyKey:'Excel官網名稱', img:PRO+'資料夾/檔名.jpg' }
+## 維護：新增／異動產品或文案
+1. **改圖**：在 `產品圖片/PRO系列` 或 `Salon USE系列` 放入／移除圖檔（檔名即品名，建議含容量，如「咖啡因養髮液100mL.png」）。
+2. **改文案／價格**：編輯 `產品文案/PRO.csv`、`Salon.csv`（欄位：官網名稱,介紹,用途,建議售價,…；**請存成 UTF-8**）。
+3. 執行重新產生（**不必手改 index.html**）：
+   ```bash
+   node tools/build-copy.mjs
    ```
-   - `copyKey` = 該產品在 Excel「官網名稱」欄的文字（多種容量可共用同一 `copyKey`）。
-   - 未列於 Excel 的品項，`copyKey` 留空字串 `''`（不自動帶文字）。
-3. 若 Excel 也新增了該產品文案，記得跑一次 `node tools/build-copy.mjs`。
+   完成後重新整理頁面即生效。工具會印出項目數，並列出找不到對應文案的圖片（其 copyKey 留空、不自動帶文字）。
+> 需安裝 Node.js；本工具零依賴。比對方式：CSV「官網名稱」是否為圖片檔名的子字串（自動忽略空白），取最長者。
+> 若新增的圖片沒被正確對應，多半是檔名與官網名稱差異過大——讓檔名包含官網名稱即可。
 
 ## 資料狀態
 `state.four[0..3]`、`state.two[0..1]` 每格：
