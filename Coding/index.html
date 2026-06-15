@@ -444,7 +444,9 @@ body {
 
 /* 橫式 2-grid：改為左右兩欄（分隔線由上下改為左右） */
 #dm-sheet.is-landscape .dm-two-rows { flex-direction: row; }
-#dm-sheet.is-landscape .dm-bundle-row { padding: 6px 14px 8px; }
+/* 產品群組於欄位內垂直置中（不撐滿、改置中），兩欄結構相同故仍橫向對齊 */
+#dm-sheet.is-landscape .dm-bundle-row { padding: 6px 14px 8px; justify-content: center; }
+#dm-sheet.is-landscape .dm-bundle-pair { flex: 0 0 auto; }
 #dm-sheet.is-landscape .dm-bundle-row + .dm-bundle-row {
   border-top: none; border-left: 1px solid #dedad6;
 }
