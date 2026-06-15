@@ -410,6 +410,8 @@ body {
   width: 100%; height: 100%; object-fit: fill;
   z-index: 0; pointer-events: none;
 }
+/* 橫式：內容區背景透明（白底已由底圖提供），避免白框邊緣溢出綠底 */
+#dm-sheet.is-landscape .dm-content { background: transparent; }
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
 
@@ -511,15 +513,15 @@ body {
             <div class="bg-label">直式</div>
           </div>
           <div class="bg-opt" id="bg-h1" onclick="setBg('h1')">
-            <img src="../沙龍DM公版/公版DM-01.jpg" alt="橫式 1">
+            <img src="../沙龍DM公版/橫1.jpg" alt="橫式 1">
             <div class="bg-label">橫式 1</div>
           </div>
           <div class="bg-opt" id="bg-h2" onclick="setBg('h2')">
-            <img src="../沙龍DM公版/公版DM-02.jpg" alt="橫式 2">
+            <img src="../沙龍DM公版/橫2.jpg" alt="橫式 2">
             <div class="bg-label">橫式 2</div>
           </div>
           <div class="bg-opt" id="bg-h3" onclick="setBg('h3')">
-            <img src="../沙龍DM公版/公版DM-03.jpg" alt="橫式 3">
+            <img src="../沙龍DM公版/橫3.jpg" alt="橫式 3">
             <div class="bg-label">橫式 3</div>
           </div>
         </div>
@@ -584,17 +586,17 @@ let layout = 'four';
 let bgTemplate = 'portrait'; // 'portrait' | 'h1' | 'h2' | 'h3'
 
 const LAND_BG = {
-  h1: '../沙龍DM公版/公版DM-01.jpg',
-  h2: '../沙龍DM公版/公版DM-02.jpg',
-  h3: '../沙龍DM公版/公版DM-03.jpg',
+  h1: '../沙龍DM公版/橫1.jpg',
+  h2: '../沙龍DM公版/橫2.jpg',
+  h3: '../沙龍DM公版/橫3.jpg',
 };
 
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
-   如版面微歪，可在此微調百分比 */
+   數值由實際底圖白色區自動偵測而來；如版面微歪，可在此微調百分比 */
 const LAND_POS = {
-  h1: { left: '55%',   top: '12%', right: '5%',  bottom: '14%'   },
-  h2: { left: '37.5%', top: '0',   right: '0',   bottom: '12.5%' },
-  h3: { left: '37.5%', top: '0',   right: '0',   bottom: '12.5%' },
+  h1: { left: '44%', top: '17%', right: '9%', bottom: '17%' },  // 置中右側白框
+  h2: { left: '37%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
+  h3: { left: '43%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
 };
 
 function isLandscape() { return bgTemplate !== 'portrait'; }
