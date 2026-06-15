@@ -415,18 +415,32 @@ body {
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
 
-/* 橫式：標題／副標縮小（涵蓋 is-two-grid 24pt 與 is-one-grid 32pt 的放大設定） */
+/* 橫式：標題 18px／副標 14px（涵蓋 is-two-grid 24pt 與 is-one-grid 32pt 的放大設定） */
 #dm-sheet.is-landscape .dm-tagline {
-  font-size: 15px; letter-spacing: 2px; font-weight: 400;
+  font-size: 18px; letter-spacing: 2px; font-weight: 400;
   padding: 8px 20px 4px;
 }
 #dm-sheet.is-landscape .dm-subtitle {
-  font-size: 13px; padding: 0 20px 6px; line-height: 1.3;
+  font-size: 14px; padding: 0 20px 6px; line-height: 1.3;
+}
+
+/* 橫式：致贈標籤改小（同時覆蓋 base 24px 與 one-pair 38px 的設定） */
+#dm-sheet.is-landscape .dm-gift-badge {
+  font-size: 12px; height: 19px; padding: 0 9px; border-radius: 10px;
+  margin-bottom: 8px;
 }
 
 /* 橫式 1-grid：白框較小，縮減內距以爭取版面高度（搭配 fitOneGrid 自動縮放） */
 #dm-sheet.is-landscape .dm-one-block { padding: 4px 16px 6px; }
 #dm-sheet.is-landscape .dm-one-usage { padding-top: 4px; }
+/* 一格售價文字縮小 5px（NT 數字 42→37、單位 22→17） */
+#dm-sheet.is-landscape .dm-one-block .dm-price-num { font-size: 37px; }
+#dm-sheet.is-landscape .dm-one-block .dm-price-unit { font-size: 17px; }
+
+/* 橫式 4-grid：格子較矮，縮小圖片區與標題字級，避免有贈品時標題/品名被裁 */
+#dm-sheet.is-landscape .dm-four-grid .dm-cell-imgs { height: 100px; }
+#dm-sheet.is-landscape .dm-four-grid .dm-cell-headline { font-size: 13px; }
+#dm-sheet.is-landscape .dm-four-grid .dm-cell-names { font-size: 11px; }
 
 /* 橫式 2-grid：改為左右兩欄（分隔線由上下改為左右） */
 #dm-sheet.is-landscape .dm-two-rows { flex-direction: row; }
@@ -436,15 +450,19 @@ body {
 }
 /* 左右欄較窄：縮小商品圖與間距，使「主圖＋贈品」能並排不被裁切（以最窄的橫1為準） */
 #dm-sheet.is-landscape .dm-bundle-pair { gap: 10px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 88px;  height: 114px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img { width: 58px;  height: 75px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 104px; height: 134px; }
-#dm-sheet.is-landscape .dm-bundle-row .dm-gift-badge { margin-bottom: 10px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 88px; height: 114px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img { width: 58px; height: 75px; }
+/* 對齊垂線：無贈品時主圖也用相同尺寸（不放大），使兩欄主圖、品名、售價橫向對齊 */
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 88px; height: 114px; }
 /* 將每欄寬度固定為圖片寬，長品名於欄內換行（避免文字撐寬導致主圖＋贈品並排超出） */
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main { width: 88px; }
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift { width: 58px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child { width: 104px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-name { font-size: 11px; max-width: 100%; word-break: break-word; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child { width: 88px; }
+/* 品名固定 2 行高 → 兩欄品名起始線一致、主圖底部一致（與垂線水平對齊） */
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-name {
+  font-size: 11px; max-width: 100%; word-break: break-word;
+  min-height: 29px;
+}
 
 /* ── BG picker ── */
 .bg-pick { display: flex; gap: 8px; }
