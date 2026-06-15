@@ -185,6 +185,8 @@ body {
 }
 .dm-headline-lbl { font-size: 15px; color: #555; letter-spacing: 0.5px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
+/* 售價數字＋單位永遠成組（直式維持單行；橫式可整組獨立成一行） */
+.dm-price-grp   { display: inline-flex; align-items: baseline; gap: 4px; }
 .dm-price-num   { font-size: 32px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
 .dm-price-unit  { font-size: 18px; color: #444; }
 .dm-orig-price  { font-size: 12px; color: #c0bbb5; }
@@ -441,6 +443,13 @@ body {
 #dm-sheet.is-landscape .dm-four-grid .dm-cell-imgs { height: 100px; }
 #dm-sheet.is-landscape .dm-four-grid .dm-cell-headline { font-size: 13px; }
 #dm-sheet.is-landscape .dm-four-grid .dm-cell-names { font-size: 11px; }
+/* 四格標題與下方格子拉開一點點距離（僅橫式2、3 有四格） */
+#dm-sheet.is-landscape .dm-four-grid { margin-top: 8px; }
+
+/* 橫式 1-grid：售價與原價改為同一行（樣式不變，僅排成一列） */
+#dm-sheet.is-landscape .dm-one-price-row {
+  flex-direction: row; align-items: baseline; gap: 8px;
+}
 
 /* 橫式 2-grid：改為左右兩欄（分隔線由上下改為左右） */
 #dm-sheet.is-landscape .dm-two-rows { flex-direction: row; }
@@ -449,6 +458,16 @@ body {
 #dm-sheet.is-landscape .dm-bundle-pair { flex: 0 0 auto; }
 #dm-sheet.is-landscape .dm-bundle-row + .dm-bundle-row {
   border-top: none; border-left: 1px solid #dedad6;
+}
+/* 兩格：標題／促銷標語、售價、原價 各自獨立成行（共三行、置中） */
+#dm-sheet.is-landscape .dm-bundle-price-row {
+  flex-direction: column; align-items: center; gap: 4px; flex-wrap: nowrap;
+}
+/* 橫式1：垂線縮短（取消整段 border，改用置中、約 55% 高的短分隔線） */
+#dm-sheet.bg-h1 .dm-bundle-row + .dm-bundle-row { border-left: none; position: relative; }
+#dm-sheet.bg-h1 .dm-bundle-row + .dm-bundle-row::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 55%; background: #dedad6;
 }
 /* 左右欄較窄：縮小商品圖與間距，使「主圖＋贈品」能並排不被裁切（以最窄的橫1為準） */
 #dm-sheet.is-landscape .dm-bundle-pair { gap: 10px; }
@@ -847,8 +866,7 @@ function bundleRowHTML(c) {
       </div>
       <div class="dm-bundle-price-row">
         ${hl}
-        <span class="dm-price-num">${fmt(c.price)}</span>
-        <span class="dm-price-unit">元</span>
+        <span class="dm-price-grp"><span class="dm-price-num">${fmt(c.price)}</span><span class="dm-price-unit">元</span></span>
         ${orig}
       </div>
     </div>`;
@@ -953,7 +971,7 @@ function renderDM() {
   const sheet = document.getElementById('dm-sheet');
 
   if (isLandscape()) {
-    sheet.className = 'is-landscape';
+    sheet.className = 'is-landscape bg-' + bgTemplate;
     const p = LAND_POS[bgTemplate];
     /* inline style 讓 html2canvas proxy 複製 innerHTML 後仍保有正確定位 */
     const posStyle =
@@ -1322,27 +1340,32 @@ function scaleSheet() {
    PDF EXPORT
 ══════════════════════════════════════════════ */
 async function generateCanvas() {
+  /* 直接渲染真正的 #dm-sheet（不用 proxy）：樣式天生與預覽一致，
+     也避免「重複 id」造成 html2canvas 卡死。
+     渲染前暫時把預覽縮放(transform)設為 1，使輸出為原生 A4 尺寸，完成後還原。 */
+  const real = document.getElementById('dm-sheet');
+  const wrap = document.getElementById('dmWrap');
   const W = isLandscape() ? 842 : 595;
   const H = isLandscape() ? 595 : 842;
-  const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;top:-9999px;left:0;pointer-events:none;';
-  const proxy = document.createElement('div');
-  proxy.style.cssText =
-    `width:${W}px;height:${H}px;position:relative;display:flex;flex-direction:column;` +
-    'background:white;overflow:hidden;flex-shrink:0;';
-  proxy.innerHTML = document.getElementById('dm-sheet').innerHTML;
-  host.appendChild(proxy);
-  document.body.appendChild(host);
+  const prevTransform = wrap.style.transform;
+  const prevShadow = real.style.boxShadow;
+  wrap.style.transform = 'translate(-50%, -50%) scale(1)';
+  real.style.boxShadow = 'none';
 
   try {
-    // Wait for images inside the proxy to finish loading (may already be cached)
-    await Promise.all([...proxy.querySelectorAll('img')].map(img =>
-      img.complete ? Promise.resolve() :
-        new Promise(r => { img.onload = r; img.onerror = r; })
+    // 等圖片載入；每張最多等 4 秒，避免任一張未觸發 load 而永久卡住
+    await Promise.all([...real.querySelectorAll('img')].map(img =>
+      (img.complete && img.naturalWidth) ? Promise.resolve() :
+        new Promise(r => {
+          img.addEventListener('load', r, { once: true });
+          img.addEventListener('error', r, { once: true });
+          setTimeout(r, 4000);
+        })
     ));
-    await new Promise(r => requestAnimationFrame(r));
+    // 用 setTimeout 而非 requestAnimationFrame：rAF 在背景分頁不會觸發會導致卡住
+    await new Promise(r => setTimeout(r, 30));
 
-    const canvas = await html2canvas(proxy, {
+    const canvas = await html2canvas(real, {
       scale: 2,
       width: W,
       height: H,
@@ -1352,7 +1375,8 @@ async function generateCanvas() {
     });
     return canvas;
   } finally {
-    document.body.removeChild(host);
+    wrap.style.transform = prevTransform;
+    real.style.boxShadow = prevShadow;
   }
 }
 
