@@ -398,6 +398,37 @@ body {
   .lt-label { font-size: 11px; }
 }
 
+/* ══════════════════════════════════════════
+   LANDSCAPE SHEET  (A4 horizontal: 842 × 595 px)
+══════════════════════════════════════════ */
+#dm-sheet.is-landscape {
+  width: 842px; height: 595px;
+  position: relative; /* absolute 子元素的定位基準 */
+}
+.dm-bg-full {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; object-fit: fill;
+  z-index: 0; pointer-events: none;
+}
+/* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
+   方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
+
+/* ── BG picker ── */
+.bg-pick { display: flex; gap: 8px; }
+.bg-opt {
+  flex: 1; border: 2px solid #e2e2e2; border-radius: 8px;
+  padding: 6px 4px; cursor: pointer; text-align: center;
+  transition: border-color .15s, background .15s; overflow: hidden;
+}
+.bg-opt:hover { border-color: #5aaa6a; }
+.bg-opt.active { border-color: #3a7d44; background: #f0f7f1; }
+.bg-opt img {
+  width: 100%; height: 40px; object-fit: cover;
+  display: block; border-radius: 3px; margin-bottom: 4px;
+}
+.bg-label { font-size: 11px; color: #666; }
+.bg-opt.active .bg-label { color: #3a7d44; font-weight: 600; }
+
 /* ── Print ── */
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
@@ -471,9 +502,32 @@ body {
 
   <div class="editor-pane" id="editorPane">
     <div class="editor-scroll">
-      <!-- 1. Layout -->
+      <!-- 1. Background -->
       <div class="editor-sec">
-        <div class="editor-sec-num">1. 選擇版面</div>
+        <div class="editor-sec-num">1. 選擇底圖</div>
+        <div class="bg-pick">
+          <div class="bg-opt active" id="bg-portrait" onclick="setBg('portrait')">
+            <img src="../沙龍DM公版/公版DM_1.jpg" alt="直式">
+            <div class="bg-label">直式</div>
+          </div>
+          <div class="bg-opt" id="bg-h1" onclick="setBg('h1')">
+            <img src="../沙龍DM公版/公版DM-01.jpg" alt="橫式 1">
+            <div class="bg-label">橫式 1</div>
+          </div>
+          <div class="bg-opt" id="bg-h2" onclick="setBg('h2')">
+            <img src="../沙龍DM公版/公版DM-02.jpg" alt="橫式 2">
+            <div class="bg-label">橫式 2</div>
+          </div>
+          <div class="bg-opt" id="bg-h3" onclick="setBg('h3')">
+            <img src="../沙龍DM公版/公版DM-03.jpg" alt="橫式 3">
+            <div class="bg-label">橫式 3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Layout -->
+      <div class="editor-sec">
+        <div class="editor-sec-num">2. 選擇版面</div>
         <div class="layout-pick">
           <div class="layout-opt active" id="opt-four" onclick="setLayout('four')">
             <div class="lt-thumb lt4"><div></div><div></div><div></div><div></div></div>
@@ -492,7 +546,7 @@ body {
 
       <!-- 2. Content -->
       <div class="editor-sec" style="border-bottom:none">
-        <div class="editor-sec-num">2. 編輯內容</div>
+        <div class="editor-sec-num">3. 編輯內容</div>
         <div style="margin-bottom:4px">
           <label class="field-lbl">標題文字</label>
           <input type="text" id="dm-tagline" class="field-input"
@@ -507,8 +561,8 @@ body {
       </div>
     </div>
     <div class="editor-footer">
-      <button class="btn-export-main" onclick="exportPDF()">匯出 PDF (A4)</button>
-      <p class="export-note">* 匯出將依目前預覽內容產生 PDF，格式為 A4 直式 *</p>
+      <button class="btn-export-main" id="btn-export-main" onclick="exportPDF()">匯出 PDF (A4 直式)</button>
+      <p class="export-note" id="export-note">* 匯出將依目前預覽內容產生 PDF，格式為 A4 直式 *</p>
     </div>
   </div>
 </div>
@@ -527,6 +581,37 @@ const PRODUCTS = window.PRODUCTS || [];   /* 清單外移至 products.js，由 t
    one   → cells[0]     (single)
 ══════════════════════════════════════════════ */
 let layout = 'four';
+let bgTemplate = 'portrait'; // 'portrait' | 'h1' | 'h2' | 'h3'
+
+const LAND_BG = {
+  h1: '../沙龍DM公版/公版DM-01.jpg',
+  h2: '../沙龍DM公版/公版DM-02.jpg',
+  h3: '../沙龍DM公版/公版DM-03.jpg',
+};
+
+/* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
+   如版面微歪，可在此微調百分比 */
+const LAND_POS = {
+  h1: { left: '55%',   top: '12%', right: '5%',  bottom: '14%'   },
+  h2: { left: '37.5%', top: '0',   right: '0',   bottom: '12.5%' },
+  h3: { left: '37.5%', top: '0',   right: '0',   bottom: '12.5%' },
+};
+
+function isLandscape() { return bgTemplate !== 'portrait'; }
+
+function setBg(bg) {
+  bgTemplate = bg;
+  ['portrait','h1','h2','h3'].forEach(k =>
+    document.getElementById('bg-'+k).classList.toggle('active', k === bg)
+  );
+  const orient = bg === 'portrait' ? '直式' : '橫式';
+  const note = document.getElementById('export-note');
+  if (note) note.textContent = `* 匯出將依目前預覽內容產生 PDF，格式為 A4 ${orient} *`;
+  const btn = document.getElementById('btn-export-main');
+  if (btn) btn.textContent = `匯出 PDF (A4 ${orient})`;
+  renderDM();
+  scaleSheet();
+}
 
 const mkCell = (pid, gid, hl, price, orig, gl) => ({
   prodId: pid, giftId: gid||'', headline: hl||'', usage: '', price: price||'', origPrice: orig||'',
@@ -802,17 +887,33 @@ function renderDM() {
              : layout === 'two'  ? renderTwo(tag)
              : renderOne(tag, subtitle);
   const sheet = document.getElementById('dm-sheet');
-  sheet.innerHTML =
-    `<div class="dm-hdr"><img src="${enc(HDR)}" alt="header"></div>` +
-    body +
-    `<div class="dm-ftr"><img src="${enc(FTR)}" alt="footer"></div>`;
+
+  if (isLandscape()) {
+    sheet.className = 'is-landscape';
+    const p = LAND_POS[bgTemplate];
+    /* inline style 讓 html2canvas proxy 複製 innerHTML 後仍保有正確定位 */
+    const posStyle =
+      `position:absolute;z-index:1;display:flex;flex-direction:column;overflow:hidden;` +
+      `left:${p.left};top:${p.top};right:${p.right};bottom:${p.bottom}`;
+    sheet.innerHTML =
+      `<img class="dm-bg-full" src="${enc(LAND_BG[bgTemplate])}" alt="">` +
+      `<div class="dm-land-content" style="${posStyle}">${body}</div>`;
+  } else {
+    sheet.className = '';
+    sheet.innerHTML =
+      `<div class="dm-hdr"><img src="${enc(HDR)}" alt="header"></div>` +
+      body +
+      `<div class="dm-ftr"><img src="${enc(FTR)}" alt="footer"></div>`;
+  }
 
   if (layout === 'one') {
     fitOneGrid();
-    // 頁首/頁尾圖載入後內容高度才確定，載完再校正一次
-    sheet.querySelectorAll('.dm-hdr img, .dm-ftr img').forEach(img => {
-      if (!img.complete) img.addEventListener('load', fitOneGrid, { once: true });
-    });
+    if (!isLandscape()) {
+      // 直式：頁首/頁尾圖載入後內容高度才確定，載完再校正一次
+      sheet.querySelectorAll('.dm-hdr img, .dm-ftr img').forEach(img => {
+        if (!img.complete) img.addEventListener('load', fitOneGrid, { once: true });
+      });
+    }
   }
 }
 
@@ -1143,9 +1244,11 @@ function toggleEditor() {
 function scaleSheet() {
   const pane = document.getElementById('previewPane');
   const wrap = document.getElementById('dmWrap');
+  const W = isLandscape() ? 842 : 595;
+  const H = isLandscape() ? 595 : 842;
   const scale = Math.min(
-    (pane.offsetWidth  - 48) / 595,
-    (pane.offsetHeight - 36) / 842
+    (pane.offsetWidth  - 48) / W,
+    (pane.offsetHeight - 36) / H
   );
   wrap.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
@@ -1154,11 +1257,13 @@ function scaleSheet() {
    PDF EXPORT
 ══════════════════════════════════════════════ */
 async function generateCanvas() {
+  const W = isLandscape() ? 842 : 595;
+  const H = isLandscape() ? 595 : 842;
   const host = document.createElement('div');
   host.style.cssText = 'position:fixed;top:-9999px;left:0;pointer-events:none;';
   const proxy = document.createElement('div');
   proxy.style.cssText =
-    'width:595px;height:842px;display:flex;flex-direction:column;' +
+    `width:${W}px;height:${H}px;position:relative;display:flex;flex-direction:column;` +
     'background:white;overflow:hidden;flex-shrink:0;';
   proxy.innerHTML = document.getElementById('dm-sheet').innerHTML;
   host.appendChild(proxy);
@@ -1174,8 +1279,8 @@ async function generateCanvas() {
 
     const canvas = await html2canvas(proxy, {
       scale: 2,
-      width: 595,
-      height: 842,
+      width: W,
+      height: H,
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
@@ -1193,8 +1298,10 @@ async function exportPDF() {
   try {
     const canvas = await generateCanvas();
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+    const land = isLandscape();
+    const pdf = new jsPDF({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const [pw, ph] = land ? [297, 210] : [210, 297];
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, ph);
     pdf.save("O'right PRO DM.pdf");
   } catch (e) {
     console.error('PDF export failed:', e);
