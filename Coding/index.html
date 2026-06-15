@@ -415,6 +415,37 @@ body {
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
 
+/* 橫式：標題／副標縮小（涵蓋 is-two-grid 24pt 與 is-one-grid 32pt 的放大設定） */
+#dm-sheet.is-landscape .dm-tagline {
+  font-size: 15px; letter-spacing: 2px; font-weight: 400;
+  padding: 8px 20px 4px;
+}
+#dm-sheet.is-landscape .dm-subtitle {
+  font-size: 13px; padding: 0 20px 6px; line-height: 1.3;
+}
+
+/* 橫式 1-grid：白框較小，縮減內距以爭取版面高度（搭配 fitOneGrid 自動縮放） */
+#dm-sheet.is-landscape .dm-one-block { padding: 4px 16px 6px; }
+#dm-sheet.is-landscape .dm-one-usage { padding-top: 4px; }
+
+/* 橫式 2-grid：改為左右兩欄（分隔線由上下改為左右） */
+#dm-sheet.is-landscape .dm-two-rows { flex-direction: row; }
+#dm-sheet.is-landscape .dm-bundle-row { padding: 6px 14px 8px; }
+#dm-sheet.is-landscape .dm-bundle-row + .dm-bundle-row {
+  border-top: none; border-left: 1px solid #dedad6;
+}
+/* 左右欄較窄：縮小商品圖與間距，使「主圖＋贈品」能並排不被裁切（以最窄的橫1為準） */
+#dm-sheet.is-landscape .dm-bundle-pair { gap: 10px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 88px;  height: 114px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img { width: 58px;  height: 75px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 104px; height: 134px; }
+#dm-sheet.is-landscape .dm-bundle-row .dm-gift-badge { margin-bottom: 10px; }
+/* 將每欄寬度固定為圖片寬，長品名於欄內換行（避免文字撐寬導致主圖＋贈品並排超出） */
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main { width: 88px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift { width: 58px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child { width: 104px; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-name { font-size: 11px; max-width: 100%; word-break: break-word; }
+
 /* ── BG picker ── */
 .bg-pick { display: flex; gap: 8px; }
 .bg-opt {
@@ -594,7 +625,7 @@ const LAND_BG = {
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
    數值由實際底圖白色區自動偵測而來；如版面微歪，可在此微調百分比 */
 const LAND_POS = {
-  h1: { left: '44%', top: '17%', right: '9%', bottom: '17%' },  // 置中右側白框
+  h1: { left: '43%', top: '15%', right: '8%', bottom: '15%' },  // 置中右側白框
   h2: { left: '37%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
   h3: { left: '43%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
 };
@@ -606,12 +637,23 @@ function setBg(bg) {
   ['portrait','h1','h2','h3'].forEach(k =>
     document.getElementById('bg-'+k).classList.toggle('active', k === bg)
   );
+
+  // 橫式1 白框較小，不支援四格：隱藏四格選項，若正在四格則自動切回兩格
+  const optFour = document.getElementById('opt-four');
+  const noFour = (bg === 'h1');
+  if (optFour) optFour.style.display = noFour ? 'none' : '';
+
   const orient = bg === 'portrait' ? '直式' : '橫式';
   const note = document.getElementById('export-note');
   if (note) note.textContent = `* 匯出將依目前預覽內容產生 PDF，格式為 A4 ${orient} *`;
   const btn = document.getElementById('btn-export-main');
   if (btn) btn.textContent = `匯出 PDF (A4 ${orient})`;
-  renderDM();
+
+  if (noFour && layout === 'four') {
+    setLayout('two');   // 含 tagline／編輯區同步與 renderDM
+  } else {
+    renderDM();
+  }
   scaleSheet();
 }
 
@@ -943,7 +985,8 @@ function fitOneGrid() {
     hf -= 1; block.style.setProperty('--headlineFS', hf + 'px');
   }
   guard = 0;
-  while (overflow() > 1 && scale > 0.6 && guard++ < 40) {   // 3) 仍超出→縮商品圖
+  const minScale = isLandscape() ? 0.35 : 0.6;   // 橫式（尤其橫1白框較小）允許縮更多以免裁切
+  while (overflow() > 1 && scale > minScale && guard++ < 40) {   // 3) 仍超出→縮商品圖
     scale -= 0.05; block.style.setProperty('--imgScale', scale.toFixed(2));
   }
 }
