@@ -446,10 +446,20 @@ body {
 /* 四格標題與下方格子拉開一點點距離（僅橫式2、3 有四格） */
 #dm-sheet.is-landscape .dm-four-grid { margin-top: 8px; }
 
-/* 橫式 1-grid：售價與原價改為同一行（樣式不變，僅排成一列） */
-#dm-sheet.is-landscape .dm-one-price-row {
-  flex-direction: row; align-items: baseline; gap: 8px;
+/* 橫式 1-grid：標題／促銷標語＋售價同一行（置中）；原價換行、置右對齊 */
+#dm-sheet.is-landscape .dm-one-headprice {
+  flex-shrink: 0; width: 100%;
+  display: flex; align-items: baseline; justify-content: center;
+  gap: 14px; flex-wrap: wrap; padding-top: 8px;
 }
+#dm-sheet.is-landscape .dm-one-headline-i {
+  font-size: var(--headlineFS, 24px); font-weight: 500; color: #555; line-height: 1.3;
+}
+#dm-sheet.is-landscape .dm-one-origline {
+  flex-shrink: 0; width: 100%; text-align: right; padding: 2px 4px 0 0;
+}
+/* 一格：產品照固定品名高度，使圖片底部恆對齊（換任何產品都同一水平線、不再一高一低） */
+#dm-sheet.is-landscape .dm-one-pair .dm-bprod-name { min-height: 2.6em; }
 
 /* 橫式 2-grid：改為左右兩欄（分隔線由上下改為左右） */
 #dm-sheet.is-landscape .dm-two-rows { flex-direction: row; }
@@ -463,12 +473,30 @@ body {
 #dm-sheet.is-landscape .dm-bundle-price-row {
   flex-direction: column; align-items: center; gap: 4px; flex-wrap: nowrap;
 }
-/* 橫式1：垂線縮短（取消整段 border，改用置中、約 55% 高的短分隔線） */
+/* 橫式1：垂線縮短（取消整段 border，改用置中、約 70% 高的短分隔線） */
 #dm-sheet.bg-h1 .dm-bundle-row + .dm-bundle-row { border-left: none; position: relative; }
 #dm-sheet.bg-h1 .dm-bundle-row + .dm-bundle-row::before {
   content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-  width: 1px; height: 55%; background: #dedad6;
+  width: 1px; height: 70%; background: #dedad6;
 }
+/* 橫式1 兩格：標題文字往下移一點 */
+#dm-sheet.bg-h1 .is-two-grid .dm-tagline { padding-top: 22px; }
+
+/* 橫式2、3 兩格＝單品特寫：放大圖＋品名＋描述＋售價／原價（垂直置中、左右兩欄） */
+#dm-sheet.is-landscape .dm-feature-row {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 7px; padding: 8px 20px; overflow: hidden;
+}
+#dm-sheet.is-landscape .dm-feature-img {
+  flex-shrink: 0; width: 150px; height: 205px;
+  display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
+}
+#dm-sheet.is-landscape .dm-feature-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+#dm-sheet.is-landscape .dm-feature-name { flex-shrink: 0; font-size: 17px; color: #1a1a1a; font-weight: 400; line-height: 1.3; }
+#dm-sheet.is-landscape .dm-feature-desc { flex-shrink: 0; font-size: 11.5px; line-height: 1.55; color: #777; max-width: 92%; }
+#dm-sheet.is-landscape .dm-feature-price { flex-shrink: 0; margin-top: 2px; }
+#dm-sheet.is-landscape .dm-feature-orig { flex-shrink: 0; }
 /* 左右欄較窄：縮小商品圖與間距，使「主圖＋贈品」能並排不被裁切（以最窄的橫1為準） */
 #dm-sheet.is-landscape .dm-bundle-pair { gap: 10px; }
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 88px; height: 114px; }
@@ -670,6 +698,8 @@ const LAND_POS = {
 };
 
 function isLandscape() { return bgTemplate !== 'portrait'; }
+/* 橫式2、3 的兩格＝單品特寫樣式（放大圖＋描述、不放贈品）；橫式1 仍為贈品樣式 */
+function isFeatureTwo() { return bgTemplate === 'h2' || bgTemplate === 'h3'; }
 
 function setBg(bg) {
   bgTemplate = bg;
@@ -706,8 +736,8 @@ const state = {
   four: [
     mkCell('咖啡因養髮液100mL',     '咖啡因養髮液10mL'),
     mkCell('咖啡因麥拉寧養髮液100mL','咖啡因麥拉寧養髮液10mL'),
-    mkCell('男士養髮液70mL',        ''),
-    mkCell('女士養髮液70mL',        ''),
+    mkCell('男士養髮液70mL',        '咖啡因養髮液10mL'),
+    mkCell('女士養髮液70mL',        '咖啡因麥拉寧養髮液10mL'),
   ],
   two: [
     mkCell('豐盈彈韌洗髮露500mL', '豐盈彈韌精華油10mL'),
@@ -836,6 +866,26 @@ function renderFour(tag) {
 ══════════════════════════════════════════════ */
 function bundleRowHTML(c) {
   const mp = getProd(c.prodId);
+
+  // 橫式2、3：單品特寫（放大圖＋品名＋描述＋售價／原價，不放贈品）
+  if (isFeatureTwo()) {
+    const desc = (c.usage || '').trim();
+    const origF = c.origPrice && c.origPrice !== '0'
+      ? `<div class="dm-feature-orig"><span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span></div>` : '';
+    return `
+      <div class="dm-bundle-row dm-feature-row">
+        <div class="dm-feature-img">
+          <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+        </div>
+        <div class="dm-feature-name">${mp.name}</div>
+        ${desc ? `<div class="dm-feature-desc">${desc}</div>` : ''}
+        <div class="dm-feature-price">
+          <span class="dm-price-grp"><span class="dm-price-num">${fmt(c.price)}</span><span class="dm-price-unit">元</span></span>
+        </div>
+        ${origF}
+      </div>`;
+  }
+
   const gp = getProdOrNull(c.giftId);
 
   const giftCol = gp ? `
@@ -935,6 +985,24 @@ function renderOne(tag, subtitle) {
   }).join('');
   const usageHtml = anyUsage ? `<div class="dm-one-usage">${usageCols}</div>` : '';
 
+  const priceMain =
+    `<span class="dm-one-price-main"><span class="dm-price-num">${fmt(c.price)}</span><span class="dm-price-unit">元</span></span>`;
+
+  /* 橫式：標題／促銷標語＋售價同一行，原價換行置右；直式維持原本（標題獨立行、售價列） */
+  const priceBlock = isLandscape() ? `
+        <div class="dm-one-headprice">
+          ${c.headline ? `<span class="dm-one-headline-i">${cleanHeadline(c.headline)}</span>` : ''}
+          ${priceMain}
+        </div>
+        ${orig ? `<div class="dm-one-origline">${orig}</div>` : ''}
+  ` : `
+        ${hlBlock}
+        <div class="dm-one-price-row">
+          ${priceMain}
+          ${orig}
+        </div>
+  `;
+
   return `
     <div class="dm-content is-one-grid">
       <div class="dm-tagline">${tag}</div>
@@ -944,14 +1012,7 @@ function renderOne(tag, subtitle) {
           ${prodsHtml}
         </div>
         ${usageHtml}
-        ${hlBlock}
-        <div class="dm-one-price-row">
-          <div class="dm-one-price-main">
-            <span class="dm-price-num">${fmt(c.price)}</span>
-            <span class="dm-price-unit">元</span>
-          </div>
-          ${orig}
-        </div>
+        ${priceBlock}
       </div>
     </div>`;
 }
@@ -1123,6 +1184,13 @@ function cellEditor(idx, title) {
           value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
           oninput="onField(${idx},'headline',this.value)">
       </div>
+      ${layout === 'two' ? `
+      <div style="margin-bottom:7px">
+        <label class="field-lbl">產品描述（橫式2／3 單品時顯示，自動帶入可修改）</label>
+        <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:42px; line-height:1.5"
+          placeholder="選擇商品後自動帶入"
+          oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
+      </div>` : ''}
       <div class="price-pair">
         <div class="price-slot">
           <label>售價（元）</label>
