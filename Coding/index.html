@@ -9,6 +9,7 @@
 <!-- 商品清單與產品文案（由 tools/build-copy.mjs 從 產品圖片/ 與 產品文案 CSV 自動產生） -->
 <script src="products.js"></script>
 <script src="product-copy.js"></script>
+<script src="i18n.js"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,6 +40,16 @@ body {
 .nav-btn-export-jpg:hover { background: #4b7543; }
 .nav-btn-preview { background: transparent; color: #bbb; border: 1px solid #444; }
 .nav-btn-preview:hover { border-color: #888; color: white; }
+
+/* ── Language picker ── */
+.lang-pick { display: flex; gap: 2px; margin-right: 8px; background: #2a2a2a; border-radius: 6px; padding: 2px; }
+.lang-btn {
+  border: none; background: transparent; color: #999; cursor: pointer;
+  font-size: 12px; padding: 5px 10px; border-radius: 4px; letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+.lang-btn:hover { color: #fff; }
+.lang-btn.active { background: #3a7d44; color: #fff; }
 
 /* ── Workspace ── */
 .workspace { display: flex; height: calc(100vh - 52px); }
@@ -631,6 +642,11 @@ body {
   <span style="color:#3a3a3a;margin:0 10px">|</span>
   <span class="nav-title">DM 編輯器</span>
   <div class="nav-spacer"></div>
+  <div class="lang-pick" id="lang-pick">
+    <button class="lang-btn active" id="lang-zh" onclick="setLang('zh')">中</button>
+    <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="lang-pl" onclick="setLang('pl')">PL</button>
+  </div>
   <button class="nav-btn nav-btn-export-jpg" onclick="exportJPG()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     匯出 JPG
@@ -749,6 +765,84 @@ function isLandscape() { return bgTemplate !== 'portrait'; }
 /* 橫式2、3 的兩格＝單品特寫樣式（放大圖＋描述、不放贈品）；橫式1 仍為贈品樣式 */
 function isFeatureTwo() { return bgTemplate === 'h2' || bgTemplate === 'h3'; }
 
+/* ══════════════════════════════════════════════
+   語言與幣值（i18n）
+   lang：輸出的 DM 語言（編輯器介面維持中文）；金額以 TWD 為基準依語言換算。
+══════════════════════════════════════════════ */
+let lang = 'zh'; // 'zh' | 'en' | 'pl'
+
+/* 幣值換算：金額 = TWD × rate（四捨五入取整）。匯率可自行調整。 */
+const CURRENCY = { zh: { rate: 1 }, en: { rate: 0.031 }, pl: { rate: 0.11 } };
+
+/* 各語言預設標題 */
+const TAGLINES = {
+  zh: { four: '永續美妝 Sustainable Beauty', two: '永續美妝', one: '永續美妝' },
+  en: { four: 'Sustainable Beauty', two: 'Sustainable Beauty', one: 'Sustainable Beauty' },
+  pl: { four: 'Zrównoważone piękno', two: 'Zrównoważone piękno', one: 'Zrównoważone piękno' },
+};
+/* 贈品標籤預設（切語言時，仍為預設值者自動翻譯；自訂者保留） */
+const GIFT_DEFAULTS = { zh: '致贈', en: 'Gift', pl: 'Prezent' };
+const GIFT_DEFAULT_SET = new Set(Object.values(GIFT_DEFAULTS));
+
+/* TWD → 目前語言金額（整數） */
+function convAmt(twd) {
+  const n = Number(String(twd == null ? '' : twd).replace(/,/g, ''));
+  if (!n || isNaN(n)) return 0;
+  return Math.round(n * (CURRENCY[lang] || CURRENCY.zh).rate);
+}
+/* 售價數字（已換算、含千分位字串） */
+function priceNum(twd) { return fmt(convAmt(twd)); }
+/* 括號：中文用全形（），英/波用半形() */
+function paren(s) { return lang === 'zh' ? `（${s}）` : `(${s})`; }
+/* 售價「數字＋幣別」內層 HTML（幣別符號位置依語言；可指定 num/unit 的 class） */
+function priceInnerCls(twd, numCls, unitCls) {
+  const n = priceNum(twd);
+  if (lang === 'en') return `<span class="${unitCls}">$</span><span class="${numCls}">${n}</span>`;
+  if (lang === 'pl') return `<span class="${numCls}">${n}</span><span class="${unitCls}">&nbsp;zł</span>`;
+  return `<span class="${numCls}">${n}</span><span class="${unitCls}">元</span>`;
+}
+const priceInner = (twd) => priceInnerCls(twd, 'dm-price-num', 'dm-price-unit');
+/* 原價文字（不含外框括號） */
+function origText(twd) {
+  const n = priceNum(twd);
+  if (lang === 'en') return `Orig. $${n}`;
+  if (lang === 'pl') return `dawniej ${n} zł`;
+  return `原價NT$${n}`;
+}
+/* 產品名稱（依語言）：翻譯基底名 + 容量後綴；查不到翻譯回中文 */
+function prodName(id) {
+  const p = getProd(id);
+  if (lang === 'zh') return p.name;
+  const t = (window.PRODUCT_I18N || {})[p.copyKey];
+  const base = t && t['name_' + lang];
+  if (!base) return p.name;
+  const suffix = p.name.indexOf(p.copyKey) === 0 ? p.name.slice(p.copyKey.length).trim() : '';
+  return suffix ? `${base} ${suffix}` : base;
+}
+
+function localizeGiftLabels() {
+  const gl = GIFT_DEFAULTS[lang];
+  const fix = o => { if (GIFT_DEFAULT_SET.has(o.giftLabel)) o.giftLabel = gl; };
+  state.four.forEach(fix); state.two.forEach(fix); state.one[0].products.forEach(fix);
+}
+
+function setLang(l) {
+  lang = l;
+  ['zh','en','pl'].forEach(k => document.getElementById('lang-'+k).classList.toggle('active', k === l));
+  // 贈品標籤本地化，並依該語言重新帶入各版面文案（介紹/用途/價格加總）
+  localizeGiftLabels();
+  state.four.forEach(applyMainCopy);
+  state.two.forEach(applyMainCopy);
+  state.one[0].products.forEach(setProductUsage);
+  applyOneMeta();
+  // 標題預設改為該語言（並同步輸入框）
+  taglines.four = TAGLINES[l].four; taglines.two = TAGLINES[l].two; taglines.one = TAGLINES[l].one;
+  const tagInput = document.getElementById('dm-tagline');
+  if (tagInput) tagInput.value = taglines[layout] || '';
+  buildEditorBlocks();
+  renderDM();
+}
+
 function setBg(bg) {
   bgTemplate = bg;
   ['portrait','h1','h2','h3'].forEach(k =>
@@ -822,11 +916,16 @@ const subtitles = {
 const getProd = id => PRODUCTS.find(p => p.id === id) || PRODUCTS[0];
 const getProdOrNull = id => id ? (PRODUCTS.find(p => p.id === id) || null) : null;
 
-/* 取得某商品的文案（介紹／用途），以 copyKey 對應 product-copy.js；查不到回 null */
+/* 取得某商品的文案（介紹／用途），以 copyKey 對應；依 lang 回傳對應語言（查不到該語言則回中文） */
 function getCopy(prodId) {
   const p = getProdOrNull(prodId);
   if (!p || !p.copyKey) return null;
-  return (window.PRODUCT_COPY || {})[p.copyKey] || null;
+  const zh = (window.PRODUCT_COPY || {})[p.copyKey];
+  if (!zh) return null;
+  if (lang === 'zh') return zh;
+  const t = (window.PRODUCT_I18N || {})[p.copyKey];
+  const pick = f => (t && t[f + '_' + lang] !== undefined) ? t[f + '_' + lang] : zh[f];
+  return { intro: pick('intro'), usage: pick('usage'), orig: zh.orig, series: zh.series };
 }
 
 /* 該商品（依其容量）的建議售價；無則 0 */
@@ -874,25 +973,24 @@ function cellHTML(c) {
       <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
     </div>` : '';
 
-  const giftName = gp ? `<br><span class="dm-cell-gift-name">（${c.giftLabel}）${gp.name}</span>` : '';
+  const giftName = gp ? `<br><span class="dm-cell-gift-name">${paren(c.giftLabel)}${prodName(gp.id)}</span>` : '';
 
   const orig = c.origPrice && c.origPrice !== '0'
-    ? `<span class="dm-cell-orig">原價NT$${fmt(c.origPrice)}</span>` : '';
+    ? `<span class="dm-cell-orig">${origText(c.origPrice)}</span>` : '';
 
   return `
     <div class="dm-cell">
       <div class="dm-cell-imgs">
         <div class="dm-cell-img-slot is-main">
-          <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+          <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
         </div>
         ${giftSlot}
       </div>
       <div class="dm-cell-text">
         ${c.headline ? `<div class="dm-cell-headline">${cleanHeadline(c.headline)}</div>` : ''}
-        <div class="dm-cell-names">${mp.name}${giftName}</div>
+        <div class="dm-cell-names">${prodName(mp.id)}${giftName}</div>
         <div class="dm-cell-price-row">
-          <span class="dm-cell-price">${fmt(c.price)}</span>
-          <span class="dm-cell-unit">元</span>
+          ${priceInnerCls(c.price, 'dm-cell-price', 'dm-cell-unit')}
           ${orig}
         </div>
       </div>
@@ -920,28 +1018,28 @@ function bundleRowHTML(c) {
     const gp = getProdOrNull(c.giftId);
     const desc = (c.usage || '').trim();
     const origF = c.origPrice && c.origPrice !== '0'
-      ? `<div class="dm-feature-orig"><span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span></div>` : '';
+      ? `<div class="dm-feature-orig"><span class="dm-orig-price">${paren(origText(c.origPrice))}</span></div>` : '';
     const giftCol = gp ? `
         <div class="dm-bprod is-gift dm-feature-gift">
           <div class="dm-gift-badge">${c.giftLabel}</div>
-          <div class="dm-bprod-img"><img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1"></div>
-          <div class="dm-bprod-name">${gp.name}</div>
+          <div class="dm-bprod-img"><img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1"></div>
+          <div class="dm-bprod-name">${prodName(gp.id)}</div>
         </div>` : '';
     return `
       <div class="dm-bundle-row dm-feature-row${gp ? ' has-gift' : ''}">
         <div class="dm-feature-imgs">
           <div class="dm-bprod is-main dm-feature-main">
             <div class="dm-feature-img">
-              <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+              <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
             </div>
-            ${gp ? `<div class="dm-bprod-name">${mp.name}</div>` : ''}
+            ${gp ? `<div class="dm-bprod-name">${prodName(mp.id)}</div>` : ''}
           </div>
           ${giftCol}
         </div>
-        ${gp ? '' : `<div class="dm-feature-name">${mp.name}</div>`}
+        ${gp ? '' : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
         ${desc ? `<div class="dm-feature-desc">${desc}</div>` : ''}
         <div class="dm-feature-price">
-          <span class="dm-price-grp"><span class="dm-price-num">${fmt(c.price)}</span><span class="dm-price-unit">元</span></span>
+          <span class="dm-price-grp">${priceInner(c.price)}</span>
         </div>
         ${origF}
       </div>`;
@@ -953,13 +1051,13 @@ function bundleRowHTML(c) {
     <div class="dm-bprod is-gift">
       <div class="dm-gift-badge">${c.giftLabel}</div>
       <div class="dm-bprod-img">
-        <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
+        <img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1">
       </div>
-      <div class="dm-bprod-name">${gp.name}</div>
+      <div class="dm-bprod-name">${prodName(gp.id)}</div>
     </div>` : '';
 
   const orig = c.origPrice && c.origPrice !== '0'
-    ? `<span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span>` : '';
+    ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
 
   const hl = c.headline
     ? `<span class="dm-headline-lbl">${cleanHeadline(c.headline)}</span>` : '';
@@ -969,15 +1067,15 @@ function bundleRowHTML(c) {
       <div class="dm-bundle-pair">
         <div class="dm-bprod is-main">
           <div class="dm-bprod-img">
-            <img src="${enc(mp.img)}" alt="${mp.name}" onerror="this.style.opacity=0.1">
+            <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
           </div>
-          <div class="dm-bprod-name">${mp.name}</div>
+          <div class="dm-bprod-name">${prodName(mp.id)}</div>
         </div>
         ${giftCol}
       </div>
       <div class="dm-bundle-price-row">
         ${hl}
-        <span class="dm-price-grp"><span class="dm-price-num">${fmt(c.price)}</span><span class="dm-price-unit">元</span></span>
+        <span class="dm-price-grp">${priceInner(c.price)}</span>
         ${orig}
       </div>
     </div>`;
@@ -1007,19 +1105,19 @@ function renderOne(tag, subtitle) {
       return `
         <div class="dm-bprod is-main">
           <div class="dm-bprod-img">
-            <img src="${enc(prod.img)}" alt="${prod.name}" onerror="this.style.opacity=0.1">
+            <img src="${enc(prod.img)}" alt="${prodName(prod.id)}" onerror="this.style.opacity=0.1">
           </div>
-          <div class="dm-bprod-name">${prod.name}</div>
+          <div class="dm-bprod-name">${prodName(prod.id)}</div>
         </div>
       `;
     } else {
       return `
         <div class="dm-bprod is-gift">
-          <div class="dm-gift-badge">${p.giftLabel || '致贈'}</div>
+          <div class="dm-gift-badge">${p.giftLabel || GIFT_DEFAULTS[lang]}</div>
           <div class="dm-bprod-img">
-            <img src="${enc(prod.img)}" alt="${prod.name}" onerror="this.style.opacity=0.1">
+            <img src="${enc(prod.img)}" alt="${prodName(prod.id)}" onerror="this.style.opacity=0.1">
           </div>
-          <div class="dm-bprod-name">${prod.name}</div>
+          <div class="dm-bprod-name">${prodName(prod.id)}</div>
         </div>
       `;
     }
@@ -1028,13 +1126,13 @@ function renderOne(tag, subtitle) {
   // 橫式：圖片與品名分兩列（grid），使圖片底部恆對齊、且品名只有一行時不留空行
   const imgCells = c.products.map(p => {
     const prod = getProd(p.prodId);
-    const badge = p.role !== 'main' ? `<div class="dm-gift-badge">${p.giftLabel || '致贈'}</div>` : '';
-    return `<div class="dm-one-imgcell ${p.role === 'main' ? 'is-main' : 'is-gift'}">${badge}<div class="dm-bprod-img"><img src="${enc(prod.img)}" alt="${prod.name}" onerror="this.style.opacity=0.1"></div></div>`;
+    const badge = p.role !== 'main' ? `<div class="dm-gift-badge">${p.giftLabel || GIFT_DEFAULTS[lang]}</div>` : '';
+    return `<div class="dm-one-imgcell ${p.role === 'main' ? 'is-main' : 'is-gift'}">${badge}<div class="dm-bprod-img"><img src="${enc(prod.img)}" alt="${prodName(prod.id)}" onerror="this.style.opacity=0.1"></div></div>`;
   }).join('');
-  const nameCells = c.products.map(p => `<div class="dm-one-namecell">${getProd(p.prodId).name}</div>`).join('');
+  const nameCells = c.products.map(p => `<div class="dm-one-namecell">${prodName(p.prodId)}</div>`).join('');
 
   const orig = c.origPrice && c.origPrice !== '0'
-    ? `<span class="dm-orig-price">（原價NT$${fmt(c.origPrice)}）</span>` : '';
+    ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
 
   const hlBlock = c.headline
     ? `<div class="dm-one-headline">${cleanHeadline(c.headline)}</div>` : '';
@@ -1056,7 +1154,7 @@ function renderOne(tag, subtitle) {
   const usageHtml = anyUsage ? `<div class="dm-one-usage">${usageCols}</div>` : '';
 
   const priceMain =
-    `<span class="dm-one-price-main"><span class="dm-price-num">${fmt(c.price)}</span><span class="dm-price-unit">元</span></span>`;
+    `<span class="dm-one-price-main">${priceInner(c.price)}</span>`;
 
   /* 橫式：標題／促銷標語＋售價同一行，原價換行且右緣切齊上行的「元」；
      直式維持原本（標題獨立行、售價列）。pricewrap 寬度＝標題+售價的內容寬，
