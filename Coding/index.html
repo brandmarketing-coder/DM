@@ -300,13 +300,16 @@ body {
 .editor-sec { padding: 14px 14px 12px; border-bottom: 1px solid #eee; }
 .editor-sec-num { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 12px; }
 
-/* Editor loading（編輯區就緒前的載入動態） */
-.editor-loading {
+/* 預覽畫布載入動態（畫布就緒前顯示，載入完成後淡出移除） */
+.preview-loading {
+  position: absolute; inset: 0; z-index: 5;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; padding: 48px 0; color: #aaa; font-size: 12px; letter-spacing: 1px;
+  gap: 14px; background: #d0cdc9; color: #888; font-size: 13px; letter-spacing: 1px;
+  transition: opacity 0.35s ease;
 }
-.editor-loading .spin {
-  width: 28px; height: 28px; border: 3px solid #e6e4e0; border-top-color: #3a7d44;
+.preview-loading.hide { opacity: 0; pointer-events: none; }
+.loading-spin {
+  width: 34px; height: 34px; border: 3px solid #bdb9b3; border-top-color: #3a7d44;
   border-radius: 50%; animation: ed-spin 0.8s linear infinite;
 }
 @keyframes ed-spin { to { transform: rotate(360deg); } }
@@ -673,6 +676,10 @@ body {
     <div class="dm-wrap" id="dmWrap">
       <div id="dm-sheet"></div>
     </div>
+    <div id="preview-loading" class="preview-loading">
+      <div class="loading-spin"></div>
+      <span>載入中… Loading…</span>
+    </div>
   </div>
 
   <div class="editor-pane" id="editorPane">
@@ -732,7 +739,7 @@ body {
           <input type="text" id="dm-subtitle" class="field-input"
             value="" placeholder="例：抗暑，從頭噴到腳底的救星" oninput="renderDM()">
         </div>
-        <div id="block-editors"><div class="editor-loading"><div class="spin"></div><span>載入中… Loading…</span></div></div>
+        <div id="block-editors"></div>
       </div>
     </div>
     <div class="editor-footer">
@@ -1793,8 +1800,27 @@ window.addEventListener('load', () => {
   buildEditorBlocks();
   renderDM();
   scaleSheet();
+  hidePreviewLoading();
 });
 window.addEventListener('resize', scaleSheet);
+
+/* 畫布圖片（底圖／產品圖）載入完成後移除 loading；最多等 5 秒保底 */
+function hidePreviewLoading() {
+  const el = document.getElementById('preview-loading');
+  if (!el) return;
+  const done = () => {
+    el.classList.add('hide');
+    // 保底：淡出後強制移除（背景分頁 CSS transition 可能不前進，避免卡住不消失）
+    setTimeout(() => { el.style.display = 'none'; }, 400);
+  };
+  const imgs = [...document.querySelectorAll('#dm-sheet img')];
+  const pending = imgs.filter(i => !(i.complete && i.naturalWidth));
+  if (!pending.length) { done(); return; }
+  let left = pending.length;
+  const tick = () => { if (--left <= 0) done(); };
+  pending.forEach(i => { i.addEventListener('load', tick, { once: true }); i.addEventListener('error', tick, { once: true }); });
+  setTimeout(done, 5000);
+}
 </script>
 </body>
 </html>
