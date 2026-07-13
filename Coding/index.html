@@ -649,11 +649,11 @@ body {
   </div>
   <button class="nav-btn nav-btn-export-jpg" onclick="exportJPG()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    匯出 JPG
+    <span id="nav-jpg-txt">匯出 JPG</span>
   </button>
   <button class="nav-btn nav-btn-export" onclick="exportPDF()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    匯出 PDF (A4)
+    <span id="nav-pdf-txt">匯出 PDF (A4)</span>
   </button>
 </nav>
 
@@ -668,7 +668,7 @@ body {
     <div class="editor-scroll">
       <!-- 1. Background -->
       <div class="editor-sec">
-        <div class="editor-sec-num">1. 選擇底圖</div>
+        <div class="editor-sec-num" id="sec-bg">1. 選擇底圖</div>
         <div class="bg-pick">
           <div class="bg-opt active" id="bg-portrait" onclick="setBg('portrait')">
             <img src="../沙龍DM公版/公版DM_1.jpg" alt="直式">
@@ -691,7 +691,7 @@ body {
 
       <!-- 2. Layout -->
       <div class="editor-sec">
-        <div class="editor-sec-num">2. 選擇版面</div>
+        <div class="editor-sec-num" id="sec-layout">2. 選擇版面</div>
         <div class="layout-pick">
           <div class="layout-opt active" id="opt-four" onclick="setLayout('four')">
             <div class="lt-thumb lt4"><div></div><div></div><div></div><div></div></div>
@@ -710,14 +710,14 @@ body {
 
       <!-- 2. Content -->
       <div class="editor-sec" style="border-bottom:none">
-        <div class="editor-sec-num">3. 編輯內容</div>
+        <div class="editor-sec-num" id="sec-content">3. 編輯內容</div>
         <div style="margin-bottom:4px">
-          <label class="field-lbl">標題文字</label>
+          <label class="field-lbl" id="lbl-tagline">標題文字</label>
           <input type="text" id="dm-tagline" class="field-input"
             value="永續美妝 Sustainable Beauty" oninput="renderDM()">
         </div>
         <div id="dm-subtitle-field" style="margin-bottom:4px; display:none">
-          <label class="field-lbl">副標題（選填）</label>
+          <label class="field-lbl" id="lbl-subtitle">副標題（選填）</label>
           <input type="text" id="dm-subtitle" class="field-input"
             value="" placeholder="例：抗暑，從頭噴到腳底的救星" oninput="renderDM()">
         </div>
@@ -784,6 +784,99 @@ const TAGLINES = {
 const GIFT_DEFAULTS = { zh: '致贈', en: 'Gift', pl: 'Prezent' };
 const GIFT_DEFAULT_SET = new Set(Object.values(GIFT_DEFAULTS));
 
+/* 外文模式價格留空（僅中文顯示價格；英/波蘭待正式定價前不顯示） */
+function showPrice() { return lang === 'zh'; }
+
+/* 編輯器介面文字（依語言切換） */
+const UI = {
+  zh: {
+    navTitle: 'DM 編輯器', exportJPG: '匯出 JPG', exportPDF: '匯出 PDF (A4)',
+    secBg: '1. 選擇底圖', secLayout: '2. 選擇版面', secContent: '3. 編輯內容',
+    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3',
+    layFour: '四格', layTwo: '兩格', layOne: '一格',
+    taglineLabel: '標題文字', subtitleLabel: '副標題（選填）', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
+    cellA: '格 A（左上）', cellB: '格 B（右上）', cellC: '格 C（左下）', cellD: '格 D（右下）',
+    blockTop: '上方區塊', blockBottom: '下方區塊', blockOne: '商品',
+    mainProduct: '主商品', giftProduct: '贈品（可不選）', giftNone: '— 不顯示贈品 —',
+    giftLabelField: '贈品標籤文字（如：致贈、附贈、組合）', giftPh: '致贈',
+    headlineField: '標題／促銷標語（選填）', headlinePh: '例：強健髮根 甦醒美麗',
+    descField: '產品描述（橫式2／3 單品時顯示，自動帶入可修改）', descPh: '選擇商品後自動帶入',
+    priceLabel: '售價（元）', origLabel: '原價（元）',
+    prodList: '商品清單 (最多 3 個)', addProduct: '新增商品', deleteProduct: '刪除此商品',
+    prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品 (贈品)',
+    usageField: '用途說明（自動帶入該商品「用途」，可修改）', usagePh: '選擇商品後自動帶入',
+    product: '商品', giftLabelField2: '贈品標籤文字（如：致贈、附贈）',
+    exportNote: '* 匯出將依目前預覽內容產生 PDF，格式為 A4 {o} *', exportMain: '匯出 PDF (A4 {o})',
+    orientP: '直式', orientL: '橫式',
+  },
+  en: {
+    navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
+    secBg: '1. Background', secLayout: '2. Layout', secContent: '3. Content',
+    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3',
+    layFour: '4-grid', layTwo: '2-grid', layOne: '1-grid',
+    taglineLabel: 'Title', subtitleLabel: 'Subtitle (optional)', subtitlePh: 'e.g. a short catchphrase',
+    cellA: 'Cell A (top-left)', cellB: 'Cell B (top-right)', cellC: 'Cell C (bottom-left)', cellD: 'Cell D (bottom-right)',
+    blockTop: 'Top block', blockBottom: 'Bottom block', blockOne: 'Product',
+    mainProduct: 'Main product', giftProduct: 'Gift (optional)', giftNone: '— No gift —',
+    giftLabelField: 'Gift label (e.g. Gift, Free, Set)', giftPh: 'Gift',
+    headlineField: 'Headline / slogan (optional)', headlinePh: 'e.g. Strong roots, radiant beauty',
+    descField: 'Description (shown on Landscape 2/3, auto-filled, editable)', descPh: 'Auto-filled after selecting a product',
+    priceLabel: 'Price', origLabel: 'Original price',
+    prodList: 'Products (max 3)', addProduct: 'Add product', deleteProduct: 'Remove',
+    prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary (gift)',
+    usageField: 'Usage (auto-filled, editable)', usagePh: 'Auto-filled after selecting a product',
+    product: 'Product', giftLabelField2: 'Gift label (e.g. Gift, Free)',
+    exportNote: '* Exports a PDF of the current preview, A4 {o} *', exportMain: 'Export PDF (A4 {o})',
+    orientP: 'portrait', orientL: 'landscape',
+  },
+  pl: {
+    navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
+    secBg: '1. Tło', secLayout: '2. Układ', secContent: '3. Treść',
+    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3',
+    layFour: '4 pola', layTwo: '2 pola', layOne: '1 pole',
+    taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł (opcjonalnie)', subtitlePh: 'np. krótkie hasło',
+    cellA: 'Pole A (lewy górny)', cellB: 'Pole B (prawy górny)', cellC: 'Pole C (lewy dolny)', cellD: 'Pole D (prawy dolny)',
+    blockTop: 'Blok górny', blockBottom: 'Blok dolny', blockOne: 'Produkt',
+    mainProduct: 'Produkt główny', giftProduct: 'Prezent (opcjonalnie)', giftNone: '— Bez prezentu —',
+    giftLabelField: 'Etykieta prezentu (np. Prezent, Gratis)', giftPh: 'Prezent',
+    headlineField: 'Nagłówek / hasło (opcjonalnie)', headlinePh: 'np. Mocne cebulki, promienne piękno',
+    descField: 'Opis (widoczny w Poziomy 2/3, wypełniany automatycznie)', descPh: 'Wypełniane po wybraniu produktu',
+    priceLabel: 'Cena', origLabel: 'Cena pierwotna',
+    prodList: 'Produkty (maks. 3)', addProduct: 'Dodaj produkt', deleteProduct: 'Usuń',
+    prodType: 'Typ', roleMain: 'Główny', roleSub: 'Dodatkowy (prezent)',
+    usageField: 'Zastosowanie (wypełniane automatycznie)', usagePh: 'Wypełniane po wybraniu produktu',
+    product: 'Produkt', giftLabelField2: 'Etykieta prezentu (np. Prezent)',
+    exportNote: '* Eksportuje PDF bieżącego podglądu, A4 {o} *', exportMain: 'Eksport PDF (A4 {o})',
+    orientP: 'pionowy', orientL: 'poziomy',
+  },
+};
+function t(k) { return (UI[lang] && UI[lang][k] != null) ? UI[lang][k] : UI.zh[k]; }
+
+/* 匯出提示與按鈕文字（含 A4 方向，依語言） */
+function updateExportLabels() {
+  const o = isLandscape() ? t('orientL') : t('orientP');
+  const note = document.getElementById('export-note');
+  if (note) note.textContent = t('exportNote').replace('{o}', o);
+  const btn = document.getElementById('btn-export-main');
+  if (btn) btn.textContent = t('exportMain').replace('{o}', o);
+}
+
+/* 更新靜態介面文字（navbar 與編輯器區塊標題／選項標籤） */
+function applyStaticUI() {
+  const set = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
+  set('.nav-title', t('navTitle'));
+  set('#sec-bg', t('secBg')); set('#sec-layout', t('secLayout')); set('#sec-content', t('secContent'));
+  set('#bg-portrait .bg-label', t('bgPortrait'));
+  set('#bg-h1 .bg-label', t('bgH1')); set('#bg-h2 .bg-label', t('bgH2')); set('#bg-h3 .bg-label', t('bgH3'));
+  set('#opt-four .lt-label', t('layFour')); set('#opt-two .lt-label', t('layTwo')); set('#opt-one .lt-label', t('layOne'));
+  set('#lbl-tagline', t('taglineLabel')); set('#lbl-subtitle', t('subtitleLabel'));
+  const sub = document.getElementById('dm-subtitle'); if (sub) sub.placeholder = t('subtitlePh');
+  // navbar 匯出鈕（保留 icon）：只改文字節點
+  const jpgBtn = document.getElementById('nav-jpg-txt'); if (jpgBtn) jpgBtn.textContent = t('exportJPG');
+  const pdfBtn = document.getElementById('nav-pdf-txt'); if (pdfBtn) pdfBtn.textContent = t('exportPDF');
+  updateExportLabels();
+}
+
 /* TWD → 目前語言金額（整數） */
 function convAmt(twd) {
   const n = Number(String(twd == null ? '' : twd).replace(/,/g, ''));
@@ -794,8 +887,10 @@ function convAmt(twd) {
 function priceNum(twd) { return fmt(convAmt(twd)); }
 /* 括號：中文用全形（），英/波用半形() */
 function paren(s) { return lang === 'zh' ? `（${s}）` : `(${s})`; }
-/* 售價「數字＋幣別」內層 HTML（幣別符號位置依語言；可指定 num/unit 的 class） */
+/* 售價「數字＋幣別」內層 HTML（幣別符號位置依語言；可指定 num/unit 的 class）。
+   外文模式價格留空（正式定價未定前不顯示）。 */
 function priceInnerCls(twd, numCls, unitCls) {
+  if (!showPrice()) return '';
   const n = priceNum(twd);
   if (lang === 'en') return `<span class="${unitCls}">$</span><span class="${numCls}">${n}</span>`;
   if (lang === 'pl') return `<span class="${numCls}">${n}</span><span class="${unitCls}">&nbsp;zł</span>`;
@@ -829,6 +924,7 @@ function localizeGiftLabels() {
 function setLang(l) {
   lang = l;
   ['zh','en','pl'].forEach(k => document.getElementById('lang-'+k).classList.toggle('active', k === l));
+  applyStaticUI();
   // 贈品標籤本地化，並依該語言重新帶入各版面文案（介紹/用途/價格加總）
   localizeGiftLabels();
   state.four.forEach(applyMainCopy);
@@ -854,11 +950,7 @@ function setBg(bg) {
   const noFour = (bg === 'h1');
   if (optFour) optFour.style.display = noFour ? 'none' : '';
 
-  const orient = bg === 'portrait' ? '直式' : '橫式';
-  const note = document.getElementById('export-note');
-  if (note) note.textContent = `* 匯出將依目前預覽內容產生 PDF，格式為 A4 ${orient} *`;
-  const btn = document.getElementById('btn-export-main');
-  if (btn) btn.textContent = `匯出 PDF (A4 ${orient})`;
+  updateExportLabels();
 
   if (noFour && layout === 'four') {
     setLayout('two');   // 含 tagline／編輯區同步與 renderDM
@@ -975,7 +1067,7 @@ function cellHTML(c) {
 
   const giftName = gp ? `<br><span class="dm-cell-gift-name">${paren(c.giftLabel)}${prodName(gp.id)}</span>` : '';
 
-  const orig = c.origPrice && c.origPrice !== '0'
+  const orig = showPrice() && c.origPrice && c.origPrice !== '0'
     ? `<span class="dm-cell-orig">${origText(c.origPrice)}</span>` : '';
 
   return `
@@ -1017,7 +1109,7 @@ function bundleRowHTML(c) {
   if (isFeatureTwo()) {
     const gp = getProdOrNull(c.giftId);
     const desc = (c.usage || '').trim();
-    const origF = c.origPrice && c.origPrice !== '0'
+    const origF = showPrice() && c.origPrice && c.origPrice !== '0'
       ? `<div class="dm-feature-orig"><span class="dm-orig-price">${paren(origText(c.origPrice))}</span></div>` : '';
     const giftCol = gp ? `
         <div class="dm-bprod is-gift dm-feature-gift">
@@ -1056,7 +1148,7 @@ function bundleRowHTML(c) {
       <div class="dm-bprod-name">${prodName(gp.id)}</div>
     </div>` : '';
 
-  const orig = c.origPrice && c.origPrice !== '0'
+  const orig = showPrice() && c.origPrice && c.origPrice !== '0'
     ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
 
   const hl = c.headline
@@ -1131,7 +1223,7 @@ function renderOne(tag, subtitle) {
   }).join('');
   const nameCells = c.products.map(p => `<div class="dm-one-namecell">${prodName(p.prodId)}</div>`).join('');
 
-  const orig = c.origPrice && c.origPrice !== '0'
+  const orig = showPrice() && c.origPrice && c.origPrice !== '0'
     ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
 
   const hlBlock = c.headline
@@ -1286,34 +1378,34 @@ function cellEditor(idx, title) {
         onmouseover="this.style.background='#2d6235'" 
         onmouseout="this.style.background='#3a7d44'">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        新增商品
+        ${t('addProduct')}
       </button>
     ` : '';
 
     return `
       <div class="block-ed">
         <div class="block-ed-title">${title}</div>
-        
+
         <div style="margin-bottom: 12px;">
-          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">商品清單 (最多 3 個)</span>
+          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">${t('prodList')}</span>
           ${prodsHtml}
           ${addProdBtn}
         </div>
-        
+
         <div class="headline-field">
-          <label class="field-lbl">標題／促銷標語（選填）</label>
+          <label class="field-lbl">${t('headlineField')}</label>
           <input type="text" class="field-input" style="padding:5px 8px"
-            value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
+            value="${c.headline}" placeholder="${t('headlinePh')}"
             oninput="onField(${idx},'headline',this.value)">
         </div>
         <div class="price-pair">
           <div class="price-slot">
-            <label>售價（元）</label>
+            <label>${t('priceLabel')}</label>
             <input type="text" class="price-input" value="${c.price}"
               oninput="onField(${idx},'price',this.value)">
           </div>
           <div class="price-slot">
-            <label>原價（元）</label>
+            <label>${t('origLabel')}</label>
             <input type="text" class="price-input" value="${c.origPrice}"
               oninput="onField(${idx},'origPrice',this.value)">
           </div>
@@ -1329,7 +1421,7 @@ function cellEditor(idx, title) {
       <div class="block-ed-title">${title}</div>
       <div class="prod-pair">
         <div class="prod-slot">
-          <div class="prod-slot-lbl">主商品</div>
+          <div class="prod-slot-lbl">${t('mainProduct')}</div>
           <div class="prod-thumb-row">
             <img class="prod-thumb" id="th${idx}m" src="${enc(mp.img)}" alt="">
           </div>
@@ -1338,43 +1430,43 @@ function cellEditor(idx, title) {
           </select>
         </div>
         <div class="prod-slot">
-          <div class="prod-slot-lbl">贈品（可不選）</div>
+          <div class="prod-slot-lbl">${t('giftProduct')}</div>
           <div class="prod-thumb-row">
             <img class="prod-thumb" id="th${idx}g" src="${enc(gp.img)}" alt="">
           </div>
           <select class="prod-sel" onchange="onProd(${idx},'giftId',this.value)">
-            <option value="">— 不顯示贈品 —</option>
+            <option value="">${t('giftNone')}</option>
             ${opts(c.giftId)}
           </select>
         </div>
       </div>
       <div class="gift-label-field" id="gl-field-${idx}" style="${c.giftId ? '' : 'display:none'}">
-        <label class="field-lbl">贈品標籤文字（如：致贈、附贈、組合）</label>
+        <label class="field-lbl">${t('giftLabelField')}</label>
         <input type="text" class="field-input" style="padding:5px 8px"
-          value="${c.giftLabel}" placeholder="致贈"
+          value="${c.giftLabel}" placeholder="${t('giftPh')}"
           oninput="onField(${idx},'giftLabel',this.value)">
       </div>
       <div class="headline-field">
-        <label class="field-lbl">標題／促銷標語（選填）</label>
+        <label class="field-lbl">${t('headlineField')}</label>
         <input type="text" class="field-input" style="padding:5px 8px"
-          value="${c.headline}" placeholder="例：強健髮根 甦醒美麗"
+          value="${c.headline}" placeholder="${t('headlinePh')}"
           oninput="onField(${idx},'headline',this.value)">
       </div>
       ${layout === 'two' ? `
       <div style="margin-bottom:7px">
-        <label class="field-lbl">產品描述（橫式2／3 單品時顯示，自動帶入可修改）</label>
+        <label class="field-lbl">${t('descField')}</label>
         <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:42px; line-height:1.5"
-          placeholder="選擇商品後自動帶入"
+          placeholder="${t('descPh')}"
           oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
       </div>` : ''}
       <div class="price-pair">
         <div class="price-slot">
-          <label>售價（元）</label>
+          <label>${t('priceLabel')}</label>
           <input type="text" class="price-input" value="${c.price}"
             oninput="onField(${idx},'price',this.value)">
         </div>
         <div class="price-slot">
-          <label>原價（元）</label>
+          <label>${t('origLabel')}</label>
           <input type="text" class="price-input" value="${c.origPrice}"
             oninput="onField(${idx},'origPrice',this.value)">
         </div>
@@ -1385,12 +1477,12 @@ function cellEditor(idx, title) {
 function buildEditorBlocks() {
   let html = '';
   if (layout === 'four') {
-    html = cellEditor(0,'格 A（左上）') + cellEditor(1,'格 B（右上）') +
-           cellEditor(2,'格 C（左下）') + cellEditor(3,'格 D（右下）');
+    html = cellEditor(0,t('cellA')) + cellEditor(1,t('cellB')) +
+           cellEditor(2,t('cellC')) + cellEditor(3,t('cellD'));
   } else if (layout === 'two') {
-    html = cellEditor(0,'上方區塊') + cellEditor(1,'下方區塊');
+    html = cellEditor(0,t('blockTop')) + cellEditor(1,t('blockBottom'));
   } else {
-    html = cellEditor(0,'商品');
+    html = cellEditor(0,t('blockOne'));
   }
   document.getElementById('block-editors').innerHTML = html;
 }
@@ -1426,15 +1518,15 @@ function oneGridProductEditor(p, prodIdx) {
   // Role selector (Main/Sub)
   const roleSelect = `
     <div style="margin-bottom: 6px;">
-      <span class="field-lbl">商品類型</span>
+      <span class="field-lbl">${t('prodType')}</span>
       <div style="display: flex; gap: 12px; margin-top: 4px;">
         <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
           <input type="radio" name="one-role-${prodIdx}" value="main" ${isMain ? 'checked' : ''} onchange="onOneProdRole(${prodIdx}, 'main')">
-          主商品
+          ${t('roleMain')}
         </label>
         <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
           <input type="radio" name="one-role-${prodIdx}" value="sub" ${isSub ? 'checked' : ''} onchange="onOneProdRole(${prodIdx}, 'sub')">
-          輔助商品 (贈品)
+          ${t('roleSub')}
         </label>
       </div>
     </div>
@@ -1443,9 +1535,9 @@ function oneGridProductEditor(p, prodIdx) {
   // Gift label input (only shown if Sub)
   const giftLabelInput = isSub ? `
     <div style="margin-top: 6px;">
-      <label class="field-lbl">贈品標籤文字（如：致贈、附贈）</label>
+      <label class="field-lbl">${t('giftLabelField2')}</label>
       <input type="text" class="field-input" style="padding: 5px 8px;"
-        value="${p.giftLabel || '致贈'}" placeholder="致贈"
+        value="${p.giftLabel || GIFT_DEFAULTS[lang]}" placeholder="${t('giftPh')}"
         oninput="onOneProdField(${prodIdx}, 'giftLabel', this.value)">
     </div>
   ` : '';
@@ -1453,9 +1545,9 @@ function oneGridProductEditor(p, prodIdx) {
   // Usage field (每個商品各自的用途，自動帶入、可修改)
   const usageInput = `
     <div style="margin-top: 6px;">
-      <label class="field-lbl">用途說明（自動帶入該商品「用途」，可修改）</label>
+      <label class="field-lbl">${t('usageField')}</label>
       <textarea class="field-input" style="padding: 5px 8px; resize: vertical; min-height: 44px; line-height: 1.5;"
-        placeholder="選擇商品後自動帶入"
+        placeholder="${t('usagePh')}"
         oninput="onOneProdField(${prodIdx}, 'usage', this.value)">${p.usage || ''}</textarea>
     </div>
   `;
@@ -1466,14 +1558,14 @@ function oneGridProductEditor(p, prodIdx) {
       onclick="deleteOneProd(${prodIdx})"
       onmouseover="this.style.background='#c53030'" 
       onmouseout="this.style.background='#e53e3e'">
-      刪除此商品
+      ${t('deleteProduct')}
     </button>
   ` : '';
 
   return `
     <div style="background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <span style="font-size: 11px; font-weight: 700; color: #555;">商品 ${prodIdx + 1}</span>
+        <span style="font-size: 11px; font-weight: 700; color: #555;">${t('product')} ${prodIdx + 1}</span>
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" id="th-one-${prodIdx}" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
@@ -1491,7 +1583,7 @@ function oneGridProductEditor(p, prodIdx) {
 
 function addOneProd() {
   if (state.one[0].products.length < 3) {
-    const np = { prodId: (PRODUCTS[0] && PRODUCTS[0].id) || '', role: 'sub', giftLabel: '致贈', usage: '' };
+    const np = { prodId: (PRODUCTS[0] && PRODUCTS[0].id) || '', role: 'sub', giftLabel: GIFT_DEFAULTS[lang], usage: '' };
     setProductUsage(np);
     state.one[0].products.push(np);
     applyOneMeta();
