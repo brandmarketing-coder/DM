@@ -300,6 +300,17 @@ body {
 .editor-sec { padding: 14px 14px 12px; border-bottom: 1px solid #eee; }
 .editor-sec-num { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 12px; }
 
+/* Editor loading（編輯區就緒前的載入動態） */
+.editor-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 48px 0; color: #aaa; font-size: 12px; letter-spacing: 1px;
+}
+.editor-loading .spin {
+  width: 28px; height: 28px; border: 3px solid #e6e4e0; border-top-color: #3a7d44;
+  border-radius: 50%; animation: ed-spin 0.8s linear infinite;
+}
+@keyframes ed-spin { to { transform: rotate(360deg); } }
+
 /* Layout picker */
 .layout-pick { display: flex; gap: 8px; }
 .layout-opt {
@@ -721,7 +732,7 @@ body {
           <input type="text" id="dm-subtitle" class="field-input"
             value="" placeholder="例：抗暑，從頭噴到腳底的救星" oninput="renderDM()">
         </div>
-        <div id="block-editors"></div>
+        <div id="block-editors"><div class="editor-loading"><div class="spin"></div><span>載入中… Loading…</span></div></div>
       </div>
     </div>
     <div class="editor-footer">
@@ -784,8 +795,23 @@ const TAGLINES = {
 const GIFT_DEFAULTS = { zh: '致贈', en: 'Gift', pl: 'Prezent' };
 const GIFT_DEFAULT_SET = new Set(Object.values(GIFT_DEFAULTS));
 
-/* 外文模式價格留空（僅中文顯示價格；英/波蘭待正式定價前不顯示） */
-function showPrice() { return lang === 'zh'; }
+/* 幣別單位（供編輯欄標籤顯示「預設幣值」） */
+const CUR_UNIT = { zh: '元', en: 'US$', pl: 'zł' };
+
+/* 價格為「每語言各自儲存」：
+   中文＝TWD（由產品建議售價自動帶入，存於 obj.price / obj.origPrice）；
+   英/波蘭＝手動輸入、預設空白，存於 obj.i18nPrice[lang] / obj.i18nOrig[lang]。 */
+function dispPrice(obj) {
+  return lang === 'zh' ? (obj.price || '') : ((obj.i18nPrice && obj.i18nPrice[lang]) || '');
+}
+function dispOrig(obj) {
+  return lang === 'zh' ? (obj.origPrice || '') : ((obj.i18nOrig && obj.i18nOrig[lang]) || '');
+}
+function setDispPrice(obj, field, val) { // field: 'price' | 'origPrice'
+  if (lang === 'zh') { obj[field] = val; return; }
+  const key = field === 'price' ? 'i18nPrice' : 'i18nOrig';
+  (obj[key] = obj[key] || {})[lang] = val;
+}
 
 /* 編輯器介面文字（依語言切換） */
 const UI = {
@@ -801,7 +827,7 @@ const UI = {
     giftLabelField: '贈品標籤文字（如：致贈、附贈、組合）', giftPh: '致贈',
     headlineField: '標題／促銷標語（選填）', headlinePh: '例：強健髮根 甦醒美麗',
     descField: '產品描述（橫式2／3 單品時顯示，自動帶入可修改）', descPh: '選擇商品後自動帶入',
-    priceLabel: '售價（元）', origLabel: '原價（元）',
+    priceLabel: '售價', origLabel: '原價',
     prodList: '商品清單 (最多 3 個)', addProduct: '新增商品', deleteProduct: '刪除此商品',
     prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品 (贈品)',
     usageField: '用途說明（自動帶入該商品「用途」，可修改）', usagePh: '選擇商品後自動帶入',
@@ -821,7 +847,7 @@ const UI = {
     giftLabelField: 'Gift label (e.g. Gift, Free, Set)', giftPh: 'Gift',
     headlineField: 'Headline / slogan (optional)', headlinePh: 'e.g. Strong roots, radiant beauty',
     descField: 'Description (shown on Landscape 2/3, auto-filled, editable)', descPh: 'Auto-filled after selecting a product',
-    priceLabel: 'Price', origLabel: 'Original price',
+    priceLabel: 'Price', origLabel: 'Orig. price',
     prodList: 'Products (max 3)', addProduct: 'Add product', deleteProduct: 'Remove',
     prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary (gift)',
     usageField: 'Usage (auto-filled, editable)', usagePh: 'Auto-filled after selecting a product',
@@ -877,29 +903,24 @@ function applyStaticUI() {
   updateExportLabels();
 }
 
-/* TWD → 目前語言金額（整數） */
-function convAmt(twd) {
-  const n = Number(String(twd == null ? '' : twd).replace(/,/g, ''));
-  if (!n || isNaN(n)) return 0;
-  return Math.round(n * (CURRENCY[lang] || CURRENCY.zh).rate);
-}
-/* 售價數字（已換算、含千分位字串） */
-function priceNum(twd) { return fmt(convAmt(twd)); }
 /* 括號：中文用全形（），英/波用半形() */
 function paren(s) { return lang === 'zh' ? `（${s}）` : `(${s})`; }
-/* 售價「數字＋幣別」內層 HTML（幣別符號位置依語言；可指定 num/unit 的 class）。
-   外文模式價格留空（正式定價未定前不顯示）。 */
-function priceInnerCls(twd, numCls, unitCls) {
-  if (!showPrice()) return '';
-  const n = priceNum(twd);
+/* 售價「數字＋幣別」內層 HTML（不換算；值為當前語言的售價字串，空白則不顯示）。
+   幣別符號位置依語言；可指定 num/unit 的 class。 */
+function priceInnerCls(val, numCls, unitCls) {
+  const s = (val == null ? '' : String(val)).trim();
+  if (!s) return '';
+  const n = fmt(s);
   if (lang === 'en') return `<span class="${unitCls}">$</span><span class="${numCls}">${n}</span>`;
   if (lang === 'pl') return `<span class="${numCls}">${n}</span><span class="${unitCls}">&nbsp;zł</span>`;
   return `<span class="${numCls}">${n}</span><span class="${unitCls}">元</span>`;
 }
-const priceInner = (twd) => priceInnerCls(twd, 'dm-price-num', 'dm-price-unit');
-/* 原價文字（不含外框括號） */
-function origText(twd) {
-  const n = priceNum(twd);
+const priceInner = (val) => priceInnerCls(val, 'dm-price-num', 'dm-price-unit');
+/* 原價文字（不含外框括號；值空白或 0 則回空） */
+function origText(val) {
+  const s = (val == null ? '' : String(val)).trim();
+  if (!s || s === '0') return '';
+  const n = fmt(s);
   if (lang === 'en') return `Orig. $${n}`;
   if (lang === 'pl') return `dawniej ${n} zł`;
   return `原價NT$${n}`;
@@ -1067,8 +1088,8 @@ function cellHTML(c) {
 
   const giftName = gp ? `<br><span class="dm-cell-gift-name">${paren(c.giftLabel)}${prodName(gp.id)}</span>` : '';
 
-  const orig = showPrice() && c.origPrice && c.origPrice !== '0'
-    ? `<span class="dm-cell-orig">${origText(c.origPrice)}</span>` : '';
+  const orig = origText(dispOrig(c))
+    ? `<span class="dm-cell-orig">${origText(dispOrig(c))}</span>` : '';
 
   return `
     <div class="dm-cell">
@@ -1082,7 +1103,7 @@ function cellHTML(c) {
         ${c.headline ? `<div class="dm-cell-headline">${cleanHeadline(c.headline)}</div>` : ''}
         <div class="dm-cell-names">${prodName(mp.id)}${giftName}</div>
         <div class="dm-cell-price-row">
-          ${priceInnerCls(c.price, 'dm-cell-price', 'dm-cell-unit')}
+          ${priceInnerCls(dispPrice(c), 'dm-cell-price', 'dm-cell-unit')}
           ${orig}
         </div>
       </div>
@@ -1109,7 +1130,7 @@ function bundleRowHTML(c) {
   if (isFeatureTwo()) {
     const gp = getProdOrNull(c.giftId);
     const desc = (c.usage || '').trim();
-    const origF = showPrice() && c.origPrice && c.origPrice !== '0'
+    const origF = origText(dispOrig(c))
       ? `<div class="dm-feature-orig"><span class="dm-orig-price">${paren(origText(c.origPrice))}</span></div>` : '';
     const giftCol = gp ? `
         <div class="dm-bprod is-gift dm-feature-gift">
@@ -1131,7 +1152,7 @@ function bundleRowHTML(c) {
         ${gp ? '' : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
         ${desc ? `<div class="dm-feature-desc">${desc}</div>` : ''}
         <div class="dm-feature-price">
-          <span class="dm-price-grp">${priceInner(c.price)}</span>
+          <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
         </div>
         ${origF}
       </div>`;
@@ -1148,7 +1169,7 @@ function bundleRowHTML(c) {
       <div class="dm-bprod-name">${prodName(gp.id)}</div>
     </div>` : '';
 
-  const orig = showPrice() && c.origPrice && c.origPrice !== '0'
+  const orig = origText(dispOrig(c))
     ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
 
   const hl = c.headline
@@ -1167,7 +1188,7 @@ function bundleRowHTML(c) {
       </div>
       <div class="dm-bundle-price-row">
         ${hl}
-        <span class="dm-price-grp">${priceInner(c.price)}</span>
+        <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
         ${orig}
       </div>
     </div>`;
@@ -1223,7 +1244,7 @@ function renderOne(tag, subtitle) {
   }).join('');
   const nameCells = c.products.map(p => `<div class="dm-one-namecell">${prodName(p.prodId)}</div>`).join('');
 
-  const orig = showPrice() && c.origPrice && c.origPrice !== '0'
+  const orig = origText(dispOrig(c))
     ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
 
   const hlBlock = c.headline
@@ -1246,7 +1267,7 @@ function renderOne(tag, subtitle) {
   const usageHtml = anyUsage ? `<div class="dm-one-usage">${usageCols}</div>` : '';
 
   const priceMain =
-    `<span class="dm-one-price-main">${priceInner(c.price)}</span>`;
+    `<span class="dm-one-price-main">${priceInner(dispPrice(c))}</span>`;
 
   /* 橫式：標題／促銷標語＋售價同一行，原價換行且右緣切齊上行的「元」；
      直式維持原本（標題獨立行、售價列）。pricewrap 寬度＝標題+售價的內容寬，
@@ -1400,13 +1421,13 @@ function cellEditor(idx, title) {
         </div>
         <div class="price-pair">
           <div class="price-slot">
-            <label>${t('priceLabel')}</label>
-            <input type="text" class="price-input" value="${c.price}"
+            <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
+            <input type="text" class="price-input" value="${dispPrice(c)}"
               oninput="onField(${idx},'price',this.value)">
           </div>
           <div class="price-slot">
-            <label>${t('origLabel')}</label>
-            <input type="text" class="price-input" value="${c.origPrice}"
+            <label>${t('origLabel')}${paren(CUR_UNIT[lang])}</label>
+            <input type="text" class="price-input" value="${dispOrig(c)}"
               oninput="onField(${idx},'origPrice',this.value)">
           </div>
         </div>
@@ -1461,13 +1482,13 @@ function cellEditor(idx, title) {
       </div>` : ''}
       <div class="price-pair">
         <div class="price-slot">
-          <label>${t('priceLabel')}</label>
-          <input type="text" class="price-input" value="${c.price}"
+          <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
+          <input type="text" class="price-input" value="${dispPrice(c)}"
             oninput="onField(${idx},'price',this.value)">
         </div>
         <div class="price-slot">
-          <label>${t('origLabel')}</label>
-          <input type="text" class="price-input" value="${c.origPrice}"
+          <label>${t('origLabel')}${paren(CUR_UNIT[lang])}</label>
+          <input type="text" class="price-input" value="${dispOrig(c)}"
             oninput="onField(${idx},'origPrice',this.value)">
         </div>
       </div>
@@ -1506,7 +1527,12 @@ function onProd(idx, field, val) {
 }
 
 function onField(idx, field, val) {
-  state[layout][idx][field] = val;
+  const obj = state[layout][idx];
+  if (field === 'price' || field === 'origPrice') {
+    setDispPrice(obj, field, val);   // 中文寫入 TWD；外文寫入該語言的手動價格
+  } else {
+    obj[field] = val;
+  }
   renderDM();
 }
 
