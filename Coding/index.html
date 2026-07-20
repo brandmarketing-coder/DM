@@ -179,7 +179,7 @@ body {
   letter-spacing: 1px; font-style: normal; line-height: 1;
 }
 .dm-bprod-name {
-  font-size: 13.5px; color: #8d8d8d; text-align: center;
+  font-size: 15px; color: #8d8d8d; text-align: center;
   margin-top: 5px; line-height: 1.3;
   max-width: 100%; word-break: break-word;
 }
@@ -193,13 +193,19 @@ body {
 .dm-bundle-pair .dm-bprod.is-gift { width: 78px; }
 .dm-bundle-pair .dm-bprod.is-main:only-child { width: 124px; }
 
+/* 用途說明（產品描述）：直式兩格，置中於商品與售價之間 */
+.dm-bundle-desc {
+  flex-shrink: 0; font-size: 13.5px; line-height: 1.5; color: #6f6f6f;
+  text-align: center; max-width: 92%; margin: 3px auto 0; white-space: pre-line;
+}
+
 /* Bundle price */
 .dm-bundle-price-row {
   flex-shrink: 0; display: flex; align-items: baseline;
   gap: 8px; flex-wrap: wrap; padding-top: 5px;
   justify-content: center;
 }
-.dm-headline-lbl { font-size: 15px; color: #555; letter-spacing: 0.5px; text-align: center;
+.dm-headline-lbl { font-size: 17px; color: #555; letter-spacing: 0.5px; text-align: center;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
 /* 售價數字＋單位永遠成組（直式維持單行；橫式可整組獨立成一行） */
 .dm-price-grp   { display: inline-flex; align-items: baseline; gap: 4px; }
@@ -254,7 +260,7 @@ body {
 .dm-one-usage {
   flex-shrink: 0; width: 100%;
   display: flex; justify-content: center; align-items: flex-start; gap: var(--colGap, 24px);
-  font-size: var(--usageFS, 9pt); line-height: 1.55; color: #777;
+  font-size: var(--usageFS, 11pt); line-height: 1.55; color: #6f6f6f;
   padding: 8px 0 0;   /* 不加左右內距，使用途欄寬與上方商品欄完全一致 */
 }
 /* 每欄與上方商品同寬；用途文字區塊靠各欄左界對齊（兩段文字左邊緣一致 → 整齊兩欄、不歪）
@@ -491,8 +497,8 @@ body {
   min-width: 0; align-self: start; text-align: center;
   font-size: 19px; line-height: 1.3; padding-top: 5px; word-break: break-word; color: #999;
 }
-/* 橫式1 一格：品名縮小約 1pt、產品圖往下移一點點 */
-#dm-sheet.bg-h1 .dm-one-namecell { font-size: 17.5px; line-height: 1.2; }
+/* 橫式1 一格：產品圖往下移一點點（品名維持 19px，空間不足由自動縮放處理） */
+#dm-sheet.bg-h1 .dm-one-namecell { line-height: 1.2; }
 #dm-sheet.bg-h1 .dm-one-pair { margin-top: 8px; }
 /* 橫式一格：壓縮用途/售價區的垂直占用，讓 fitOneGrid 保留較大的產品圖 */
 #dm-sheet.is-landscape .dm-one-usage { padding-top: 3px; line-height: 1.4; }
@@ -838,7 +844,7 @@ const UI = {
     mainProduct: '主商品', giftProduct: '贈品（可不選）', giftNone: '— 不顯示贈品 —',
     giftLabelField: '贈品標籤文字（如：致贈、附贈、組合）', giftPh: '致贈',
     headlineField: '標題／促銷標語（選填）', headlinePh: '例：強健髮根 甦醒美麗',
-    descField: '產品描述（橫式2／3 單品時顯示，自動帶入可修改）', descPh: '選擇商品後自動帶入',
+    descField: '用途說明／產品描述（自動帶入主商品用途，可修改；清空則不顯示）', descPh: '選擇商品後自動帶入',
     priceLabel: '售價', origLabel: '原價',
     prodList: '商品清單 (最多 3 個)', addProduct: '新增商品', deleteProduct: '刪除此商品',
     prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品 (贈品)',
@@ -859,7 +865,7 @@ const UI = {
     mainProduct: 'Main product', giftProduct: 'Gift (optional)', giftNone: '— No gift —',
     giftLabelField: 'Gift label (e.g. Gift, Free, Set)', giftPh: 'Gift',
     headlineField: 'Headline / slogan (optional)', headlinePh: 'e.g. Strong roots, radiant beauty',
-    descField: 'Description (shown on Landscape 2/3, auto-filled, editable)', descPh: 'Auto-filled after selecting a product',
+    descField: 'Description (auto-filled from main product, editable; clear to hide)', descPh: 'Auto-filled after selecting a product',
     priceLabel: 'Price', origLabel: 'Orig. price',
     prodList: 'Products (max 3)', addProduct: 'Add product', deleteProduct: 'Remove',
     prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary (gift)',
@@ -880,7 +886,7 @@ const UI = {
     mainProduct: 'Produkt główny', giftProduct: 'Prezent (opcjonalnie)', giftNone: '— Bez prezentu —',
     giftLabelField: 'Etykieta prezentu (np. Prezent, Gratis)', giftPh: 'Prezent',
     headlineField: 'Nagłówek / hasło (opcjonalnie)', headlinePh: 'np. Mocne cebulki, promienne piękno',
-    descField: 'Opis (widoczny w Poziomy 2/3, wypełniany automatycznie)', descPh: 'Wypełniane po wybraniu produktu',
+    descField: 'Opis (wypełniany automatycznie z produktu głównego; wyczyść, aby ukryć)', descPh: 'Wypełniane po wybraniu produktu',
     priceLabel: 'Cena', origLabel: 'Cena pierwotna',
     prodList: 'Produkty (maks. 3)', addProduct: 'Dodaj produkt', deleteProduct: 'Usuń',
     prodType: 'Typ', roleMain: 'Główny', roleSub: 'Dodatkowy (prezent)',
@@ -1196,6 +1202,9 @@ function bundleRowHTML(c) {
   const hl = c.headline
     ? `<span class="dm-headline-lbl">${cleanHeadline(c.headline)}</span>` : '';
 
+  /* 用途說明（產品描述）：直式兩格也顯示（自動帶入主商品用途，可修改／清空） */
+  const desc2 = (c.usage || '').trim();
+
   return `
     <div class="dm-bundle-row">
       <div class="dm-bundle-pair">
@@ -1207,6 +1216,7 @@ function bundleRowHTML(c) {
         </div>
         ${giftCol}
       </div>
+      ${desc2 ? `<div class="dm-bundle-desc">${desc2}</div>` : ''}
       <div class="dm-bundle-price-row">
         ${hl}
         <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
@@ -1418,6 +1428,39 @@ function sizeStep(els, minRatio, keepWidth = false) {
   };
 }
 
+/* 贈品標籤縮小一步：高度與下邊距各 -2px（高度下限 14px、邊距下限 2px） */
+function badgeStep(els) {
+  const bases = els.map(el => ({ h: el.offsetHeight, mb: parseFloat(getComputedStyle(el).marginBottom) || 0 }));
+  return () => {
+    let changed = false;
+    els.forEach((el, i) => {
+      const h = parseFloat(el.style.height) || bases[i].h;
+      const mb = el.style.marginBottom !== '' ? parseFloat(el.style.marginBottom) : bases[i].mb;
+      if (h - 2 >= 14) { el.style.height = (h - 2) + 'px'; changed = true; }
+      if (mb - 2 >= 2) { el.style.marginBottom = (mb - 2) + 'px'; changed = true; }
+    });
+    return changed;
+  };
+}
+
+/* 內距縮小一步：上下 padding 各 -1px（下限 2px） */
+function padStep(els) {
+  const bases = els.map(el => {
+    const cs = getComputedStyle(el);
+    return { t: parseFloat(cs.paddingTop) || 0, b: parseFloat(cs.paddingBottom) || 0 };
+  });
+  return () => {
+    let changed = false;
+    els.forEach((el, i) => {
+      const t = el.style.paddingTop !== '' ? parseFloat(el.style.paddingTop) : bases[i].t;
+      const b = el.style.paddingBottom !== '' ? parseFloat(el.style.paddingBottom) : bases[i].b;
+      if (t - 1 >= 2) { el.style.paddingTop = (t - 1) + 'px'; changed = true; }
+      if (b - 1 >= 2) { el.style.paddingBottom = (b - 1) + 'px'; changed = true; }
+    });
+    return changed;
+  };
+}
+
 /* 依序執行縮小階段：前一階段到下限仍溢出才進入下一階段 */
 function shrinkStages(measure, stages) {
   for (const stage of stages) {
@@ -1465,10 +1508,14 @@ function fitTwoGrid() {
     const measure = () => Math.max(overOf(row), overOf(pair));
     const q = s => [...row.querySelectorAll(s)];
     shrinkStages(measure, [
+      fontStep(q('.dm-bundle-desc'), 0.75),
       fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.72),
       sizeStep(q('.dm-bprod-img'), 0.5),
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge')], 0.55), // 最後保險
+      sizeStep(q('.dm-bprod-img'), 0.32),  // 極端長描述：文字可讀性優先，商品圖再讓位
+      badgeStep(q('.dm-gift-badge')),      // 縮小贈品標籤高度與下邊距
+      padStep([row]),                      // 縮列上下內距（比縮文字不傷可讀性）
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc')], 0.55), // 最後保險
     ]);
   });
   document.querySelectorAll('#dm-sheet .dm-feature-row').forEach(row => {
@@ -1498,9 +1545,9 @@ function fitOneGrid() {
   const block = document.querySelector('#dm-sheet .dm-one-block');
   if (!block) return;
   const overflow = () => overOf(block);
-  // 橫式（白框較小）用途字級下限放寬，讓文字先多縮一點、保留較大的產品圖
-  const usageFloor = isLandscape() ? 6.5 : 7;
-  let fs = 10, hf = 24, scale = 1, guard = 0;
+  // 用途字級：起始 11pt、下限 8~8.5pt（文字可讀性優先，空間不足時先縮商品圖）
+  const usageFloor = isLandscape() ? 8 : 8.5;
+  let fs = 11, hf = 24, scale = 1, guard = 0;
   block.style.setProperty('--usageFS', fs + 'pt');
   block.style.setProperty('--headlineFS', hf + 'px');
   block.style.setProperty('--imgScale', scale);
@@ -1512,7 +1559,7 @@ function fitOneGrid() {
     hf -= 1; block.style.setProperty('--headlineFS', hf + 'px');
   }
   guard = 0;
-  const nameStep = fontStep([...block.querySelectorAll('.dm-bprod-name, .dm-one-namecell')], 0.65);
+  const nameStep = fontStep([...block.querySelectorAll('.dm-bprod-name, .dm-one-namecell')], 0.8);
   while (overflow() > 1 && guard++ < 30) {                  // 2.5) 縮品名（比縮圖更不傷視覺）
     if (!nameStep()) break;
   }
@@ -1524,7 +1571,7 @@ function fitOneGrid() {
   guard = 0;
   const lastStep = fontStep([...block.querySelectorAll(       // 4) 最後保險：全區文字再縮
     '.dm-one-usage, .dm-bprod-name, .dm-one-namecell, .dm-gift-badge, ' +
-    '.dm-price-num, .dm-price-unit, .dm-orig-price, .dm-one-headline, .dm-one-headline-i')], 0.55);
+    '.dm-price-num, .dm-price-unit, .dm-orig-price, .dm-one-headline, .dm-one-headline-i')], 0.7);
   while (overflow() > 1 && guard++ < 40) {
     if (!lastStep()) break;
   }
