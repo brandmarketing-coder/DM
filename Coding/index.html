@@ -1138,7 +1138,7 @@ function bundleRowHTML(c) {
     const gp = getProdOrNull(c.giftId);
     const desc = (c.usage || '').trim();
     const origF = origText(dispOrig(c))
-      ? `<div class="dm-feature-orig"><span class="dm-orig-price">${paren(origText(c.origPrice))}</span></div>` : '';
+      ? `<div class="dm-feature-orig"><span class="dm-orig-price">${paren(origText(dispOrig(c)))}</span></div>` : '';
     const giftCol = gp ? `
         <div class="dm-bprod is-gift dm-feature-gift">
           <div class="dm-gift-badge">${c.giftLabel}</div>
@@ -1177,7 +1177,7 @@ function bundleRowHTML(c) {
     </div>` : '';
 
   const orig = origText(dispOrig(c))
-    ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
+    ? `<span class="dm-orig-price">${paren(origText(dispOrig(c)))}</span>` : '';
 
   const hl = c.headline
     ? `<span class="dm-headline-lbl">${cleanHeadline(c.headline)}</span>` : '';
@@ -1252,7 +1252,7 @@ function renderOne(tag, subtitle) {
   const nameCells = c.products.map(p => `<div class="dm-one-namecell">${prodName(p.prodId)}</div>`).join('');
 
   const orig = origText(dispOrig(c))
-    ? `<span class="dm-orig-price">${paren(origText(c.origPrice))}</span>` : '';
+    ? `<span class="dm-orig-price">${paren(origText(dispOrig(c)))}</span>` : '';
 
   const hlBlock = c.headline
     ? `<div class="dm-one-headline">${cleanHeadline(c.headline)}</div>` : '';
