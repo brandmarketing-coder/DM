@@ -179,7 +179,7 @@ body {
   letter-spacing: 1px; font-style: normal; line-height: 1;
 }
 .dm-bprod-name {
-  font-size: 15px; color: #8d8d8d; text-align: center;
+  font-size: 16px; color: #8d8d8d; text-align: center;
   margin-top: 5px; line-height: 1.3;
   max-width: 100%; word-break: break-word;
 }
@@ -195,7 +195,7 @@ body {
 
 /* 用途說明（產品描述）：直式兩格，置中於商品與售價之間 */
 .dm-bundle-desc {
-  flex-shrink: 0; font-size: 13.5px; line-height: 1.5; color: #6f6f6f;
+  flex-shrink: 0; font-size: 14.5px; line-height: 1.5; color: #6f6f6f;
   text-align: center; max-width: 92%; margin: 3px auto 0; white-space: pre-line;
 }
 
@@ -205,7 +205,7 @@ body {
   gap: 8px; flex-wrap: wrap; padding-top: 5px;
   justify-content: center;
 }
-.dm-headline-lbl { font-size: 17px; color: #555; letter-spacing: 0.5px; text-align: center;
+.dm-headline-lbl { font-size: 18px; color: #555; letter-spacing: 0.5px; text-align: center;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
 /* 售價數字＋單位永遠成組（直式維持單行；橫式可整組獨立成一行） */
 .dm-price-grp   { display: inline-flex; align-items: baseline; gap: 4px; }
@@ -1508,13 +1508,13 @@ function fitTwoGrid() {
     const measure = () => Math.max(overOf(row), overOf(pair));
     const q = s => [...row.querySelectorAll(s)];
     shrinkStages(measure, [
-      fontStep(q('.dm-bundle-desc'), 0.75),
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.72),
-      sizeStep(q('.dm-bprod-img'), 0.5),
+      sizeStep(q('.dm-bprod-img'), 0.55),  // 1) 先縮商品圖：文字可讀性優先
+      badgeStep(q('.dm-gift-badge')),      // 2) 縮贈品標籤高度與下邊距
+      padStep([row]),                      // 3) 縮列上下內距
+      fontStep(q('.dm-bundle-desc'), 0.8), // 4) 之後才開始縮文字
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.75),
+      sizeStep(q('.dm-bprod-img'), 0.32),  // 5) 極端長描述：商品圖再讓位
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
-      sizeStep(q('.dm-bprod-img'), 0.32),  // 極端長描述：文字可讀性優先，商品圖再讓位
-      badgeStep(q('.dm-gift-badge')),      // 縮小贈品標籤高度與下邊距
-      padStep([row]),                      // 縮列上下內距（比縮文字不傷可讀性）
       fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc')], 0.55), // 最後保險
     ]);
   });
@@ -1545,9 +1545,11 @@ function fitOneGrid() {
   const block = document.querySelector('#dm-sheet .dm-one-block');
   if (!block) return;
   const overflow = () => overOf(block);
-  // 用途字級：起始 11pt、下限 8~8.5pt（文字可讀性優先，空間不足時先縮商品圖）
-  const usageFloor = isLandscape() ? 8 : 8.5;
-  let fs = 11, hf = 24, scale = 1, guard = 0;
+  // 用途字級：起始 11pt、下限 8~8.5pt；橫式1 白框小、依需求整體 -1pt（起始 10、下限 7）
+  //（文字可讀性優先，空間不足時先縮商品圖）
+  const isH1 = bgTemplate === 'h1';
+  const usageFloor = isH1 ? 7 : (isLandscape() ? 8 : 8.5);
+  let fs = isH1 ? 10 : 11, hf = 24, scale = 1, guard = 0;
   block.style.setProperty('--usageFS', fs + 'pt');
   block.style.setProperty('--headlineFS', hf + 'px');
   block.style.setProperty('--imgScale', scale);
