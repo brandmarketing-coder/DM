@@ -7,14 +7,17 @@
 │   ├── index.html       ← 主程式（單一 HTML）
 │   ├── products.js      ← 商品清單（自動產生，勿手改）：每個圖片檔一筆
 │   ├── product-copy.js  ← 產品文案資料（自動產生，勿手改）
-│   ├── i18n.js          ← 產品名稱／文案的英文與波蘭文翻譯（機翻，可手修）
+│   ├── i18n.js          ← 產品文案的英文與波蘭文翻譯（機翻，可手修）
+│   ├── names-en.js      ← 官方英文品名（自動產生，勿手改）：國際部對照表，EN 模式優先使用
 │   ├── logo_new.png     ← Navbar logo
 │   ├── Plan.md / Roadmap.md / Handoff.md
 ├── tools/
-│   └── build-copy.mjs   ← 由「圖片資料夾＋CSV」產生上述兩個檔的工具（Node）
+│   ├── build-copy.mjs   ← 由「圖片資料夾＋CSV」產生 products.js / product-copy.js（Node）
+│   └── build-names.mjs  ← 由「產品名中英文對照.xlsx」產生 names-en.js（Node，零依賴解析 xlsx）
 ├── 產品文案/
 │   ├── PRO.csv          ← PRO 系列文案來源（UTF-8）
-│   └── Salon.csv        ← Salon USE 系列文案來源（UTF-8）
+│   ├── Salon.csv        ← Salon USE 系列文案來源（UTF-8）
+│   └── 產品名中英文對照.xlsx ← 國際部官方英文品名對照表（每 SKU 一列）
 ├── 沙龍DM公版/
 │   ├── 公版DM_1.jpg     ← 直式頁首圖
 │   ├── 公版DM_2.jpg     ← 直式頁尾圖
@@ -57,7 +60,8 @@
 
 ## 語言與幣值
 - Navbar 右側可切換 中／EN／PL：DM 內容與編輯器介面一併切換。
-- 翻譯來源為 `i18n.js`（key = copyKey），查不到翻譯時回退中文。
+- **英文品名以國際部對照表為準**（`names-en.js`，key = 商品 id、含容量）：EN 模式的下拉選單與 DM 品名優先顯示官方英文名，查無才退回 `i18n.js` 翻譯。國際部更新 xlsx 後執行 `node tools/build-names.mjs` 重新產生。
+- 文案（介紹／用途）翻譯來源為 `i18n.js`（key = copyKey），查不到翻譯時回退中文。
 - **價格為每語言各自儲存**：中文＝TWD（自動帶入建議售價）；EN／PL＝手動輸入、預設空白（存於 `i18nPrice[lang]` / `i18nOrig[lang]`）。
 
 ## 維護：新增／異動產品或文案

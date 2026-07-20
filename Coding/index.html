@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O'right PRO | DM 編輯器</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<!-- 匯出用函式庫（html2canvas / jsPDF）改為匯出時才載入，加快初始載入：見 ensureExportLibs() -->
 <!-- 商品清單與產品文案（由 tools/build-copy.mjs 從 產品圖片/ 與 產品文案 CSV 自動產生） -->
 <script src="products.js"></script>
 <script src="product-copy.js"></script>
 <script src="i18n.js"></script>
+<script src="names-en.js"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -138,12 +138,12 @@ body {
 .dm-cell-text { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 4px; }
 .dm-cell-headline { font-size: 16px; font-weight: 400; color: #1a1a1a; line-height: 1.35; margin-bottom: 2px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.dm-cell-names { font-size: 12px; color: #aaa; line-height: 1.5; margin-bottom: 3px; word-break: break-word; }
+.dm-cell-names { font-size: 13px; color: #999; line-height: 1.5; margin-bottom: 3px; word-break: break-word; }
 .dm-cell-gift-name { color: #c0bbb5; }
 .dm-cell-price-row { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .dm-cell-price     { font-size: 22px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
 .dm-cell-unit      { font-size: 14px; color: #555; }
-.dm-cell-orig      { font-size: 12px; color: #c0bbb5; }
+.dm-cell-orig      { font-size: 13px; color: #b5afa8; }
 
 /* ══════════════════════════════════════════
    TWO-GRID  (2 stacked bundles)
@@ -179,7 +179,7 @@ body {
   letter-spacing: 1px; font-style: normal; line-height: 1;
 }
 .dm-bprod-name {
-  font-size: 12px; color: #999; text-align: center;
+  font-size: 13.5px; color: #8d8d8d; text-align: center;
   margin-top: 5px; line-height: 1.3;
   max-width: 100%; word-break: break-word;
 }
@@ -205,7 +205,7 @@ body {
 .dm-price-grp   { display: inline-flex; align-items: baseline; gap: 4px; }
 .dm-price-num   { font-size: 32px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
 .dm-price-unit  { font-size: 18px; color: #444; }
-.dm-orig-price  { font-size: 12px; color: #c0bbb5; }
+.dm-orig-price  { font-size: 13.5px; color: #b5afa8; }
 
 /* ══════════════════════════════════════════
    ONE-GRID  (single centred product)
@@ -471,8 +471,8 @@ body {
 
 /* 橫式 4-grid：格子較矮，縮小圖片區與標題字級，避免有贈品時標題/品名被裁 */
 #dm-sheet.is-landscape .dm-four-grid .dm-cell-imgs { height: 100px; }
-#dm-sheet.is-landscape .dm-four-grid .dm-cell-headline { font-size: 13px; }
-#dm-sheet.is-landscape .dm-four-grid .dm-cell-names { font-size: 11px; }
+#dm-sheet.is-landscape .dm-four-grid .dm-cell-headline { font-size: 13.5px; }
+#dm-sheet.is-landscape .dm-four-grid .dm-cell-names { font-size: 12px; }
 /* 四格標題與下方格子拉開一點點距離（僅橫式2、3 有四格） */
 #dm-sheet.is-landscape .dm-four-grid { margin-top: 8px; }
 
@@ -556,7 +556,7 @@ body {
 #dm-sheet.is-landscape .dm-feature-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 #dm-sheet.is-landscape .dm-feature-name { flex-shrink: 0; font-size: 17px; color: #1a1a1a; font-weight: 400; line-height: 1.3; min-height: 2.6em; }
 /* 描述保留約 3 行高 → 兩欄區塊等高，垂直置中後描述/售價仍對齊 */
-#dm-sheet.is-landscape .dm-feature-desc { flex-shrink: 0; font-size: 11.5px; line-height: 1.55; color: #777; max-width: 92%; min-height: 5.4em; }
+#dm-sheet.is-landscape .dm-feature-desc { flex-shrink: 0; font-size: 12.5px; line-height: 1.55; color: #6f6f6f; max-width: 92%; min-height: 5em; }
 #dm-sheet.is-landscape .dm-feature-price { flex-shrink: 0; padding-top: 4px; }
 #dm-sheet.is-landscape .dm-feature-orig { flex-shrink: 0; }
 /* 特寫模式有選贈品時：主圖＋贈品並排（主圖略縮、各自品名在圖下） */
@@ -571,7 +571,7 @@ body {
 }
 #dm-sheet.is-landscape .dm-feature-main .dm-bprod-name,
 #dm-sheet.is-landscape .dm-feature-gift .dm-bprod-name {
-  font-size: 12px; color: #999; text-align: center; line-height: 1.3; margin-top: 5px;
+  font-size: 13px; color: #8d8d8d; text-align: center; line-height: 1.3; margin-top: 5px;
   max-width: 100%; word-break: break-word;
   min-height: 2.6em;   /* 固定品名高度→圖片區高度固定，兩欄描述/售價恆對齊（不受產品圖高低影響） */
 }
@@ -587,8 +587,8 @@ body {
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child { width: 132px; }
 /* 品名固定 2 行高 → 兩欄品名起始線一致、主圖底部一致（與垂線水平對齊） */
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-name {
-  font-size: 11px; max-width: 100%; word-break: break-word;
-  min-height: 29px;
+  font-size: 12px; max-width: 100%; word-break: break-word;
+  min-height: 32px;
 }
 
 /* ── BG picker ── */
@@ -694,19 +694,19 @@ body {
         <div class="editor-sec-num" id="sec-bg">1. 選擇底圖</div>
         <div class="bg-pick">
           <div class="bg-opt active" id="bg-portrait" onclick="setBg('portrait')">
-            <img src="../沙龍DM公版/公版DM_1.jpg" alt="直式">
+            <img src="../沙龍DM公版/公版DM_1.jpg" alt="直式" decoding="async" fetchpriority="low">
             <div class="bg-label">直式</div>
           </div>
           <div class="bg-opt" id="bg-h1" onclick="setBg('h1')">
-            <img src="../沙龍DM公版/橫1.jpg" alt="橫式 1">
+            <img src="../沙龍DM公版/橫1.jpg" alt="橫式 1" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 1</div>
           </div>
           <div class="bg-opt" id="bg-h2" onclick="setBg('h2')">
-            <img src="../沙龍DM公版/橫2.jpg" alt="橫式 2">
+            <img src="../沙龍DM公版/橫2.jpg" alt="橫式 2" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 2</div>
           </div>
           <div class="bg-opt" id="bg-h3" onclick="setBg('h3')">
-            <img src="../沙龍DM公版/橫3.jpg" alt="橫式 3">
+            <img src="../沙龍DM公版/橫3.jpg" alt="橫式 3" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 3</div>
           </div>
         </div>
@@ -781,7 +781,7 @@ const LAND_BG = {
 const LAND_POS = {
   h1: { left: '43%', top: '15%', right: '8%', bottom: '15%' },  // 置中右側白框
   h2: { left: '37%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
-  h3: { left: '43%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
+  h3: { left: '39%', top: '3%',  right: '3%', bottom: '14%' },  // 白區自 36% 起：左右各留約 3%，內容於白框內置中
 };
 
 function isLandscape() { return bgTemplate !== 'portrait'; }
@@ -940,10 +940,16 @@ function origText(val) {
   if (lang === 'pl') return `dawniej ${n} zł`;
   return `原價NT$${n}`;
 }
-/* 產品名稱（依語言）：翻譯基底名 + 容量後綴；查不到翻譯回中文 */
+/* 產品名稱（依語言）：
+   en → 優先用國際部官方英文品名（names-en.js，含容量）；查無再退回 i18n 翻譯。
+   pl → i18n 翻譯基底名 + 容量後綴。查不到一律回中文。 */
 function prodName(id) {
   const p = getProd(id);
   if (lang === 'zh') return p.name;
+  if (lang === 'en') {
+    const official = (window.PRODUCT_NAMES_EN || {})[p.id];
+    if (official) return official;
+  }
   const t = (window.PRODUCT_I18N || {})[p.copyKey];
   const base = t && t['name_' + lang];
   if (!base) return p.name;
@@ -1459,9 +1465,10 @@ function fitTwoGrid() {
     const measure = () => Math.max(overOf(row), overOf(pair));
     const q = s => [...row.querySelectorAll(s)];
     shrinkStages(measure, [
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.75),
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.72),
       sizeStep(q('.dm-bprod-img'), 0.5),
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge')], 0.55), // 最後保險
     ]);
   });
   document.querySelectorAll('#dm-sheet .dm-feature-row').forEach(row => {
@@ -1527,8 +1534,9 @@ function fitOneGrid() {
    EDITOR BLOCKS
 ══════════════════════════════════════════════ */
 function opts(selectedId) {
+  /* 下拉選單顯示依當前語言（en 用國際部官方品名） */
   return PRODUCTS.map(p =>
-    `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>【${p.series}】 ${p.name}</option>`
+    `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>【${p.series}】 ${prodName(p.id)}</option>`
   ).join('');
 }
 
@@ -1845,7 +1853,27 @@ function scaleSheet() {
 /* ══════════════════════════════════════════════
    PDF EXPORT
 ══════════════════════════════════════════════ */
+/* 匯出函式庫延遲載入：頁面啟動不再被 CDN 阻塞，按下匯出時才抓（之後快取重用） */
+let exportLibsPromise = null;
+function ensureExportLibs() {
+  if (window.html2canvas && window.jspdf) return Promise.resolve();
+  if (!exportLibsPromise) {
+    const load = src => new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.crossOrigin = 'anonymous';
+      s.onload = res; s.onerror = () => { exportLibsPromise = null; rej(new Error('load failed: ' + src)); };
+      document.head.appendChild(s);
+    });
+    exportLibsPromise = Promise.all([
+      window.html2canvas ? Promise.resolve() : load('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      window.jspdf ? Promise.resolve() : load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+    ]);
+  }
+  return exportLibsPromise;
+}
+
 async function generateCanvas() {
+  await ensureExportLibs();
   /* 直接渲染真正的 #dm-sheet（不用 proxy）：樣式天生與預覽一致，
      也避免「重複 id」造成 html2canvas 卡死。
      渲染前暫時把預覽縮放(transform)設為 1，使輸出為原生 A4 尺寸，完成後還原。 */
@@ -1928,7 +1956,8 @@ async function exportJPG() {
 /* ══════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════ */
-window.addEventListener('load', () => {
+/* DOMContentLoaded 即初始化（不等整頁資源），loading 動態只等預覽畫布內的圖片 → 更快開始可用 */
+window.addEventListener('DOMContentLoaded', () => {
   // 以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
   state.four.forEach(applyMainCopy);
   state.two.forEach(applyMainCopy);
