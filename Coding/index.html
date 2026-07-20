@@ -138,7 +138,7 @@ body {
 .dm-cell-text { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 4px; }
 .dm-cell-headline { font-size: 16px; font-weight: 400; color: #1a1a1a; line-height: 1.35; margin-bottom: 2px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.dm-cell-names { font-size: 12px; color: #aaa; line-height: 1.5; margin-bottom: 3px; }
+.dm-cell-names { font-size: 12px; color: #aaa; line-height: 1.5; margin-bottom: 3px; word-break: break-word; }
 .dm-cell-gift-name { color: #c0bbb5; }
 .dm-cell-price-row { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .dm-cell-price     { font-size: 22px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.3px; }
@@ -181,12 +181,17 @@ body {
 .dm-bprod-name {
   font-size: 12px; color: #999; text-align: center;
   margin-top: 5px; line-height: 1.3;
+  max-width: 100%; word-break: break-word;
 }
 /* Two-grid image sizes: gift ~2/3 height of main, bottoms align via flex-end on parent */
 .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 118px; height: 152px; }
 .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 78px;  height: 102px; }
 /* 單一商品（無贈品）：高度同主商品(152)以免超出容器被裁切，寬度略大維持存在感 */
 .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 124px; height: 152px; }
+/* 欄寬固定＝圖寬：長品名於圖寬內置中換行，與商品圖左右對齊（橫式另有覆蓋） */
+.dm-bundle-pair .dm-bprod.is-main { width: 118px; }
+.dm-bundle-pair .dm-bprod.is-gift { width: 78px; }
+.dm-bundle-pair .dm-bprod.is-main:only-child { width: 124px; }
 
 /* Bundle price */
 .dm-bundle-price-row {
@@ -194,7 +199,7 @@ body {
   gap: 8px; flex-wrap: wrap; padding-top: 5px;
   justify-content: center;
 }
-.dm-headline-lbl { font-size: 15px; color: #555; letter-spacing: 0.5px;
+.dm-headline-lbl { font-size: 15px; color: #555; letter-spacing: 0.5px; text-align: center;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
 /* 售價數字＋單位永遠成組（直式維持單行；橫式可整組獨立成一行） */
 .dm-price-grp   { display: inline-flex; align-items: baseline; gap: 4px; }
@@ -841,6 +846,7 @@ const UI = {
     product: '商品', giftLabelField2: '贈品標籤文字（如：致贈、附贈）',
     exportNote: '* 匯出將依目前預覽內容產生 PDF，格式為 A4 {o} *', exportMain: '匯出 PDF (A4 {o})',
     orientP: '直式', orientL: '橫式',
+    generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
   },
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
@@ -861,6 +867,7 @@ const UI = {
     product: 'Product', giftLabelField2: 'Gift label (e.g. Gift, Free)',
     exportNote: '* Exports a PDF of the current preview, A4 {o} *', exportMain: 'Export PDF (A4 {o})',
     orientP: 'portrait', orientL: 'landscape',
+    generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
   },
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
@@ -881,6 +888,7 @@ const UI = {
     product: 'Produkt', giftLabelField2: 'Etykieta prezentu (np. Prezent)',
     exportNote: '* Eksportuje PDF bieżącego podglądu, A4 {o} *', exportMain: 'Eksport PDF (A4 {o})',
     orientP: 'pionowy', orientL: 'poziomy',
+    generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
   },
 };
 function t(k) { return (UI[lang] && UI[lang][k] != null) ? UI[lang][k] : UI.zh[k]; }
@@ -1343,15 +1351,138 @@ function renderDM() {
       `<div class="dm-ftr"><img src="${enc(FTR)}" alt="footer"></div>`;
   }
 
-  if (layout === 'one') {
-    fitOneGrid();
-    if (!isLandscape()) {
-      // 直式：頁首/頁尾圖載入後內容高度才確定，載完再校正一次
-      sheet.querySelectorAll('.dm-hdr img, .dm-ftr img').forEach(img => {
-        if (!img.complete) img.addEventListener('load', fitOneGrid, { once: true });
-      });
-    }
+  fitDM();
+  if (!isLandscape()) {
+    // 直式：頁首/頁尾圖載入後內容高度才確定，載完後重新渲染校正（圖已快取，不會重複觸發）
+    sheet.querySelectorAll('.dm-hdr img, .dm-ftr img').forEach(img => {
+      if (!img.complete) img.addEventListener('load', () => renderDM(), { once: true });
+    });
   }
+}
+
+/* ══════════════════════════════════════════════
+   AUTO-FIT（防破版）：渲染後依實際溢出逐步縮小。
+   原則：先縮次要文字、再縮商品圖、最後縮價格，內容完整保留不刪減。
+   inline style 每次 renderDM 重建 innerHTML 時歸零，故縮放不累積。
+══════════════════════════════════════════════ */
+
+/* 元素溢出量：以子孫節點的實際外框（rect）比對容器外框。
+   不能用 scrollHeight（flex-end/center 的上緣溢出不計入），也不能攤平 flex 對齊來量
+   （column flex 改 align-items 會改變子元素寬度→換行改變→假性溢出）。 */
+function overOf(el) {
+  if (!el) return 0;
+  const r = el.getBoundingClientRect();
+  let over = 0;
+  el.querySelectorAll('*').forEach(d => {
+    const dr = d.getBoundingClientRect();
+    if (!dr.width && !dr.height) return;   // 忽略隱藏元素
+    over = Math.max(over, dr.bottom - r.bottom, r.top - dr.top, dr.right - r.right, r.left - dr.left);
+  });
+  return over;
+}
+
+/* 字級縮小一步：各元素 -step px，低於「初始字級×minRatio」者不再縮；全到下限回 false */
+function fontStep(els, minRatio, step = 0.5) {
+  const bases = els.map(el => parseFloat(getComputedStyle(el).fontSize));
+  return () => {
+    let changed = false;
+    els.forEach((el, i) => {
+      const cur = parseFloat(el.style.fontSize) || bases[i];
+      if (cur - step >= bases[i] * minRatio) { el.style.fontSize = (cur - step) + 'px'; changed = true; }
+    });
+    return changed;
+  };
+}
+
+/* 尺寸縮小一步：高度每步約 -4%（等比縮寬，keepWidth=true 只縮高），低於初始×minRatio 不再縮 */
+function sizeStep(els, minRatio, keepWidth = false) {
+  const bases = els.map(el => ({ w: el.offsetWidth, h: el.offsetHeight }));
+  return () => {
+    let changed = false;
+    els.forEach((el, i) => {
+      const cur = parseFloat(el.style.height) || bases[i].h;
+      const next = cur - Math.max(2, bases[i].h * 0.04);
+      if (next >= bases[i].h * minRatio) {
+        el.style.height = next.toFixed(1) + 'px';
+        if (!keepWidth) el.style.width = (bases[i].w * next / bases[i].h).toFixed(1) + 'px';
+        changed = true;
+      }
+    });
+    return changed;
+  };
+}
+
+/* 依序執行縮小階段：前一階段到下限仍溢出才進入下一階段 */
+function shrinkStages(measure, stages) {
+  for (const stage of stages) {
+    let guard = 0;
+    while (measure() > 1 && guard++ < 60) { if (!stage()) break; }
+    if (measure() <= 1) return;
+  }
+}
+
+/* 標題／副標：超過 maxLines 行時逐步縮字級（至初始的 55%），維持 1~2 行較美觀 */
+function fitHeadingLine(sel, maxLines) {
+  const el = document.querySelector('#dm-sheet ' + sel);
+  if (!el || !el.textContent.trim()) return;
+  const cs = () => getComputedStyle(el);
+  const contentH = () => el.clientHeight - parseFloat(cs().paddingTop) - parseFloat(cs().paddingBottom);
+  const lineH = () => {
+    const lh = parseFloat(cs().lineHeight);
+    return isNaN(lh) ? parseFloat(cs().fontSize) * 1.3 : lh;
+  };
+  const base = parseFloat(cs().fontSize);
+  let fs = base, guard = 0;
+  while (contentH() > lineH() * (maxLines + 0.4) && fs > base * 0.55 && guard++ < 40) {
+    fs -= 1; el.style.fontSize = fs + 'px';
+  }
+}
+
+/* 四格：逐格縮放（headline/品名 → 圖高 → 價格） */
+function fitFourGrid() {
+  document.querySelectorAll('#dm-sheet .dm-cell').forEach(cell => {
+    const text = cell.querySelector('.dm-cell-text');
+    const measure = () => Math.max(overOf(cell), overOf(text));
+    const q = s => [...cell.querySelectorAll(s)];
+    shrinkStages(measure, [
+      fontStep([...q('.dm-cell-headline'), ...q('.dm-cell-names')], 0.72),
+      sizeStep(q('.dm-cell-imgs'), 0.55, true),
+      fontStep([...q('.dm-cell-price'), ...q('.dm-cell-unit'), ...q('.dm-cell-orig')], 0.7),
+    ]);
+  });
+}
+
+/* 兩格：一般（直式／橫式1）與單品特寫（橫式2/3）各自縮放 */
+function fitTwoGrid() {
+  document.querySelectorAll('#dm-sheet .dm-bundle-row:not(.dm-feature-row)').forEach(row => {
+    const pair = row.querySelector('.dm-bundle-pair');
+    const measure = () => Math.max(overOf(row), overOf(pair));
+    const q = s => [...row.querySelectorAll(s)];
+    shrinkStages(measure, [
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.75),
+      sizeStep(q('.dm-bprod-img'), 0.5),
+      fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
+    ]);
+  });
+  document.querySelectorAll('#dm-sheet .dm-feature-row').forEach(row => {
+    const measure = () => overOf(row);
+    const q = s => [...row.querySelectorAll(s)];
+    shrinkStages(measure, [
+      fontStep(q('.dm-feature-desc'), 0.7),
+      fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name')], 0.75),
+      sizeStep([...q('.dm-feature-img'), ...q('.dm-feature-gift .dm-bprod-img')], 0.55),
+      fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
+    ]);
+  });
+}
+
+/* 渲染後統一入口：先收斂主/副標行數，再依版面縮放 */
+function fitDM() {
+  fitHeadingLine('.dm-tagline', 2);
+  fitHeadingLine('.dm-subtitle', 2);
+  if (layout === 'one') fitOneGrid();
+  else if (layout === 'two') fitTwoGrid();
+  else fitFourGrid();
 }
 
 /* ── 一格自動縮放：用途文字 3 行以上時，先縮字級（10→8pt），仍超出再等比縮小商品圖，
@@ -1359,15 +1490,9 @@ function renderDM() {
 function fitOneGrid() {
   const block = document.querySelector('#dm-sheet .dm-one-block');
   if (!block) return;
-  const overflow = () => {
-    const prev = block.style.justifyContent;
-    block.style.justifyContent = 'flex-start';   // 攤平以正確量測總高
-    const over = block.scrollHeight - block.clientHeight;
-    block.style.justifyContent = prev;
-    return over;
-  };
-  // 橫式（白框較小）用途字級下限放寬到 6.5pt，讓文字先多縮一點、保留較大的產品圖
-  const usageFloor = isLandscape() ? 6.5 : 8;
+  const overflow = () => overOf(block);
+  // 橫式（白框較小）用途字級下限放寬，讓文字先多縮一點、保留較大的產品圖
+  const usageFloor = isLandscape() ? 6.5 : 7;
   let fs = 10, hf = 24, scale = 1, guard = 0;
   block.style.setProperty('--usageFS', fs + 'pt');
   block.style.setProperty('--headlineFS', hf + 'px');
@@ -1376,13 +1501,25 @@ function fitOneGrid() {
     fs -= 0.5; block.style.setProperty('--usageFS', fs + 'pt');
   }
   guard = 0;
-  while (overflow() > 1 && hf > 15 && guard++ < 30) {       // 2) 縮標題字級到 15px（長介紹/禮盒）
+  while (overflow() > 1 && hf > 13 && guard++ < 30) {       // 2) 縮標題字級到 13px（長介紹/禮盒）
     hf -= 1; block.style.setProperty('--headlineFS', hf + 'px');
   }
   guard = 0;
-  const minScale = isLandscape() ? 0.35 : 0.6;   // 橫式（尤其橫1白框較小）允許縮更多以免裁切
+  const nameStep = fontStep([...block.querySelectorAll('.dm-bprod-name, .dm-one-namecell')], 0.65);
+  while (overflow() > 1 && guard++ < 30) {                  // 2.5) 縮品名（比縮圖更不傷視覺）
+    if (!nameStep()) break;
+  }
+  guard = 0;
+  const minScale = isLandscape() ? 0.3 : 0.45;   // 橫式（尤其橫1白框較小）允許縮更多以免裁切
   while (overflow() > 1 && scale > minScale && guard++ < 40) {   // 3) 仍超出→縮商品圖
     scale -= 0.05; block.style.setProperty('--imgScale', scale.toFixed(2));
+  }
+  guard = 0;
+  const lastStep = fontStep([...block.querySelectorAll(       // 4) 最後保險：全區文字再縮
+    '.dm-one-usage, .dm-bprod-name, .dm-one-namecell, .dm-gift-badge, ' +
+    '.dm-price-num, .dm-price-unit, .dm-orig-price, .dm-one-headline, .dm-one-headline-i')], 0.55);
+  while (overflow() > 1 && guard++ < 40) {
+    if (!lastStep()) break;
   }
 }
 
@@ -1751,7 +1888,7 @@ async function generateCanvas() {
 
 async function exportPDF() {
   const btns = [...document.querySelectorAll('.nav-btn, .btn-export-main')];
-  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
+  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = t('generating'); b.disabled = true; });
 
   try {
     const canvas = await generateCanvas();
@@ -1763,7 +1900,7 @@ async function exportPDF() {
     pdf.save("O'right PRO DM.pdf");
   } catch (e) {
     console.error('PDF export failed:', e);
-    alert('PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。');
+    alert(t('pdfFail'));
   } finally {
     btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
   }
@@ -1771,7 +1908,7 @@ async function exportPDF() {
 
 async function exportJPG() {
   const btns = [...document.querySelectorAll('.nav-btn, .btn-export-main')];
-  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = '產生中&hellip;'; b.disabled = true; });
+  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = t('generating'); b.disabled = true; });
 
   try {
     const canvas = await generateCanvas();
@@ -1782,7 +1919,7 @@ async function exportJPG() {
     link.click();
   } catch (e) {
     console.error('JPG export failed:', e);
-    alert('JPG 產生失敗。');
+    alert(t('jpgFail'));
   } finally {
     btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
   }
