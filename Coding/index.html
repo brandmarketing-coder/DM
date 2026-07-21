@@ -184,20 +184,22 @@ body {
   max-width: 100%; word-break: break-word;
 }
 /* Two-grid image sizes: gift ~2/3 height of main, bottoms align via flex-end on parent */
-.dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 118px; height: 152px; }
-.dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 78px;  height: 102px; }
-/* 單一商品（無贈品）：高度同主商品(152)以免超出容器被裁切，寬度略大維持存在感 */
-.dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 124px; height: 152px; }
+.dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 128px; height: 165px; }
+.dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 85px;  height: 111px; }
+/* 單一商品（無贈品）：高度同主商品以免超出容器被裁切，寬度略大維持存在感 */
+.dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 134px; height: 165px; }
 /* 欄寬固定＝圖寬：長品名於圖寬內置中換行，與商品圖左右對齊（橫式另有覆蓋） */
-.dm-bundle-pair .dm-bprod.is-main { width: 118px; }
-.dm-bundle-pair .dm-bprod.is-gift { width: 78px; }
-.dm-bundle-pair .dm-bprod.is-main:only-child { width: 124px; }
+.dm-bundle-pair .dm-bprod.is-main { width: 128px; }
+.dm-bundle-pair .dm-bprod.is-gift { width: 85px; }
+.dm-bundle-pair .dm-bprod.is-main:only-child { width: 134px; }
 
 /* 用途說明（產品描述）：直式兩格，置中於商品與售價之間 */
 .dm-bundle-desc {
   flex-shrink: 0; font-size: 14.5px; line-height: 1.5; color: #6f6f6f;
   text-align: center; max-width: 92%; margin: 3px auto 0; white-space: pre-line;
 }
+/* 橫式1 兩格：用途說明較直式縮小 1px */
+#dm-sheet.bg-h1 .dm-bundle-desc { font-size: 13.5px; }
 
 /* Bundle price */
 .dm-bundle-price-row {
@@ -234,7 +236,7 @@ body {
 .dm-one-pair .dm-bprod.is-main .dm-bprod-img  { width: calc(170px * var(--imgScale, 1)); height: calc(240px * var(--imgScale, 1)); }
 .dm-one-pair .dm-bprod.is-gift .dm-bprod-img   { width: calc(115px * var(--imgScale, 1)); height: calc(161px * var(--imgScale, 1)); }
 .dm-one-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: calc(195px * var(--imgScale, 1)); height: calc(275px * var(--imgScale, 1)); }
-.dm-one-pair .dm-bprod-name { font-size: 19px; }
+.dm-one-pair .dm-bprod-name { font-size: 20px; }
 
 /* Styling adjustments when there are 3 products in one-grid layout（欄距改由 --colGap 控制） */
 .dm-one-pair.has-3-prods .dm-bprod.is-main .dm-bprod-img {
@@ -286,8 +288,8 @@ body {
 }
 
 /* One-grid specific text overrides to make them really stand out */
-.is-two-grid .dm-tagline { font-size: 24pt; }
-.is-one-grid .dm-tagline { font-size: 32pt; font-weight: 300; padding: 18px 24px 10px; }
+.is-two-grid .dm-tagline { font-size: 23pt; }
+.is-one-grid .dm-tagline { font-size: 31pt; font-weight: 300; padding: 18px 24px 10px; }
 .dm-one-pair .dm-gift-badge {
   font-size: 22px;
   height: 38px;
@@ -497,8 +499,8 @@ body {
   min-width: 0; align-self: start; text-align: center;
   font-size: 19px; line-height: 1.3; padding-top: 5px; word-break: break-word; color: #999;
 }
-/* 橫式1 一格：產品圖往下移一點點（品名維持 19px，空間不足由自動縮放處理） */
-#dm-sheet.bg-h1 .dm-one-namecell { line-height: 1.2; }
+/* 橫式1 一格：品名放大至 20px、產品圖往下移一點點（空間不足由自動縮放處理） */
+#dm-sheet.bg-h1 .dm-one-namecell { font-size: 20px; line-height: 1.2; }
 #dm-sheet.bg-h1 .dm-one-pair { margin-top: 8px; }
 /* 橫式一格：壓縮用途/售價區的垂直占用，讓 fitOneGrid 保留較大的產品圖 */
 #dm-sheet.is-landscape .dm-one-usage { padding-top: 3px; line-height: 1.4; }
@@ -523,6 +525,8 @@ body {
 #dm-sheet.is-landscape .dm-one-headline-i {
   font-size: var(--headlineFS, 24px); font-weight: 500; color: #555; line-height: 1.3;
 }
+/* 橫式1 一格：標題／促銷標語較其他橫式放大 1px */
+#dm-sheet.bg-h1 .dm-one-headline-i { font-size: calc(var(--headlineFS, 24px) + 1px); }
 #dm-sheet.is-landscape .dm-one-origline {
   width: 100%; text-align: right; padding-top: 2px;
 }
@@ -1606,11 +1610,11 @@ function fitOneGrid() {
   const block = document.querySelector('#dm-sheet .dm-one-block');
   if (!block) return;
   const overflow = () => overOf(block);
-  // 用途字級：起始 11pt、下限 8~8.5pt；橫式1 白框小、依需求整體 -1pt（起始 10、下限 7）
+  // 用途字級起始：直式一格 12pt、橫式各版 11pt；下限 橫式1 7pt／其餘橫式 8pt／直式 8.5pt
   //（文字可讀性優先，空間不足時先縮商品圖）
   const isH1 = bgTemplate === 'h1';
   const usageFloor = isH1 ? 7 : (isLandscape() ? 8 : 8.5);
-  let fs = isH1 ? 10 : 11, hf = 24, scale = 1, guard = 0;
+  let fs = isLandscape() ? 11 : 12, hf = 24, scale = 1, guard = 0;
   block.style.setProperty('--usageFS', fs + 'pt');
   block.style.setProperty('--headlineFS', hf + 'px');
   block.style.setProperty('--imgScale', scale);
