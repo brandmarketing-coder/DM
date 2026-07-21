@@ -1198,11 +1198,12 @@ function renderFour(tag) {
 function bundleRowHTML(c) {
   const mp = getProd(c.prodId);
 
-  /* 外文（EN/PL）品名為長字串：窄欄會把單字硬切斷、疊成高塔。
-     外文改為「圖下整行置中」（主商品＋贈品各一行），中文維持各欄圖下。 */
+  /* 品名為長字串時，窄欄（尤其橫式1）會把品名疊成高塔、左右不對稱。
+     兩格版面一律改為「圖下整行置中」（主商品一行＋贈品一行），中外文皆然、左右對稱。 */
   const latin = lang !== 'zh';
+  const giftSep = lang === 'zh' ? '' : ' ';   // 中文全形括號後不加空格
   const namesBlock = gp2 => `
-      <div class="dm-bundle-names">${prodName(mp.id)}${gp2 ? `<br><span class="dm-gift-line">${paren(c.giftLabel)} ${prodName(gp2.id)}</span>` : ''}</div>`;
+      <div class="dm-bundle-names">${prodName(mp.id)}${gp2 ? `<br><span class="dm-gift-line">${paren(c.giftLabel)}${giftSep}${prodName(gp2.id)}</span>` : ''}</div>`;
 
   // 橫式2、3：單品特寫（放大圖＋品名＋描述＋售價／原價）。預設不放贈品，但若有選贈品仍顯示
   if (isFeatureTwo()) {
@@ -1214,7 +1215,6 @@ function bundleRowHTML(c) {
         <div class="dm-bprod is-gift dm-feature-gift">
           <div class="dm-gift-badge">${c.giftLabel}</div>
           <div class="dm-bprod-img"><img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1"></div>
-          ${latin ? '' : `<div class="dm-bprod-name">${prodName(gp.id)}</div>`}
         </div>` : '';
     return `
       <div class="dm-bundle-row dm-feature-row${gp ? ' has-gift' : ''}">
@@ -1223,11 +1223,10 @@ function bundleRowHTML(c) {
             <div class="dm-feature-img">
               <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
             </div>
-            ${(gp && !latin) ? `<div class="dm-bprod-name">${prodName(mp.id)}</div>` : ''}
           </div>
           ${giftCol}
         </div>
-        ${gp ? (latin ? namesBlock(gp) : '') : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
+        ${gp ? namesBlock(gp) : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
         ${desc ? `<div class="dm-feature-desc">${desc}</div>` : ''}
         <div class="dm-feature-price">
           <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
@@ -1244,7 +1243,6 @@ function bundleRowHTML(c) {
       <div class="dm-bprod-img">
         <img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1">
       </div>
-      ${latin ? '' : `<div class="dm-bprod-name">${prodName(gp.id)}</div>`}
     </div>` : '';
 
   const orig = origText(dispOrig(c))
@@ -1263,11 +1261,10 @@ function bundleRowHTML(c) {
           <div class="dm-bprod-img">
             <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
           </div>
-          ${latin ? '' : `<div class="dm-bprod-name">${prodName(mp.id)}</div>`}
         </div>
         ${giftCol}
       </div>
-      ${latin ? namesBlock(gp) : ''}
+      ${namesBlock(gp)}
       ${desc2 ? `<div class="dm-bundle-desc">${desc2}</div>` : ''}
       <div class="dm-bundle-price-row">
         ${hl}
