@@ -201,6 +201,31 @@ body {
 /* 橫式1 兩格：用途說明較直式縮小 1px */
 #dm-sheet.bg-h1 .dm-bundle-desc { font-size: 13.5px; }
 
+/* ── 外文（EN/PL）視覺平衡 ──
+   官方英文品名長且全大寫：窄欄下單字被硬切斷、品名疊成高塔。
+   外文改為品名整行置中於商品圖下（主商品一行＋贈品一行），並禁止單字中斷。 */
+.dm-bundle-names {
+  flex-shrink: 0; text-align: center; font-size: 13.5px; color: #8d8d8d;
+  line-height: 1.4; margin: 6px auto 0; max-width: 96%;
+  word-break: normal; overflow-wrap: break-word;
+}
+.dm-bundle-names .dm-gift-line { color: #b3ada7; }
+#dm-sheet.is-landscape .dm-bundle-names { font-size: 11.5px; margin-top: 4px; }
+/* 橫式左右兩欄：品名區固定兩行高 → 兩欄的描述/售價起始線一致 */
+#dm-sheet.is-landscape .dm-bundle-names { min-height: 2.9em; }
+/* 外文：所有品名禁止單字中斷（僅超長單字才折行） */
+#dm-sheet.lang-latin .dm-bprod-name,
+#dm-sheet.lang-latin .dm-cell-names,
+#dm-sheet.lang-latin .dm-one-namecell,
+#dm-sheet.lang-latin .dm-feature-name { word-break: normal; overflow-wrap: break-word; }
+/* 外文一格：品名整體縮小（全大寫官方名視覺較大、且較長） */
+#dm-sheet.lang-latin .dm-one-pair .dm-bprod-name { font-size: 15px; }
+#dm-sheet.lang-latin.is-landscape .dm-one-namecell { font-size: 15px; }
+#dm-sheet.lang-latin .dm-one-pair.has-3-prods .dm-bprod-name { font-size: 12.5px; }
+#dm-sheet.lang-latin.is-landscape .dm-one-pair.has-3-prods .dm-one-namecell { font-size: 12.5px; }
+/* 外文特寫（無贈品）：單行品名字級略縮 */
+#dm-sheet.lang-latin.is-landscape .dm-feature-name { font-size: 14px; }
+
 /* Bundle price */
 .dm-bundle-price-row {
   flex-shrink: 0; display: flex; align-items: baseline;
@@ -1133,7 +1158,7 @@ function cellHTML(c) {
       <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
     </div>` : '';
 
-  const giftName = gp ? `<br><span class="dm-cell-gift-name">${paren(c.giftLabel)}${prodName(gp.id)}</span>` : '';
+  const giftName = gp ? `<br><span class="dm-cell-gift-name">${paren(c.giftLabel)}${lang === 'zh' ? '' : ' '}${prodName(gp.id)}</span>` : '';
 
   const orig = origText(dispOrig(c))
     ? `<span class="dm-cell-orig">${origText(dispOrig(c))}</span>` : '';
@@ -1173,6 +1198,12 @@ function renderFour(tag) {
 function bundleRowHTML(c) {
   const mp = getProd(c.prodId);
 
+  /* 外文（EN/PL）品名為長字串：窄欄會把單字硬切斷、疊成高塔。
+     外文改為「圖下整行置中」（主商品＋贈品各一行），中文維持各欄圖下。 */
+  const latin = lang !== 'zh';
+  const namesBlock = gp2 => `
+      <div class="dm-bundle-names">${prodName(mp.id)}${gp2 ? `<br><span class="dm-gift-line">${paren(c.giftLabel)} ${prodName(gp2.id)}</span>` : ''}</div>`;
+
   // 橫式2、3：單品特寫（放大圖＋品名＋描述＋售價／原價）。預設不放贈品，但若有選贈品仍顯示
   if (isFeatureTwo()) {
     const gp = getProdOrNull(c.giftId);
@@ -1183,7 +1214,7 @@ function bundleRowHTML(c) {
         <div class="dm-bprod is-gift dm-feature-gift">
           <div class="dm-gift-badge">${c.giftLabel}</div>
           <div class="dm-bprod-img"><img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1"></div>
-          <div class="dm-bprod-name">${prodName(gp.id)}</div>
+          ${latin ? '' : `<div class="dm-bprod-name">${prodName(gp.id)}</div>`}
         </div>` : '';
     return `
       <div class="dm-bundle-row dm-feature-row${gp ? ' has-gift' : ''}">
@@ -1192,11 +1223,11 @@ function bundleRowHTML(c) {
             <div class="dm-feature-img">
               <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
             </div>
-            ${gp ? `<div class="dm-bprod-name">${prodName(mp.id)}</div>` : ''}
+            ${(gp && !latin) ? `<div class="dm-bprod-name">${prodName(mp.id)}</div>` : ''}
           </div>
           ${giftCol}
         </div>
-        ${gp ? '' : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
+        ${gp ? (latin ? namesBlock(gp) : '') : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
         ${desc ? `<div class="dm-feature-desc">${desc}</div>` : ''}
         <div class="dm-feature-price">
           <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
@@ -1213,7 +1244,7 @@ function bundleRowHTML(c) {
       <div class="dm-bprod-img">
         <img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1">
       </div>
-      <div class="dm-bprod-name">${prodName(gp.id)}</div>
+      ${latin ? '' : `<div class="dm-bprod-name">${prodName(gp.id)}</div>`}
     </div>` : '';
 
   const orig = origText(dispOrig(c))
@@ -1232,10 +1263,11 @@ function bundleRowHTML(c) {
           <div class="dm-bprod-img">
             <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
           </div>
-          <div class="dm-bprod-name">${prodName(mp.id)}</div>
+          ${latin ? '' : `<div class="dm-bprod-name">${prodName(mp.id)}</div>`}
         </div>
         ${giftCol}
       </div>
+      ${latin ? namesBlock(gp) : ''}
       ${desc2 ? `<div class="dm-bundle-desc">${desc2}</div>` : ''}
       <div class="dm-bundle-price-row">
         ${hl}
@@ -1413,8 +1445,10 @@ function renderDM() {
              : renderOne(tag, subtitle);
   const sheet = document.getElementById('dm-sheet');
 
+  /* 外文（EN/PL）加 lang-latin：品名改整行排版、禁止單字中斷等視覺調整 */
+  const latinCls = lang === 'zh' ? '' : ' lang-latin';
   if (isLandscape()) {
-    sheet.className = 'is-landscape bg-' + bgTemplate;
+    sheet.className = ('is-landscape bg-' + bgTemplate + latinCls);
     const p = LAND_POS[bgTemplate];
     /* inline style 讓 html2canvas proxy 複製 innerHTML 後仍保有正確定位 */
     const posStyle =
@@ -1424,7 +1458,7 @@ function renderDM() {
       `<img class="dm-bg-full" src="${enc(LAND_BG[bgTemplate])}" alt="">` +
       `<div class="dm-land-content" style="${posStyle}">${body}</div>`;
   } else {
-    sheet.className = '';
+    sheet.className = latinCls.trim();
     sheet.innerHTML =
       `<div class="dm-hdr"><img src="${enc(HDR)}" alt="header"></div>` +
       body +
@@ -1577,10 +1611,10 @@ function fitTwoGrid() {
       badgeStep(q('.dm-gift-badge')),      // 2) 縮贈品標籤高度與下邊距
       padStep([row]),                      // 3) 縮列上下內距
       fontStep(q('.dm-bundle-desc'), 0.8), // 4) 之後才開始縮文字
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl')], 0.75),
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl')], 0.75),
       sizeStep(q('.dm-bprod-img'), 0.32),  // 5) 極端長描述：商品圖再讓位
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc')], 0.55), // 最後保險
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc')], 0.55), // 最後保險
     ]);
   });
   document.querySelectorAll('#dm-sheet .dm-feature-row').forEach(row => {
@@ -1588,7 +1622,7 @@ function fitTwoGrid() {
     const q = s => [...row.querySelectorAll(s)];
     shrinkStages(measure, [
       fontStep(q('.dm-feature-desc'), 0.7),
-      fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name')], 0.75),
+      fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name'), ...q('.dm-bundle-names')], 0.75),
       sizeStep([...q('.dm-feature-img'), ...q('.dm-feature-gift .dm-bprod-img')], 0.55),
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
     ]);
