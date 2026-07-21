@@ -667,6 +667,14 @@ body {
   <span style="color:#3a3a3a;margin:0 10px">|</span>
   <span class="nav-title">DM 編輯器</span>
   <div class="nav-spacer"></div>
+  <button class="nav-btn nav-btn-preview" id="btn-preview" onclick="togglePreviewMode()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span id="nav-preview-txt">預覽模式</span>
+  </button>
+  <button class="nav-btn nav-btn-preview" id="btn-reset" onclick="resetAll()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    <span id="nav-reset-txt">重設</span>
+  </button>
   <div class="lang-pick" id="lang-pick">
     <button class="lang-btn active" id="lang-zh" onclick="setLang('zh')">中</button>
     <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
@@ -853,6 +861,8 @@ const UI = {
     exportNote: '* 匯出將依目前預覽內容產生 PDF，格式為 A4 {o} *', exportMain: '匯出 PDF (A4 {o})',
     orientP: '直式', orientL: '橫式',
     generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
+    previewOn: '預覽模式', previewOff: '返回編輯', reset: '重設',
+    resetConfirm: '確定要清除所有編輯內容，回復預設值？',
   },
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
@@ -874,6 +884,8 @@ const UI = {
     exportNote: '* Exports a PDF of the current preview, A4 {o} *', exportMain: 'Export PDF (A4 {o})',
     orientP: 'portrait', orientL: 'landscape',
     generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
+    previewOn: 'Preview', previewOff: 'Back to edit', reset: 'Reset',
+    resetConfirm: 'Clear all edits and restore defaults?',
   },
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
@@ -895,6 +907,8 @@ const UI = {
     exportNote: '* Eksportuje PDF bieżącego podglądu, A4 {o} *', exportMain: 'Eksport PDF (A4 {o})',
     orientP: 'pionowy', orientL: 'poziomy',
     generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
+    previewOn: 'Podgląd', previewOff: 'Wróć do edycji', reset: 'Resetuj',
+    resetConfirm: 'Wyczyścić wszystkie zmiany i przywrócić ustawienia domyślne?',
   },
 };
 function t(k) { return (UI[lang] && UI[lang][k] != null) ? UI[lang][k] : UI.zh[k]; }
@@ -921,6 +935,8 @@ function applyStaticUI() {
   // navbar 匯出鈕（保留 icon）：只改文字節點
   const jpgBtn = document.getElementById('nav-jpg-txt'); if (jpgBtn) jpgBtn.textContent = t('exportJPG');
   const pdfBtn = document.getElementById('nav-pdf-txt'); if (pdfBtn) pdfBtn.textContent = t('exportPDF');
+  const pvBtn = document.getElementById('nav-preview-txt'); if (pvBtn) pvBtn.textContent = editorHidden ? t('previewOff') : t('previewOn');
+  const rsBtn = document.getElementById('nav-reset-txt'); if (rsBtn) rsBtn.textContent = t('reset');
   updateExportLabels();
 }
 
@@ -1336,6 +1352,50 @@ function renderOne(tag, subtitle) {
 }
 
 /* ══════════════════════════════════════════════
+   自動存檔／還原（localStorage）
+   每次 renderDM 後保存；開啟頁面時還原（商品若已下架則回退預設）。
+══════════════════════════════════════════════ */
+const STORE_KEY = 'dm-editor-state-v1';
+
+function saveState() {
+  try {
+    taglines[layout] = document.getElementById('dm-tagline')?.value ?? taglines[layout];
+    subtitles[layout] = document.getElementById('dm-subtitle')?.value ?? subtitles[layout];
+    localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, layout, bgTemplate, lang, state, taglines, subtitles }));
+  } catch (e) { /* 隱私模式等情況忽略 */ }
+}
+
+function loadState() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) {}
+  if (!d || d.v !== 1 || !d.state) return false;
+  const validId = id => PRODUCTS.some(p => p.id === id);
+  const fixCell = c => ({ ...mkCell(''), ...c,
+    prodId: validId(c.prodId) ? c.prodId : ((PRODUCTS[0] && PRODUCTS[0].id) || ''),
+    giftId: (c.giftId && validId(c.giftId)) ? c.giftId : '' });
+  if (Array.isArray(d.state.four) && d.state.four.length === 4) state.four = d.state.four.map(fixCell);
+  if (Array.isArray(d.state.two) && d.state.two.length === 2) state.two = d.state.two.map(fixCell);
+  const one = d.state.one && d.state.one[0];
+  if (one && Array.isArray(one.products)) {
+    one.products = one.products.filter(p => p && validId(p.prodId)).slice(0, 3);
+    if (one.products.length) state.one = [{ headline: '', usage: '', price: '', origPrice: '', ...one }];
+  }
+  if (['four', 'two', 'one'].includes(d.layout)) layout = d.layout;
+  if (['portrait', 'h1', 'h2', 'h3'].includes(d.bgTemplate)) bgTemplate = d.bgTemplate;
+  if (bgTemplate === 'h1' && layout === 'four') layout = 'two';   // 橫式1 不支援四格
+  if (['zh', 'en', 'pl'].includes(d.lang)) lang = d.lang;
+  if (d.taglines) Object.assign(taglines, d.taglines);
+  if (d.subtitles) Object.assign(subtitles, d.subtitles);
+  return true;
+}
+
+function resetAll() {
+  if (!confirm(t('resetConfirm'))) return;
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  location.reload();
+}
+
+/* ══════════════════════════════════════════════
    MAIN RENDER
 ══════════════════════════════════════════════ */
 const HDR = '../沙龍DM公版/公版DM_1.jpg';
@@ -1374,6 +1434,7 @@ function renderDM() {
       if (!img.complete) img.addEventListener('load', () => renderDM(), { once: true });
     });
   }
+  saveState();   // 任何變更渲染後自動存檔
 }
 
 /* ══════════════════════════════════════════════
@@ -1878,9 +1939,13 @@ function setLayout(l) {
   renderDM();
 }
 
-function toggleEditor() {
-  const ep = document.getElementById('editorPane');
-  ep.style.display = ep.style.display === 'none' ? 'flex' : 'none';
+/* 預覽模式：隱藏編輯欄、預覽放大置中 */
+let editorHidden = false;
+function togglePreviewMode() {
+  editorHidden = !editorHidden;
+  document.getElementById('editorPane').style.display = editorHidden ? 'none' : 'flex';
+  const txt = document.getElementById('nav-preview-txt');
+  if (txt) txt.textContent = editorHidden ? t('previewOff') : t('previewOn');
   setTimeout(scaleSheet, 50);
 }
 
@@ -2007,11 +2072,28 @@ async function exportJPG() {
 ══════════════════════════════════════════════ */
 /* DOMContentLoaded 即初始化（不等整頁資源），loading 動態只等預覽畫布內的圖片 → 更快開始可用 */
 window.addEventListener('DOMContentLoaded', () => {
-  // 以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
-  state.four.forEach(applyMainCopy);
-  state.two.forEach(applyMainCopy);
-  state.one[0].products.forEach(setProductUsage);
-  applyOneMeta();
+  const restored = loadState();
+  if (!restored) {
+    // 首次使用：以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
+    state.four.forEach(applyMainCopy);
+    state.two.forEach(applyMainCopy);
+    state.one[0].products.forEach(setProductUsage);
+    applyOneMeta();
+  } else {
+    // 還原上次編輯：同步語言／底圖／版面等 UI 狀態（不重新帶入文案，保留手改內容）
+    ['zh', 'en', 'pl'].forEach(k => document.getElementById('lang-' + k).classList.toggle('active', k === lang));
+    applyStaticUI();
+    ['portrait', 'h1', 'h2', 'h3'].forEach(k => document.getElementById('bg-' + k).classList.toggle('active', k === bgTemplate));
+    const optFour = document.getElementById('opt-four');
+    if (optFour) optFour.style.display = (bgTemplate === 'h1') ? 'none' : '';
+    ['four', 'two', 'one'].forEach(k => document.getElementById('opt-' + k).classList.toggle('active', k === layout));
+    const subtitleField = document.getElementById('dm-subtitle-field');
+    if (subtitleField) subtitleField.style.display = layout === 'one' ? '' : 'none';
+    const tagInput = document.getElementById('dm-tagline');
+    if (tagInput) tagInput.value = taglines[layout] ?? tagInput.value;
+    const subInput = document.getElementById('dm-subtitle');
+    if (subInput) subInput.value = subtitles[layout] ?? '';
+  }
   buildEditorBlocks();
   renderDM();
   scaleSheet();
