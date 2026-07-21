@@ -136,6 +136,8 @@ body {
 
 /* Cell text */
 .dm-cell-text { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 4px; }
+/* 文字列不可壓縮：品名過長時真正溢出以觸發自動縮放，而非把標語壓成 0（否則標語看似消失） */
+.dm-cell-text > * { flex-shrink: 0; }
 .dm-cell-headline { font-size: 16px; font-weight: 400; color: #1a1a1a; line-height: 1.35; margin-bottom: 2px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .dm-cell-names { font-size: 16px; color: #999; line-height: 1.5; margin-bottom: 3px; word-break: break-word; }
@@ -503,7 +505,7 @@ body {
 #dm-sheet.is-landscape .dm-one-block .dm-price-unit { font-size: 17px; }
 
 /* 橫式 4-grid：格子較矮，縮小圖片區與標題字級，避免有贈品時標題/品名被裁 */
-#dm-sheet.is-landscape .dm-four-grid .dm-cell-imgs { height: 100px; }
+#dm-sheet.is-landscape .dm-four-grid .dm-cell-imgs { height: 84px; }
 #dm-sheet.is-landscape .dm-four-grid .dm-cell-headline { font-size: 16px; }
 #dm-sheet.is-landscape .dm-four-grid .dm-cell-names { font-size: 16px; }
 /* 四格標題與下方格子拉開一點點距離（僅橫式2、3 有四格） */
@@ -1590,9 +1592,12 @@ function fitFourGrid() {
     const measure = () => Math.max(overOf(cell), overOf(text));
     const q = s => [...cell.querySelectorAll(s)];
     shrinkStages(measure, [
-      fontStep([...q('.dm-cell-headline'), ...q('.dm-cell-names')], 0.72),
-      sizeStep(q('.dm-cell-imgs'), 0.55, true),
+      fontStep(q('.dm-cell-names'), 0.62),                                  // 1) 先縮品名（長品名是占高主因，優先保住標語）
+      sizeStep(q('.dm-cell-imgs'), 0.5, true),                              // 2) 縮圖高
+      fontStep([...q('.dm-cell-headline'), ...q('.dm-cell-names')], 0.6),    // 3) 標語＋品名一起
       fontStep([...q('.dm-cell-price'), ...q('.dm-cell-unit'), ...q('.dm-cell-orig')], 0.7),
+      fontStep([...q('.dm-cell-headline'), ...q('.dm-cell-names'),           // 4) 最後保險：全格文字再縮
+               ...q('.dm-cell-price'), ...q('.dm-cell-unit'), ...q('.dm-cell-orig')], 0.5),
     ]);
   });
 }
