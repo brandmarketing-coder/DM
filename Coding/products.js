@@ -53,6 +53,22 @@ window.PRODUCTS = [
     "img": "../產品圖片/PRO系列/沁涼控油頭皮噴霧750mL.png"
   },
   {
+    "id": "沁涼舒活身體冰感噴霧220mL",
+    "name": "沁涼舒活身體冰感噴霧220mL",
+    "series": "PRO",
+    "copyKey": "沁涼舒活身體冰感噴霧",
+    "orig": "800",
+    "img": "../產品圖片/PRO系列/沁涼舒活身體冰感噴霧220mL.png"
+  },
+  {
+    "id": "沁涼舒活洗髮露500mL",
+    "name": "沁涼舒活洗髮露500mL",
+    "series": "PRO",
+    "copyKey": "沁涼舒活洗髮露",
+    "orig": "2200",
+    "img": "../產品圖片/PRO系列/沁涼舒活洗髮露500mL.jpg"
+  },
+  {
     "id": "男士養髮液70mL",
     "name": "男士養髮液70mL",
     "series": "PRO",
@@ -411,6 +427,14 @@ window.PRODUCTS = [
     "copyKey": "PRO 2號香氛沐浴露",
     "orig": "1500",
     "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露750mL.png"
+  },
+  {
+    "id": "PRO6號香氛沐浴露500mL",
+    "name": "PRO6號香氛沐浴露500mL",
+    "series": "PRO",
+    "copyKey": "PRO 6號香氛沐浴露",
+    "orig": "1500",
+    "img": "../產品圖片/PRO系列/PRO6號香氛沐浴露500mL.jpg"
   },
   {
     "id": "PRO香水1號70mL",
