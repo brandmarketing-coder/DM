@@ -124,6 +124,17 @@ const head = (title) => `/* eslint-disable */
 fs.writeFileSync(outCopy, head('product-copy.js — 產品文案（key = 官網名稱）') + 'window.PRODUCT_COPY = ' + JSON.stringify(copy, null, 2) + ';\n', 'utf8');
 fs.writeFileSync(outProducts, head('products.js — 商品清單（每個圖片檔一筆）') + 'window.PRODUCTS = ' + JSON.stringify(products, null, 2) + ';\n', 'utf8');
 
+/* 更新 index.html 資料檔 <script> 的 ?v= 版本號（快取破解，避免更新後瀏覽器載到舊檔） */
+bumpDataVersion();
+function bumpDataVersion() {
+  const idx = path.join(repoRoot, 'Coding', 'index.html');
+  if (!fs.existsSync(idx)) return;
+  const v = Date.now();
+  let html = fs.readFileSync(idx, 'utf8');
+  html = html.replace(/(src="(?:products|product-copy|i18n|names-en)\.js)(?:\?v=\d+)?"/g, `$1?v=${v}"`);
+  fs.writeFileSync(idx, html, 'utf8');
+}
+
 console.log(`✓ products.js：${products.length} 個項目（PRO ${products.filter(p=>p.series==='PRO').length} ／ Salon USE ${products.filter(p=>p.series==='Salon USE').length}）`);
 console.log(`✓ product-copy.js：${copyKeys.length} 筆文案`);
 if (unmatched.length) console.log(`⚠ 無對應文案的圖片（copyKey 留空）：\n  ${unmatched.join('\n  ')}`);

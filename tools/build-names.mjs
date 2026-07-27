@@ -149,6 +149,16 @@ const head = `/* eslint-disable */
 `;
 fs.writeFileSync(outFile, head + 'window.PRODUCT_NAMES_EN = ' + JSON.stringify(result, null, 2) + ';\n', 'utf8');
 
+/* 更新 index.html 資料檔 <script> 的 ?v= 版本號（快取破解） */
+(function bumpDataVersion() {
+  const idx = path.join(repoRoot, 'Coding', 'index.html');
+  if (!fs.existsSync(idx)) return;
+  const v = Date.now();
+  let html = fs.readFileSync(idx, 'utf8');
+  html = html.replace(/(src="(?:products|product-copy|i18n|names-en)\.js)(?:\?v=\d+)?"/g, `$1?v=${v}"`);
+  fs.writeFileSync(idx, html, 'utf8');
+})();
+
 console.log(`✓ names-en.js：${Object.keys(result).length}/${products.length} 個商品對到官方英文名`);
 for (const [id, en, via] of report) console.log(`  ${id} → ${en}  [${via}]`);
 if (unmatched.length) console.log(`⚠ 對照表查無官方英文名（沿用 i18n.js 翻譯）：\n  ${unmatched.join('\n  ')}`);
