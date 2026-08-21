@@ -191,8 +191,14 @@ body {
 .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 85px;  height: 111px; }
 /* 單一商品：高度同主商品以免超出容器被裁切，寬度略大維持存在感 */
 .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 134px; height: 165px; }
-/* 直式：等寬欄（同一格版面），品名於各商品圖下方平行排列、欄內置中換行（橫式覆蓋回固定欄寬） */
-.dm-bundle-pair .dm-bprod { flex: 1 1 0; min-width: 0; }
+/* 直式：內容寬欄＋整體置中（兩商品不會分太開），品名於各商品圖下方置中換行；
+   品名寬度貼近圖寬（略寬 8px），長品名換行、不撐開欄距 */
+.dm-bundle-pair .dm-bprod { flex: 0 1 auto; min-width: 0; max-width: 44%; }
+.dm-bundle-pair .dm-bprod-name { max-width: 136px; }
+.dm-bundle-pair .dm-bprod.is-gift .dm-bprod-name { max-width: 118px; }
+.dm-bundle-pair.has-3 .dm-bprod { max-width: 31%; }
+.dm-bundle-pair.has-3 .dm-bprod-name { max-width: 114px; }
+.dm-bundle-pair.has-3 .dm-bprod.is-gift .dm-bprod-name { max-width: 100px; }
 /* 品名固定 2 行高 → 各欄品名起始線一致、商品圖底部對齊 */
 .dm-bundle-pair .dm-bprod-name { min-height: 2.6em; }
 /* 三商品：圖縮小一級、間距縮小 */
