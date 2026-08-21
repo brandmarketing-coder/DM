@@ -189,12 +189,16 @@ body {
 /* Two-grid image sizes: gift ~2/3 height of main, bottoms align via flex-end on parent */
 .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 128px; height: 165px; }
 .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img  { width: 85px;  height: 111px; }
-/* 單一商品（無贈品）：高度同主商品以免超出容器被裁切，寬度略大維持存在感 */
+/* 單一商品：高度同主商品以免超出容器被裁切，寬度略大維持存在感 */
 .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 134px; height: 165px; }
-/* 欄寬固定＝圖寬：長品名於圖寬內置中換行，與商品圖左右對齊（橫式另有覆蓋） */
-.dm-bundle-pair .dm-bprod.is-main { width: 128px; }
-.dm-bundle-pair .dm-bprod.is-gift { width: 85px; }
-.dm-bundle-pair .dm-bprod.is-main:only-child { width: 134px; }
+/* 直式：等寬欄（同一格版面），品名於各商品圖下方平行排列、欄內置中換行（橫式覆蓋回固定欄寬） */
+.dm-bundle-pair .dm-bprod { flex: 1 1 0; min-width: 0; }
+/* 品名固定 2 行高 → 各欄品名起始線一致、商品圖底部對齊 */
+.dm-bundle-pair .dm-bprod-name { min-height: 2.6em; }
+/* 三商品：圖縮小一級、間距縮小 */
+.dm-bundle-pair.has-3 { gap: 12px; }
+.dm-bundle-pair.has-3 .dm-bprod.is-main .dm-bprod-img { width: 106px; height: 137px; }
+.dm-bundle-pair.has-3 .dm-bprod.is-gift .dm-bprod-img { width: 72px; height: 94px; }
 
 /* 用途說明（產品描述）：直式兩格，置中於商品與售價之間 */
 .dm-bundle-desc {
@@ -601,8 +605,11 @@ body {
 #dm-sheet.is-landscape .dm-feature-imgs {
   flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; gap: 10px;
 }
-#dm-sheet.is-landscape .dm-feature-main { display: flex; flex-direction: column; align-items: center; width: 108px; }
-#dm-sheet.is-landscape .dm-feature-gift { display: flex; flex-direction: column; align-items: center; width: 70px; }
+/* 欄寬 auto（＝圖寬，隨自動縮圖收縮），多商品並排不超出 */
+#dm-sheet.is-landscape .dm-feature-main { display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: 100%; }
+#dm-sheet.is-landscape .dm-feature-gift { display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: 100%; }
+#dm-sheet.is-landscape .dm-feature-imgs { min-width: 0; max-width: 100%; }
+#dm-sheet.is-landscape .dm-feature-img, #dm-sheet.is-landscape .dm-feature-gift .dm-bprod-img { max-width: 100%; }
 #dm-sheet.is-landscape .dm-feature-row.has-gift .dm-feature-img { width: 108px; height: 146px; }
 #dm-sheet.is-landscape .dm-feature-gift .dm-bprod-img {
   width: 70px; height: 95px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
@@ -615,14 +622,20 @@ body {
 }
 /* 左右欄較窄：縮小商品圖與間距，使「主圖＋贈品」能並排不被裁切（以最窄的橫1為準） */
 #dm-sheet.is-landscape .dm-bundle-pair { gap: 10px; }
+/* 橫式：欄寬 auto（＝圖寬，隨自動縮圖收縮），品名用圖下整行（.dm-bundle-names） */
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-img { max-width: 100%; }
+#dm-sheet.is-landscape .dm-bundle-pair.has-3 { gap: 6px; }
+/* 贈品標籤：長標籤換行為多行膠囊，不撐寬欄位（高度隨行數） */
+#dm-sheet.is-landscape .dm-gift-badge {
+  max-width: 100%; height: auto; min-height: 19px; white-space: normal;
+  line-height: 1.2; padding: 2px 9px; border-radius: 10px; text-align: center;
+}
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 88px; height: 114px; }
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img { width: 58px; height: 75px; }
 /* 無贈品（單品）時放大主圖 */
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child .dm-bprod-img { width: 132px; height: 172px; }
-/* 將每欄寬度固定為圖片寬，長品名於欄內換行（避免文字撐寬導致主圖＋贈品並排超出） */
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main { width: 88px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift { width: 58px; }
-#dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main:only-child { width: 132px; }
+/* 欄寬不再固定（品名已移至圖下整行）：欄寬＝圖寬，隨自動縮圖收縮，避免多商品並排超出 */
 /* 品名固定 2 行高 → 兩欄品名起始線一致、主圖底部一致（與垂線水平對齊） */
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-name {
   font-size: 16px; max-width: 100%; word-break: break-word;
@@ -1014,7 +1027,9 @@ function prodName(id) {
 function localizeGiftLabels() {
   const gl = GIFT_DEFAULTS[lang];
   const fix = o => { if (GIFT_DEFAULT_SET.has(o.giftLabel)) o.giftLabel = gl; };
-  state.four.forEach(fix); state.two.forEach(fix); state.one[0].products.forEach(fix);
+  state.four.forEach(fix);
+  state.two.forEach(c => c.products.forEach(fix));
+  state.one[0].products.forEach(fix);
 }
 
 function setLang(l) {
@@ -1024,7 +1039,7 @@ function setLang(l) {
   // 贈品標籤本地化，並依該語言重新帶入各版面文案（介紹/用途/價格加總）
   localizeGiftLabels();
   state.four.forEach(applyMainCopy);
-  state.two.forEach(applyMainCopy);
+  state.two.forEach(applyTwoMeta);
   state.one[0].products.forEach(setProductUsage);
   applyOneMeta();
   // 標題預設改為該語言（並同步輸入框）
@@ -1069,9 +1084,15 @@ const state = {
     mkCell('男士養髮液70mL',        '咖啡因養髮液10mL'),
     mkCell('女士養髮液70mL',        '咖啡因麥拉寧養髮液10mL'),
   ],
-  two: [
-    mkCell('豐盈彈韌洗髮露500mL', '豐盈彈韌精華油10mL'),
-    mkCell('結構修護洗髮露500mL', '染燙護色精華油10mL'),
+  two: [   /* 與一格相同的產品清單模型：每個產品可調主/輔、最多 3 個 */
+    { products: [
+        { prodId: '豐盈彈韌洗髮露500mL', role: 'main', giftLabel: '致贈' },
+        { prodId: '豐盈彈韌精華油10mL',  role: 'sub',  giftLabel: '致贈' },
+      ], headline: '', usage: '', price: '', origPrice: '' },
+    { products: [
+        { prodId: '結構修護洗髮露500mL', role: 'main', giftLabel: '致贈' },
+        { prodId: '染燙護色精華油10mL',  role: 'sub',  giftLabel: '致贈' },
+      ], headline: '', usage: '', price: '', origPrice: '' },
   ],
   one: [
     {
@@ -1131,12 +1152,23 @@ function applyPricing(cell, prodIds) {
 }
 
 /* 依「主商品」帶入文字：標題←介紹、用途←用途；沒寫的留空（不亂填）。
-   介紹／用途一律取主商品，價格依所選產品加總。 */
+   介紹／用途一律取主商品，價格依所選產品加總。（四格用；cell = {prodId, giftId}） */
 function applyMainCopy(cell) {
   const cp = getCopy(cell.prodId);
   cell.headline = cp ? cp.intro : '';
   cell.usage    = cp ? cp.usage : '';
   applyPricing(cell, [cell.prodId, cell.giftId]);
+}
+
+/* 兩格（產品清單模型）：標題／用途 ← 第一個主商品（無主商品則取第一個產品）；
+   原價＝所有所選產品建議售價加總，定價預設＝原價（無則 5000）。 */
+function applyTwoMeta(cell) {
+  const prods = cell.products || [];
+  const main = prods.find(p => p.role === 'main') || prods[0];
+  const cp = main ? getCopy(main.prodId) : null;
+  cell.headline = cp ? cp.intro : '';
+  cell.usage    = cp ? cp.usage : '';
+  applyPricing(cell, prods.map(p => p.prodId));
 }
 
 function fmt(v) {
@@ -1198,77 +1230,78 @@ function renderFour(tag) {
 /* ══════════════════════════════════════════════
    DM RENDER — TWO  (2 stacked bundles)
 ══════════════════════════════════════════════ */
+/* 兩格：cell = { products:[{prodId, role:'main'|'sub', giftLabel}], headline, usage, price, origPrice }
+   （與一格相同的產品清單模型：每個產品可調主/輔、最多 3 個） */
 function bundleRowHTML(c) {
-  const mp = getProd(c.prodId);
-
-  /* 品名為長字串時，窄欄（尤其橫式1）會把品名疊成高塔、左右不對稱。
-     兩格版面一律改為「圖下整行置中」（主商品一行＋贈品一行），中外文皆然、左右對稱。 */
   const latin = lang !== 'zh';
   const giftSep = lang === 'zh' ? '' : ' ';   // 中文全形括號後不加空格
-  const namesBlock = gp2 => `
-      <div class="dm-bundle-names">${prodName(mp.id)}${gp2 ? `<br><span class="dm-gift-line">${paren(c.giftLabel)}${giftSep}${prodName(gp2.id)}</span>` : ''}</div>`;
+  const prods = (c.products || []).filter(p => p && p.prodId);
+  const gl = p => p.giftLabel || GIFT_DEFAULTS[lang];
 
-  // 橫式2、3：單品特寫（放大圖＋品名＋描述＋售價／原價）。預設不放贈品，但若有選贈品仍顯示
+  /* 整行品名（橫式1／特寫用；窄欄下長品名會疊成高塔）：主商品一行、輔助品（致贈）一行 */
+  const namesBlock = () => `
+      <div class="dm-bundle-names">${prods.map(p => p.role === 'sub'
+        ? `<span class="dm-gift-line">${paren(gl(p))}${giftSep}${prodName(p.prodId)}</span>`
+        : prodName(p.prodId)).join('<br>')}</div>`;
+
+  const orig = origText(dispOrig(c))
+    ? `<span class="dm-orig-price">${paren(origText(dispOrig(c)))}</span>` : '';
+  const desc = (c.usage || '').trim();
+
+  // 橫式2、3：單品特寫（放大圖＋品名＋描述＋售價／原價）
   if (isFeatureTwo()) {
-    const gp = getProdOrNull(c.giftId);
-    const desc = (c.usage || '').trim();
-    const origF = origText(dispOrig(c))
-      ? `<div class="dm-feature-orig"><span class="dm-orig-price">${paren(origText(dispOrig(c)))}</span></div>` : '';
-    const giftCol = gp ? `
+    const subs = prods.filter(p => p.role === 'sub');
+    const cols = prods.map(p => {
+      const prod = getProd(p.prodId);
+      return p.role === 'sub' ? `
         <div class="dm-bprod is-gift dm-feature-gift">
-          <div class="dm-gift-badge">${c.giftLabel}</div>
-          <div class="dm-bprod-img"><img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1"></div>
-        </div>` : '';
-    return `
-      <div class="dm-bundle-row dm-feature-row${gp ? ' has-gift' : ''}">
-        <div class="dm-feature-imgs">
-          <div class="dm-bprod is-main dm-feature-main">
-            <div class="dm-feature-img">
-              <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
-            </div>
+          <div class="dm-gift-badge">${gl(p)}</div>
+          <div class="dm-bprod-img"><img src="${enc(prod.img)}" alt="${prodName(p.prodId)}" onerror="this.style.opacity=0.1"></div>
+        </div>` : `
+        <div class="dm-bprod is-main dm-feature-main">
+          <div class="dm-feature-img">
+            <img src="${enc(prod.img)}" alt="${prodName(p.prodId)}" onerror="this.style.opacity=0.1">
           </div>
-          ${giftCol}
-        </div>
-        ${gp ? namesBlock(gp) : `<div class="dm-feature-name">${prodName(mp.id)}</div>`}
+        </div>`;
+    }).join('');
+    return `
+      <div class="dm-bundle-row dm-feature-row${subs.length ? ' has-gift' : ''}">
+        <div class="dm-feature-imgs">${cols}</div>
+        ${prods.length > 1 ? namesBlock() : `<div class="dm-feature-name">${prods[0] ? prodName(prods[0].prodId) : ''}</div>`}
         ${desc ? `<div class="dm-feature-desc">${desc}</div>` : ''}
         <div class="dm-feature-price">
           <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
         </div>
-        ${origF}
+        ${orig ? `<div class="dm-feature-orig">${orig}</div>` : ''}
       </div>`;
   }
-
-  const gp = getProdOrNull(c.giftId);
-
-  const giftCol = gp ? `
-    <div class="dm-bprod is-gift">
-      <div class="dm-gift-badge">${c.giftLabel}</div>
-      <div class="dm-bprod-img">
-        <img src="${enc(gp.img)}" alt="${prodName(gp.id)}" onerror="this.style.opacity=0.1">
-      </div>
-    </div>` : '';
-
-  const orig = origText(dispOrig(c))
-    ? `<span class="dm-orig-price">${paren(origText(dispOrig(c)))}</span>` : '';
 
   const hl = c.headline
     ? `<span class="dm-headline-lbl">${cleanHeadline(c.headline)}</span>` : '';
 
-  /* 用途說明（產品描述）：直式兩格也顯示（自動帶入主商品用途，可修改／清空） */
-  const desc2 = (c.usage || '').trim();
+  /* 直式：等寬欄、品名於各商品圖下方平行排列（欄寬足夠不爆塔）；
+     橫式1：白框窄，品名維持圖下整行。 */
+  const perColNames = !isLandscape();
+  const cols = prods.map(p => {
+    const prod = getProd(p.prodId);
+    const isMain = p.role === 'main';
+    return `
+        <div class="dm-bprod ${isMain ? 'is-main' : 'is-gift'}">
+          ${isMain ? '' : `<div class="dm-gift-badge">${gl(p)}</div>`}
+          <div class="dm-bprod-img">
+            <img src="${enc(prod.img)}" alt="${prodName(p.prodId)}" onerror="this.style.opacity=0.1">
+          </div>
+          ${perColNames ? `<div class="dm-bprod-name">${prodName(p.prodId)}</div>` : ''}
+        </div>`;
+  }).join('');
 
   return `
     <div class="dm-bundle-row">
-      <div class="dm-bundle-pair">
-        <div class="dm-bprod is-main">
-          <div class="dm-bprod-img">
-            <img src="${enc(mp.img)}" alt="${prodName(mp.id)}" onerror="this.style.opacity=0.1">
-          </div>
-        </div>
-        ${giftCol}
+      <div class="dm-bundle-pair${prods.length >= 3 ? ' has-3' : ''}">
+        ${cols}
       </div>
-      ${namesBlock(gp)}
-      ${desc2 ? `<div class="dm-bundle-desc">${desc2}</div>` : ''}
+      ${perColNames ? '' : namesBlock()}
+      ${desc ? `<div class="dm-bundle-desc">${desc}</div>` : ''}
       <div class="dm-bundle-price-row">
         ${hl}
         <span class="dm-price-grp">${priceInner(dispPrice(c))}</span>
@@ -1410,7 +1443,17 @@ function loadState() {
     prodId: validId(c.prodId) ? c.prodId : ((PRODUCTS[0] && PRODUCTS[0].id) || ''),
     giftId: (c.giftId && validId(c.giftId)) ? c.giftId : '' });
   if (Array.isArray(d.state.four) && d.state.four.length === 4) state.four = d.state.four.map(fixCell);
-  if (Array.isArray(d.state.two) && d.state.two.length === 2) state.two = d.state.two.map(fixCell);
+  /* 兩格：新模型 = 產品清單；舊存檔（{prodId, giftId}）自動遷移 */
+  const fixTwoCell = (c, i) => {
+    let products = Array.isArray(c.products) ? c.products
+      : [{ prodId: c.prodId, role: 'main', giftLabel: c.giftLabel || '致贈' },
+         ...(c.giftId ? [{ prodId: c.giftId, role: 'sub', giftLabel: c.giftLabel || '致贈' }] : [])];
+    products = products.filter(p => p && validId(p.prodId)).slice(0, 3);
+    if (!products.length) products = (state.two[i] ? state.two[i].products : []).map(p => ({ ...p }));
+    return { headline: c.headline || '', usage: c.usage || '', price: c.price || '', origPrice: c.origPrice || '',
+             i18nPrice: c.i18nPrice, i18nOrig: c.i18nOrig, products };
+  };
+  if (Array.isArray(d.state.two) && d.state.two.length === 2) state.two = d.state.two.map(fixTwoCell);
   const one = d.state.one && d.state.one[0];
   if (one && Array.isArray(one.products)) {
     one.products = one.products.filter(p => p && validId(p.prodId)).slice(0, 3);
@@ -1615,7 +1658,7 @@ function fitTwoGrid() {
       padStep([row]),                      // 3) 縮列上下內距
       fontStep(q('.dm-bundle-desc'), 0.8), // 4) 之後才開始縮文字
       fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl')], 0.75),
-      sizeStep(q('.dm-bprod-img'), 0.32),  // 5) 極端長描述：商品圖再讓位
+      sizeStep(q('.dm-bprod-img'), 0.25),  // 5) 極端長描述：商品圖再讓位
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
       fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc')], 0.55), // 最後保險
     ]);
@@ -1627,7 +1670,11 @@ function fitTwoGrid() {
       fontStep(q('.dm-feature-desc'), 0.7),
       fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name'), ...q('.dm-bundle-names')], 0.75),
       sizeStep([...q('.dm-feature-img'), ...q('.dm-feature-gift .dm-bprod-img')], 0.55),
+      badgeStep(q('.dm-gift-badge')),
+      padStep([row]),
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
+      sizeStep([...q('.dm-feature-img'), ...q('.dm-feature-gift .dm-bprod-img')], 0.3),   // 極端：圖再讓位
+      fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-gift-badge'), ...q('.dm-feature-desc')], 0.55), // 最後保險
     ]);
   });
 }
@@ -1738,6 +1785,52 @@ function cellEditor(idx, title) {
     `;
   }
 
+  if (layout === 'two') {
+    const c = state.two[idx];
+    const prodsHtml = c.products.map((p, i) => twoGridProductEditor(idx, p, i)).join('');
+    const addBtn = c.products.length < 3 ? `
+      <button type="button" style="width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s;"
+        onclick="addTwoProd(${idx})"
+        onmouseover="this.style.background='#2d6235'"
+        onmouseout="this.style.background='#3a7d44'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        ${t('addProduct')}
+      </button>` : '';
+    return `
+      <div class="block-ed">
+        <div class="block-ed-title">${title}</div>
+        <div style="margin-bottom: 12px;">
+          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">${t('prodList')}</span>
+          ${prodsHtml}
+          ${addBtn}
+        </div>
+        <div class="headline-field">
+          <label class="field-lbl">${t('headlineField')}</label>
+          <input type="text" class="field-input" style="padding:5px 8px"
+            value="${c.headline}" placeholder="${t('headlinePh')}"
+            oninput="onField(${idx},'headline',this.value)">
+        </div>
+        <div style="margin-bottom:7px">
+          <label class="field-lbl">${t('descField')}</label>
+          <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:42px; line-height:1.5"
+            placeholder="${t('descPh')}"
+            oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
+        </div>
+        <div class="price-pair">
+          <div class="price-slot">
+            <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
+            <input type="text" class="price-input" value="${dispPrice(c)}"
+              oninput="onField(${idx},'price',this.value)">
+          </div>
+          <div class="price-slot">
+            <label>${t('origLabel')}${paren(CUR_UNIT[lang])}</label>
+            <input type="text" class="price-input" value="${dispOrig(c)}"
+              oninput="onField(${idx},'origPrice',this.value)">
+          </div>
+        </div>
+      </div>`;
+  }
+
   const c = state[layout][idx], mp = getProd(c.prodId);
   const gp = c.giftId ? getProd(c.giftId) : PRODUCTS[0];
   return `
@@ -1776,13 +1869,6 @@ function cellEditor(idx, title) {
           value="${c.headline}" placeholder="${t('headlinePh')}"
           oninput="onField(${idx},'headline',this.value)">
       </div>
-      ${layout === 'two' ? `
-      <div style="margin-bottom:7px">
-        <label class="field-lbl">${t('descField')}</label>
-        <textarea class="field-input" style="padding:5px 8px; resize:vertical; min-height:42px; line-height:1.5"
-          placeholder="${t('descPh')}"
-          oninput="onField(${idx},'usage',this.value)">${c.usage || ''}</textarea>
-      </div>` : ''}
       <div class="price-pair">
         <div class="price-slot">
           <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
@@ -1965,6 +2051,93 @@ function onOneProdField(idx, field, val) {
   renderDM();
 }
 
+/* ══════════════════════════════════════════════
+   兩格：產品清單編輯（互動同一格；用途說明為區塊層級的產品描述，非逐商品）
+══════════════════════════════════════════════ */
+function twoGridProductEditor(cellIdx, p, prodIdx) {
+  const prod = getProd(p.prodId);
+  const isMain = p.role === 'main';
+  const roleSelect = `
+    <div style="margin-bottom: 6px;">
+      <span class="field-lbl">${t('prodType')}</span>
+      <div style="display: flex; gap: 12px; margin-top: 4px;">
+        <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+          <input type="radio" name="two-role-${cellIdx}-${prodIdx}" value="main" ${isMain ? 'checked' : ''} onchange="onTwoProdRole(${cellIdx},${prodIdx},'main')">
+          ${t('roleMain')}
+        </label>
+        <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+          <input type="radio" name="two-role-${cellIdx}-${prodIdx}" value="sub" ${!isMain ? 'checked' : ''} onchange="onTwoProdRole(${cellIdx},${prodIdx},'sub')">
+          ${t('roleSub')}
+        </label>
+      </div>
+    </div>`;
+  const giftLabelInput = !isMain ? `
+    <div style="margin-top: 6px;">
+      <label class="field-lbl">${t('giftLabelField2')}</label>
+      <input type="text" class="field-input" style="padding: 5px 8px;"
+        value="${p.giftLabel || GIFT_DEFAULTS[lang]}" placeholder="${t('giftPh')}"
+        oninput="onTwoProdField(${cellIdx},${prodIdx},'giftLabel',this.value)">
+    </div>` : '';
+  const deleteBtn = prodIdx > 0 ? `
+    <button type="button" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 8px; transition: background 0.15s;"
+      onclick="deleteTwoProd(${cellIdx},${prodIdx})"
+      onmouseover="this.style.background='#c53030'"
+      onmouseout="this.style.background='#e53e3e'">
+      ${t('deleteProduct')}
+    </button>` : '';
+  return `
+    <div style="background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 11px; font-weight: 700; color: #555;">${t('product')} ${prodIdx + 1}</span>
+      </div>
+      <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+        <img class="prod-thumb" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
+        <select class="prod-sel" style="flex: 1;" onchange="onTwoProdId(${cellIdx},${prodIdx},this.value)">
+          ${opts(p.prodId)}
+        </select>
+      </div>
+      ${roleSelect}
+      ${giftLabelInput}
+      ${deleteBtn}
+    </div>`;
+}
+
+function onTwoProdId(ci, pi, val) {
+  state.two[ci].products[pi].prodId = val;
+  applyTwoMeta(state.two[ci]);   // 標題/用途 ← 第一個主商品；價格加總
+  buildEditorBlocks();
+  renderDM();
+}
+
+function onTwoProdRole(ci, pi, role) {
+  state.two[ci].products[pi].role = role;
+  applyTwoMeta(state.two[ci]);
+  buildEditorBlocks();
+  renderDM();
+}
+
+function onTwoProdField(ci, pi, field, val) {
+  state.two[ci].products[pi][field] = val;
+  renderDM();
+}
+
+function addTwoProd(ci) {
+  const c = state.two[ci];
+  if (c.products.length < 3) {
+    c.products.push({ prodId: (PRODUCTS[0] && PRODUCTS[0].id) || '', role: 'sub', giftLabel: GIFT_DEFAULTS[lang] });
+    applyTwoMeta(c);
+    buildEditorBlocks();
+    renderDM();
+  }
+}
+
+function deleteTwoProd(ci, pi) {
+  state.two[ci].products.splice(pi, 1);
+  applyTwoMeta(state.two[ci]);
+  buildEditorBlocks();
+  renderDM();
+}
+
 function setLayout(l) {
   taglines[layout] = document.getElementById('dm-tagline')?.value || '';
   subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
@@ -2117,7 +2290,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (!restored) {
     // 首次使用：以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
     state.four.forEach(applyMainCopy);
-    state.two.forEach(applyMainCopy);
+    state.two.forEach(applyTwoMeta);
     state.one[0].products.forEach(setProductUsage);
     applyOneMeta();
   } else {
