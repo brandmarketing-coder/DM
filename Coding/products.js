@@ -377,7 +377,7 @@ window.PRODUCTS = [
     "name": "BioAir強力造型噴霧350mL",
     "series": "PRO",
     "copyKey": "BioAir強力造型噴霧",
-    "orig": "",
+    "orig": "1200",
     "img": "../產品圖片/PRO系列/BioAir強力造型噴霧350mL.png?v=1787736749507"
   },
   {

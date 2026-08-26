@@ -140,8 +140,8 @@ window.PRODUCT_COPY = {
   "BioAir強力造型噴霧": {
     "intro": "",
     "usage": "打造秀髮專業線條與質感風格，天然咖啡因為頭皮注入活力，帶來自然持久的定型效果。",
-    "price": "350mL",
-    "orig": "",
+    "price": "350mL/TWD1200",
+    "orig": "1200",
     "series": "PRO"
   },
   "4S植萃彈力造型油": {
