@@ -378,7 +378,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "BioAir強力造型噴霧",
     "orig": "",
-    "img": "../產品圖片/PRO系列/BioAir強力造型噴霧350mL.png?v=1781494155690"
+    "img": "../產品圖片/PRO系列/BioAir強力造型噴霧350mL.png?v=1787736749507"
   },
   {
     "id": "BioAir髮根支撐豐盈感噴霧350mL",
