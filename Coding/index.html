@@ -410,8 +410,8 @@ body {
   border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;
 }
 .prod-sel {
-  width: 100%; padding: 4px 5px; border: 1px solid #ddd; border-radius: 4px;
-  font-size: 9.5px; color: #333; background: white; outline: none;
+  width: 100%; padding: 5px 7px; border: 1px solid #ddd; border-radius: 4px;
+  font-size: 11px; color: #333; background: white; outline: none;
 }
 .prod-sel:focus { border-color: #5aaa6a; }
 
@@ -810,6 +810,7 @@ body {
             value="" placeholder="例：抗暑，從頭噴到腳底的救星" oninput="renderDM()">
         </div>
         <div id="block-editors"></div>
+        <datalist id="prod-datalist"></datalist>
       </div>
     </div>
     <div class="editor-footer">
@@ -914,6 +915,7 @@ const UI = {
     generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
     previewOn: '預覽模式', previewOff: '返回編輯', reset: '重設',
     resetConfirm: '確定要清除所有編輯內容，回復預設值？',
+    searchPh: '點選或輸入關鍵字搜尋',
   },
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
@@ -937,6 +939,7 @@ const UI = {
     generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
     previewOn: 'Preview', previewOff: 'Back to edit', reset: 'Reset',
     resetConfirm: 'Clear all edits and restore defaults?',
+    searchPh: 'Click or type to search',
   },
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
@@ -960,6 +963,7 @@ const UI = {
     generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
     previewOn: 'Podgląd', previewOff: 'Wróć do edycji', reset: 'Resetuj',
     resetConfirm: 'Wyczyścić wszystkie zmiany i przywrócić ustawienia domyślne?',
+    searchPh: 'Kliknij lub wpisz, aby wyszukać',
   },
 };
 function t(k) { return (UI[lang] && UI[lang][k] != null) ? UI[lang][k] : UI.zh[k]; }
@@ -1744,6 +1748,47 @@ function opts(selectedId) {
   ).join('');
 }
 
+/* ── 可搜尋的產品選擇（input + datalist）：點選顯示全列表、打字即時過濾 ── */
+function prodDisplay(id) {
+  const p = getProdOrNull(id);
+  return p ? `【${p.series}】 ${prodName(p.id)}` : '';
+}
+function buildProdDatalist() {
+  const dl = document.getElementById('prod-datalist');
+  if (dl) dl.innerHTML = PRODUCTS.map(p => `<option value="【${p.series}】 ${prodName(p.id)}"></option>`).join('');
+}
+/* 由輸入值解析商品 id：完整顯示名／id／品名；否則唯一子字串命中也接受。查無回 null */
+function resolveProdInput(el, allowEmpty) {
+  const v = el.value.trim();
+  if (!v) return allowEmpty ? '' : null;
+  const hit = PRODUCTS.find(p => `【${p.series}】 ${prodName(p.id)}` === v)
+    || PRODUCTS.find(p => p.id === v || p.name === v || prodName(p.id) === v);
+  if (hit) return hit.id;
+  const subs = PRODUCTS.filter(p => (`【${p.series}】 ${prodName(p.id)} ${p.name}`).includes(v));
+  return subs.length === 1 ? subs[0].id : null;
+}
+function prodSearchInput(curId, onchangeExpr, allowEmpty) {
+  return `<input type="text" class="prod-sel" list="prod-datalist" autocomplete="off"
+    value="${prodDisplay(curId)}" placeholder="${allowEmpty ? t('giftNone') : t('searchPh')}"
+    onfocus="this.select()" onchange="${onchangeExpr}">`;
+}
+/* 三種編輯器的搜尋事件（查無＝恢復原值不動狀態） */
+function onProdSearch(el, idx, field, allowEmpty) {
+  const id = resolveProdInput(el, allowEmpty);
+  if (id === null) { el.value = prodDisplay(state.four[idx][field]); return; }
+  onProd(idx, field, id);
+}
+function onTwoProdSearch(el, ci, pi) {
+  const id = resolveProdInput(el, false);
+  if (!id) { el.value = prodDisplay(state.two[ci].products[pi].prodId); return; }
+  onTwoProdId(ci, pi, id);
+}
+function onOneProdSearch(el, pi) {
+  const id = resolveProdInput(el, false);
+  if (!id) { el.value = prodDisplay(state.one[0].products[pi].prodId); return; }
+  onOneProdId(pi, id);
+}
+
 function cellEditor(idx, title) {
   if (layout === 'one') {
     const c = state.one[0];
@@ -1848,19 +1893,14 @@ function cellEditor(idx, title) {
           <div class="prod-thumb-row">
             <img class="prod-thumb" id="th${idx}m" src="${enc(mp.img)}" alt="">
           </div>
-          <select class="prod-sel" onchange="onProd(${idx},'prodId',this.value)">
-            ${opts(c.prodId)}
-          </select>
+          ${prodSearchInput(c.prodId, `onProdSearch(this,${idx},'prodId',false)`, false)}
         </div>
         <div class="prod-slot">
           <div class="prod-slot-lbl">${t('giftProduct')}</div>
           <div class="prod-thumb-row">
             <img class="prod-thumb" id="th${idx}g" src="${enc(gp.img)}" alt="">
           </div>
-          <select class="prod-sel" onchange="onProd(${idx},'giftId',this.value)">
-            <option value="">${t('giftNone')}</option>
-            ${opts(c.giftId)}
-          </select>
+          ${prodSearchInput(c.giftId, `onProdSearch(this,${idx},'giftId',true)`, true)}
         </div>
       </div>
       <div class="gift-label-field" id="gl-field-${idx}" style="${c.giftId ? '' : 'display:none'}">
@@ -1891,6 +1931,7 @@ function cellEditor(idx, title) {
 }
 
 function buildEditorBlocks() {
+  buildProdDatalist();   // 搜尋選單的選項（依當前語言）
   let html = '';
   if (layout === 'four') {
     html = cellEditor(0,t('cellA')) + cellEditor(1,t('cellB')) +
@@ -1990,9 +2031,7 @@ function oneGridProductEditor(p, prodIdx) {
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" id="th-one-${prodIdx}" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
-        <select class="prod-sel" style="flex: 1;" onchange="onOneProdId(${prodIdx}, this.value)">
-          ${opts(p.prodId)}
-        </select>
+        <div style="flex: 1; min-width: 0;">${prodSearchInput(p.prodId, `onOneProdSearch(this,${prodIdx})`, false)}</div>
       </div>
       ${roleSelect}
       ${giftLabelInput}
@@ -2098,9 +2137,7 @@ function twoGridProductEditor(cellIdx, p, prodIdx) {
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
-        <select class="prod-sel" style="flex: 1;" onchange="onTwoProdId(${cellIdx},${prodIdx},this.value)">
-          ${opts(p.prodId)}
-        </select>
+        <div style="flex: 1; min-width: 0;">${prodSearchInput(p.prodId, `onTwoProdSearch(this,${cellIdx},${prodIdx})`, false)}</div>
       </div>
       ${roleSelect}
       ${giftLabelInput}
