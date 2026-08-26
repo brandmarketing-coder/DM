@@ -110,7 +110,9 @@ for (const { dir, series } of FOLDERS) {
     const copyKey = matchKey(nameNoExt);
     if (!copyKey) unmatched.push(`${dir}/${f}`);
     const orig = copyKey ? origForSize(nameNoExt, copy[copyKey].price) : '';
-    products.push({ id: nameNoExt, name: nameNoExt, series, copyKey, orig, img: `../產品圖片/${dir}/${f}` });
+    /* ?v=檔案修改時間：同名覆蓋圖檔後瀏覽器快取自動失效 */
+    const v = Math.floor(fs.statSync(path.join(full, f)).mtimeMs);
+    products.push({ id: nameNoExt, name: nameNoExt, series, copyKey, orig, img: `../產品圖片/${dir}/${f}?v=${v}` });
   }
 }
 
