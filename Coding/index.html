@@ -811,6 +811,7 @@ body {
         </div>
         <div id="block-editors"></div>
         <datalist id="prod-datalist"></datalist>
+        <datalist id="prod-datalist-gift"></datalist>
       </div>
     </div>
     <div class="editor-footer">
@@ -1754,38 +1755,56 @@ function prodDisplay(id) {
   return p ? `【${p.series}】 ${prodName(p.id)}` : '';
 }
 function buildProdDatalist() {
+  const optsHtml = PRODUCTS.map(p => `<option value="【${p.series}】 ${prodName(p.id)}"></option>`).join('');
   const dl = document.getElementById('prod-datalist');
-  if (dl) dl.innerHTML = PRODUCTS.map(p => `<option value="【${p.series}】 ${prodName(p.id)}"></option>`).join('');
+  if (dl) dl.innerHTML = optsHtml;
+  const gdl = document.getElementById('prod-datalist-gift');   // 贈品欄多一個「不顯示」選項
+  if (gdl) gdl.innerHTML = `<option value="${t('giftNone')}"></option>` + optsHtml;
 }
 /* 由輸入值解析商品 id：完整顯示名／id／品名；否則唯一子字串命中也接受。查無回 null */
-function resolveProdInput(el, allowEmpty) {
+function resolveProdInput(el) {
   const v = el.value.trim();
-  if (!v) return allowEmpty ? '' : null;
+  if (!v) return null;
   const hit = PRODUCTS.find(p => `【${p.series}】 ${prodName(p.id)}` === v)
     || PRODUCTS.find(p => p.id === v || p.name === v || prodName(p.id) === v);
   if (hit) return hit.id;
   const subs = PRODUCTS.filter(p => (`【${p.series}】 ${prodName(p.id)} ${p.name}`).includes(v));
   return subs.length === 1 ? subs[0].id : null;
 }
-function prodSearchInput(curId, onchangeExpr, allowEmpty) {
-  return `<input type="text" class="prod-sel" list="prod-datalist" autocomplete="off"
-    value="${prodDisplay(curId)}" placeholder="${allowEmpty ? t('giftNone') : t('searchPh')}"
-    onfocus="this.select()" onchange="${onchangeExpr}">`;
+/* 聚焦：暫存原值並清空 → datalist 顯示全部選項（否則被目前值過濾成一項＝「固定住」）。
+   離開時沒選新的 → 恢復原值。 */
+function prodSearchFocus(el) {
+  el.dataset.prev = el.value;
+  el.value = '';
 }
-/* 三種編輯器的搜尋事件（查無＝恢復原值不動狀態） */
+function prodSearchBlur(el) {
+  setTimeout(() => {
+    if (document.body.contains(el) && el.value.trim() === '') el.value = el.dataset.prev || '';
+  }, 0);
+}
+function prodSearchInput(curId, onchangeExpr, allowEmpty) {
+  return `<input type="text" class="prod-sel" list="${allowEmpty ? 'prod-datalist-gift' : 'prod-datalist'}" autocomplete="off"
+    value="${prodDisplay(curId)}" placeholder="${t('searchPh')}"
+    onfocus="prodSearchFocus(this)" onblur="prodSearchBlur(this)" onchange="${onchangeExpr}">`;
+}
+/* 三種編輯器的搜尋事件（空值/查無＝恢復原值不動狀態；贈品欄選「不顯示」才移除） */
 function onProdSearch(el, idx, field, allowEmpty) {
-  const id = resolveProdInput(el, allowEmpty);
-  if (id === null) { el.value = prodDisplay(state.four[idx][field]); return; }
+  const restore = () => { el.value = el.dataset.prev || prodDisplay(state.four[idx][field]); };
+  const v = el.value.trim();
+  if (allowEmpty && v === t('giftNone')) { onProd(idx, field, ''); return; }
+  if (!v) { restore(); return; }
+  const id = resolveProdInput(el);
+  if (id === null) { restore(); return; }
   onProd(idx, field, id);
 }
 function onTwoProdSearch(el, ci, pi) {
-  const id = resolveProdInput(el, false);
-  if (!id) { el.value = prodDisplay(state.two[ci].products[pi].prodId); return; }
+  const id = el.value.trim() ? resolveProdInput(el) : null;
+  if (!id) { el.value = el.dataset.prev || prodDisplay(state.two[ci].products[pi].prodId); return; }
   onTwoProdId(ci, pi, id);
 }
 function onOneProdSearch(el, pi) {
-  const id = resolveProdInput(el, false);
-  if (!id) { el.value = prodDisplay(state.one[0].products[pi].prodId); return; }
+  const id = el.value.trim() ? resolveProdInput(el) : null;
+  if (!id) { el.value = el.dataset.prev || prodDisplay(state.one[0].products[pi].prodId); return; }
   onOneProdId(pi, id);
 }
 
