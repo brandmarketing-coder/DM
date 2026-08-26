@@ -448,10 +448,16 @@ body {
 @media (max-width: 700px) {
   body { height: auto; overflow: auto; }
 
-  /* Navbar wraps if needed */
-  .navbar { height: auto; flex-wrap: wrap; padding: 8px 14px; gap: 6px; }
-  .nav-spacer { flex: 1 0 100%; display: none; }
+  /* Navbar：手機精簡（小 logo、小按鈕、緊湊兩行） */
+  .navbar { height: auto; flex-wrap: wrap; padding: 6px 10px; gap: 5px; row-gap: 5px; }
+  .nav-spacer { display: none; }
   .nav-title { display: none; }
+  .navbar > span { display: none; }                 /* logo 後的分隔線 */
+  .nav-logo-img { height: 20px; }
+  .nav-btn { padding: 4px 9px; font-size: 11px; border-radius: 5px; gap: 4px; }
+  .nav-btn svg { width: 10px; height: 10px; }
+  .lang-pick { margin-right: 0; padding: 1px; }
+  .lang-btn { padding: 3px 8px; font-size: 11px; }
 
   /* Stack preview above editor */
   .workspace { flex-direction: column; height: auto; overflow: visible; }
@@ -1784,7 +1790,15 @@ function prodSearchBlur(el) {
     if (document.body.contains(el) && el.value.trim() === '') el.value = el.dataset.prev || '';
   }, 0);
 }
-function prodSearchInput(curId, onchangeExpr, allowEmpty) {
+/* 觸控裝置（手機/平板）：datalist＋鍵盤體驗差 → 改用系統原生選單；桌面維持可打字搜尋 */
+const IS_TOUCH = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+function prodSearchInput(curId, onchangeExpr, allowEmpty, selectExpr) {
+  if (IS_TOUCH) {
+    return `<select class="prod-sel" onchange="${selectExpr}">
+      ${allowEmpty ? `<option value="">${t('giftNone')}</option>` : ''}
+      ${opts(curId)}
+    </select>`;
+  }
   return `<input type="text" class="prod-sel" list="${allowEmpty ? 'prod-datalist-gift' : 'prod-datalist'}" autocomplete="off"
     value="${prodDisplay(curId)}" placeholder="${t('searchPh')}"
     onfocus="prodSearchFocus(this)" onblur="prodSearchBlur(this)" onchange="${onchangeExpr}">`;
@@ -1914,14 +1928,14 @@ function cellEditor(idx, title) {
           <div class="prod-thumb-row">
             <img class="prod-thumb" id="th${idx}m" src="${enc(mp.img)}" alt="">
           </div>
-          ${prodSearchInput(c.prodId, `onProdSearch(this,${idx},'prodId',false)`, false)}
+          ${prodSearchInput(c.prodId, `onProdSearch(this,${idx},'prodId',false)`, false, `onProd(${idx},'prodId',this.value)`)}
         </div>
         <div class="prod-slot">
           <div class="prod-slot-lbl">${t('giftProduct')}</div>
           <div class="prod-thumb-row">
             <img class="prod-thumb" id="th${idx}g" src="${enc(gp.img)}" alt="">
           </div>
-          ${prodSearchInput(c.giftId, `onProdSearch(this,${idx},'giftId',true)`, true)}
+          ${prodSearchInput(c.giftId, `onProdSearch(this,${idx},'giftId',true)`, true, `onProd(${idx},'giftId',this.value)`)}
         </div>
       </div>
       <div class="gift-label-field" id="gl-field-${idx}" style="${c.giftId ? '' : 'display:none'}">
@@ -2052,7 +2066,7 @@ function oneGridProductEditor(p, prodIdx) {
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" id="th-one-${prodIdx}" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
-        <div style="flex: 1; min-width: 0;">${prodSearchInput(p.prodId, `onOneProdSearch(this,${prodIdx})`, false)}</div>
+        <div style="flex: 1; min-width: 0;">${prodSearchInput(p.prodId, `onOneProdSearch(this,${prodIdx})`, false, `onOneProdId(${prodIdx},this.value)`)}</div>
       </div>
       ${roleSelect}
       ${giftLabelInput}
@@ -2158,7 +2172,7 @@ function twoGridProductEditor(cellIdx, p, prodIdx) {
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
-        <div style="flex: 1; min-width: 0;">${prodSearchInput(p.prodId, `onTwoProdSearch(this,${cellIdx},${prodIdx})`, false)}</div>
+        <div style="flex: 1; min-width: 0;">${prodSearchInput(p.prodId, `onTwoProdSearch(this,${cellIdx},${prodIdx})`, false, `onTwoProdId(${cellIdx},${prodIdx},this.value)`)}</div>
       </div>
       ${roleSelect}
       ${giftLabelInput}
