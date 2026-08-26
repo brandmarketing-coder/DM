@@ -381,6 +381,14 @@ window.PRODUCTS = [
     "img": "../產品圖片/PRO系列/BioAir強力造型噴霧350mL.png"
   },
   {
+    "id": "BioAir髮根支撐豐盈感噴霧350mL",
+    "name": "BioAir髮根支撐豐盈感噴霧350mL",
+    "series": "PRO",
+    "copyKey": "BioAir髮根支撐豐盈感噴霧",
+    "orig": "1200",
+    "img": "../產品圖片/PRO系列/BioAir髮根支撐豐盈感噴霧350mL.png"
+  },
+  {
     "id": "O'right｜PRO經典氣墊梳",
     "name": "O'right｜PRO經典氣墊梳",
     "series": "PRO",
