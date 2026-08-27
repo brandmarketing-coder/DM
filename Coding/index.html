@@ -7,10 +7,10 @@
 <!-- 匯出用函式庫（html2canvas / jsPDF）改為匯出時才載入，加快初始載入：見 ensureExportLibs() -->
 <!-- 商品清單與產品文案（由 tools/build-copy.mjs 從 產品圖片/ 與 產品文案 CSV 自動產生） -->
 <!-- ?v= 版本號由 build-copy.mjs／build-names.mjs 於重建時自動更新，避免瀏覽器載到舊快取 -->
-<script src="products.js?v=1787795950955"></script>
-<script src="product-copy.js?v=1787795950955"></script>
-<script src="i18n.js?v=1787795950955"></script>
-<script src="names-en.js?v=1787795950955"></script>
+<script src="products.js?v=1787799334455"></script>
+<script src="product-copy.js?v=1787799334455"></script>
+<script src="i18n.js?v=1787799334455"></script>
+<script src="names-en.js?v=1787799334455"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -767,28 +767,29 @@ body {
       <div class="editor-sec">
         <div class="editor-sec-num" id="sec-bg">1. 選擇底圖</div>
         <div class="bg-pick">
+          <!-- 選單縮圖用專屬小圖（th-*.jpg，~10KB），不再載入原尺寸底圖 -->
           <div class="bg-opt active" id="bg-portrait" onclick="setBg('portrait')">
-            <img src="../沙龍DM公版/公版DM_1.jpg" alt="直式" decoding="async" fetchpriority="low">
+            <img src="../沙龍DM公版/th-portrait.jpg" alt="直式" decoding="async" fetchpriority="low">
             <div class="bg-label">直式</div>
           </div>
           <div class="bg-opt" id="bg-h1" onclick="setBg('h1')">
-            <img src="../沙龍DM公版/橫1.jpg" alt="橫式 1" decoding="async" fetchpriority="low">
+            <img src="../沙龍DM公版/th-h1.jpg" alt="橫式 1" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 1</div>
           </div>
           <div class="bg-opt" id="bg-h2" onclick="setBg('h2')">
-            <img src="../沙龍DM公版/橫2.jpg" alt="橫式 2" decoding="async" fetchpriority="low">
+            <img src="../沙龍DM公版/th-h2.jpg" alt="橫式 2" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 2</div>
           </div>
           <div class="bg-opt" id="bg-h3" onclick="setBg('h3')">
-            <img src="../沙龍DM公版/橫3.jpg" alt="橫式 3" decoding="async" fetchpriority="low">
+            <img src="../沙龍DM公版/th-h3.jpg" alt="橫式 3" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 3</div>
           </div>
           <div class="bg-opt" id="bg-p2" onclick="setBg('p2')">
-            <img src="../沙龍DM公版/2026大促直式.png" alt="大促直式" decoding="async" fetchpriority="low">
+            <img src="../沙龍DM公版/th-p2.jpg" alt="大促直式" decoding="async" fetchpriority="low">
             <div class="bg-label">大促直式</div>
           </div>
           <div class="bg-opt" id="bg-h4" onclick="setBg('h4')">
-            <img src="../沙龍DM公版/2026大促橫式.jpg" alt="大促橫式" decoding="async" fetchpriority="low">
+            <img src="../沙龍DM公版/th-h4.jpg" alt="大促橫式" decoding="async" fetchpriority="low">
             <div class="bg-label">大促橫式</div>
           </div>
         </div>
@@ -859,7 +860,7 @@ const LAND_BG = {
   h2: '../沙龍DM公版/橫2.jpg',
   h3: '../沙龍DM公版/橫3.jpg',
   h4: '../沙龍DM公版/2026大促橫式.jpg',
-  p2: '../沙龍DM公版/2026大促直式.png',   /* 直式滿版（非 header/footer 拆分） */
+  p2: '../沙龍DM公版/2026大促直式.jpg',   /* 直式滿版（非 header/footer 拆分） */
 };
 
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
@@ -1457,57 +1458,10 @@ function renderOne(tag, subtitle) {
     </div>`;
 }
 
-/* ══════════════════════════════════════════════
-   自動存檔／還原（localStorage）
-   每次 renderDM 後保存；開啟頁面時還原（商品若已下架則回退預設）。
-══════════════════════════════════════════════ */
-const STORE_KEY = 'dm-editor-state-v1';
-
-function saveState() {
-  try {
-    taglines[layout] = document.getElementById('dm-tagline')?.value ?? taglines[layout];
-    subtitles[layout] = document.getElementById('dm-subtitle')?.value ?? subtitles[layout];
-    localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, layout, bgTemplate, lang, state, taglines, subtitles }));
-  } catch (e) { /* 隱私模式等情況忽略 */ }
-}
-
-function loadState() {
-  let d = null;
-  try { d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) {}
-  if (!d || d.v !== 1 || !d.state) return false;
-  const validId = id => PRODUCTS.some(p => p.id === id);
-  const fixCell = c => ({ ...mkCell(''), ...c,
-    prodId: validId(c.prodId) ? c.prodId : ((PRODUCTS[0] && PRODUCTS[0].id) || ''),
-    giftId: (c.giftId && validId(c.giftId)) ? c.giftId : '' });
-  if (Array.isArray(d.state.four) && d.state.four.length === 4) state.four = d.state.four.map(fixCell);
-  /* 兩格：新模型 = 產品清單；舊存檔（{prodId, giftId}）自動遷移 */
-  const fixTwoCell = (c, i) => {
-    let products = Array.isArray(c.products) ? c.products
-      : [{ prodId: c.prodId, role: 'main', giftLabel: c.giftLabel || '致贈' },
-         ...(c.giftId ? [{ prodId: c.giftId, role: 'sub', giftLabel: c.giftLabel || '致贈' }] : [])];
-    products = products.filter(p => p && validId(p.prodId)).slice(0, 3);
-    if (!products.length) products = (state.two[i] ? state.two[i].products : []).map(p => ({ ...p }));
-    return { headline: c.headline || '', usage: c.usage || '', price: c.price || '', origPrice: c.origPrice || '',
-             i18nPrice: c.i18nPrice, i18nOrig: c.i18nOrig, products };
-  };
-  if (Array.isArray(d.state.two) && d.state.two.length === 2) state.two = d.state.two.map(fixTwoCell);
-  const one = d.state.one && d.state.one[0];
-  if (one && Array.isArray(one.products)) {
-    one.products = one.products.filter(p => p && validId(p.prodId)).slice(0, 3);
-    if (one.products.length) state.one = [{ headline: '', usage: '', price: '', origPrice: '', ...one }];
-  }
-  if (['four', 'two', 'one'].includes(d.layout)) layout = d.layout;
-  if (['portrait', 'p2', 'h1', 'h2', 'h3', 'h4'].includes(d.bgTemplate)) bgTemplate = d.bgTemplate;
-  if (bgTemplate === 'h1' && layout === 'four') layout = 'two';   // 橫式1 不支援四格
-  if (['zh', 'en', 'pl'].includes(d.lang)) lang = d.lang;
-  if (d.taglines) Object.assign(taglines, d.taglines);
-  if (d.subtitles) Object.assign(subtitles, d.subtitles);
-  return true;
-}
-
+/* 重設＝重新整理（F5 同義）：一律回到預設（直式・四格） */
 function resetAll() {
   if (!confirm(t('resetConfirm'))) return;
-  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  try { localStorage.removeItem('dm-editor-state-v1'); } catch (e) {}   // 清除舊版存檔殘留
   location.reload();
 }
 
@@ -1553,7 +1507,6 @@ function renderDM() {
       if (!img.complete) img.addEventListener('load', () => renderDM(), { once: true });
     });
   }
-  saveState();   // 任何變更渲染後自動存檔
 }
 
 /* ══════════════════════════════════════════════
@@ -1694,7 +1647,9 @@ function fitFourGrid() {
   }
   const imgBoxes = cells.map(c => c.querySelector('.dm-cell-imgs')).filter(Boolean);
   if (imgBoxes.length > 1) {
-    const minH = Math.min(...imgBoxes.map(el => el.getBoundingClientRect().height));
+    /* 必須用 offsetHeight（版面尺寸）：getBoundingClientRect 受預覽縮放 transform 影響，
+       會把縮放後的視覺高度誤設為實際高度 → 版面跑掉 */
+    const minH = Math.min(...imgBoxes.map(el => el.offsetHeight));
     imgBoxes.forEach(el => { el.style.height = minH + 'px'; });
   }
 }
@@ -2396,30 +2351,14 @@ async function exportJPG() {
 /* ══════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════ */
-/* DOMContentLoaded 即初始化（不等整頁資源），loading 動態只等預覽畫布內的圖片 → 更快開始可用 */
+/* DOMContentLoaded 即初始化（不等整頁資源），loading 動態只等預覽畫布內的圖片。
+   重新整理（F5）＝完整重設：一律回到預設（直式・四格），不還原上次編輯。 */
 window.addEventListener('DOMContentLoaded', () => {
-  const restored = loadState();
-  if (!restored) {
-    // 首次使用：以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
-    state.four.forEach(applyMainCopy);
-    state.two.forEach(applyTwoMeta);
-    state.one[0].products.forEach(setProductUsage);
-    applyOneMeta();
-  } else {
-    // 還原上次編輯：同步語言／底圖／版面等 UI 狀態（不重新帶入文案，保留手改內容）
-    ['zh', 'en', 'pl'].forEach(k => document.getElementById('lang-' + k).classList.toggle('active', k === lang));
-    applyStaticUI();
-    ['portrait', 'p2', 'h1', 'h2', 'h3', 'h4'].forEach(k => document.getElementById('bg-' + k).classList.toggle('active', k === bgTemplate));
-    const optFour = document.getElementById('opt-four');
-    if (optFour) optFour.style.display = (bgTemplate === 'h1') ? 'none' : '';
-    ['four', 'two', 'one'].forEach(k => document.getElementById('opt-' + k).classList.toggle('active', k === layout));
-    const subtitleField = document.getElementById('dm-subtitle-field');
-    if (subtitleField) subtitleField.style.display = layout === 'one' ? '' : 'none';
-    const tagInput = document.getElementById('dm-tagline');
-    if (tagInput) tagInput.value = taglines[layout] ?? tagInput.value;
-    const subInput = document.getElementById('dm-subtitle');
-    if (subInput) subInput.value = subtitles[layout] ?? '';
-  }
+  // 以 Excel 文案套用初始預設（標題/用途/原價加總/定價＝原價或 5000）
+  state.four.forEach(applyMainCopy);
+  state.two.forEach(applyTwoMeta);
+  state.one[0].products.forEach(setProductUsage);
+  applyOneMeta();
   buildEditorBlocks();
   renderDM();
   scaleSheet();

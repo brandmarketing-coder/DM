@@ -10,7 +10,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "4S造型掌控乳",
     "orig": "980",
-    "img": "../產品圖片/PRO系列/4S造型掌控乳160mL.png?v=1781494155684"
+    "img": "../產品圖片/PRO系列/4S造型掌控乳160mL.webp?v=1787799333937"
   },
   {
     "id": "4S植萃彈力造型油70mL",
@@ -18,7 +18,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "4S植萃彈力造型油",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/4S植萃彈力造型油70mL.png?v=1781494155681"
+    "img": "../產品圖片/PRO系列/4S植萃彈力造型油70mL.webp?v=1787799333938"
   },
   {
     "id": "女士養髮液70mL",
@@ -26,7 +26,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "女士養髮液",
     "orig": "2500",
-    "img": "../產品圖片/PRO系列/女士養髮液70mL.png?v=1781494155794"
+    "img": "../產品圖片/PRO系列/女士養髮液70mL.webp?v=1787799333939"
   },
   {
     "id": "生薑按摩油220mL",
@@ -34,7 +34,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "生薑按摩油",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/生薑按摩油220mL.png?v=1781494155875"
+    "img": "../產品圖片/PRO系列/生薑按摩油220mL.webp?v=1787799333940"
   },
   {
     "id": "沁涼控油頭皮噴霧60mL",
@@ -42,7 +42,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "沁涼控油頭皮噴霧",
     "orig": "450",
-    "img": "../產品圖片/PRO系列/沁涼控油頭皮噴霧60mL.png?v=1781494155851"
+    "img": "../產品圖片/PRO系列/沁涼控油頭皮噴霧60mL.webp?v=1787799333942"
   },
   {
     "id": "沁涼控油頭皮噴霧750mL",
@@ -50,7 +50,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "沁涼控油頭皮噴霧",
     "orig": "4500",
-    "img": "../產品圖片/PRO系列/沁涼控油頭皮噴霧750mL.png?v=1781494155856"
+    "img": "../產品圖片/PRO系列/沁涼控油頭皮噴霧750mL.webp?v=1787799333944"
   },
   {
     "id": "沁涼舒活身體冰感噴霧220mL",
@@ -58,7 +58,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "沁涼舒活身體冰感噴霧",
     "orig": "800",
-    "img": "../產品圖片/PRO系列/沁涼舒活身體冰感噴霧220mL.png?v=1785120072420"
+    "img": "../產品圖片/PRO系列/沁涼舒活身體冰感噴霧220mL.webp?v=1787799333947"
   },
   {
     "id": "沁涼舒活洗髮露500mL",
@@ -66,7 +66,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "沁涼舒活洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/沁涼舒活洗髮露500mL.jpg?v=1785120054810"
+    "img": "../產品圖片/PRO系列/沁涼舒活洗髮露500mL.webp?v=1787799333949"
   },
   {
     "id": "男士養髮液70mL",
@@ -74,7 +74,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "男士養髮液",
     "orig": "2500",
-    "img": "../產品圖片/PRO系列/男士養髮液70mL.png?v=1781494155880"
+    "img": "../產品圖片/PRO系列/男士養髮液70mL.webp?v=1787799333951"
   },
   {
     "id": "咖啡因麥拉寧養髮液100mL",
@@ -90,7 +90,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "咖啡因麥拉寧養髮液",
     "orig": "1100",
-    "img": "../產品圖片/PRO系列/咖啡因麥拉寧養髮液10mL.png?v=1781494155788"
+    "img": "../產品圖片/PRO系列/咖啡因麥拉寧養髮液10mL.webp?v=1787799333953"
   },
   {
     "id": "咖啡因麥拉寧養髮液50mL",
@@ -98,7 +98,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "咖啡因麥拉寧養髮液",
     "orig": "3900",
-    "img": "../產品圖片/PRO系列/咖啡因麥拉寧養髮液50mL.png?v=1781494155791"
+    "img": "../產品圖片/PRO系列/咖啡因麥拉寧養髮液50mL.webp?v=1787799333959"
   },
   {
     "id": "咖啡因養髮液100mL",
@@ -114,7 +114,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "咖啡因養髮液",
     "orig": "1000",
-    "img": "../產品圖片/PRO系列/咖啡因養髮液10mL.png?v=1781494155768"
+    "img": "../產品圖片/PRO系列/咖啡因養髮液10mL.webp?v=1787799333960"
   },
   {
     "id": "咖啡因養髮液50mL",
@@ -122,7 +122,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "咖啡因養髮液",
     "orig": "3300",
-    "img": "../產品圖片/PRO系列/咖啡因養髮液50mL.png?v=1781494155770"
+    "img": "../產品圖片/PRO系列/咖啡因養髮液50mL.webp?v=1787799333962"
   },
   {
     "id": "染燙護色洗髮露260mL",
@@ -130,7 +130,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色洗髮露",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/染燙護色洗髮露260mL.png?v=1781494155814"
+    "img": "../產品圖片/PRO系列/染燙護色洗髮露260mL.webp?v=1787799333964"
   },
   {
     "id": "染燙護色洗髮露500mL",
@@ -138,7 +138,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/染燙護色洗髮露500mL.png?v=1781494155820"
+    "img": "../產品圖片/PRO系列/染燙護色洗髮露500mL.webp?v=1787799333966"
   },
   {
     "id": "染燙護色洗髮露750mL",
@@ -146,7 +146,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/染燙護色洗髮露750mL.png?v=1781494155827"
+    "img": "../產品圖片/PRO系列/染燙護色洗髮露750mL.webp?v=1787799333968"
   },
   {
     "id": "染燙護色精華油10mL",
@@ -154,7 +154,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色精華油",
     "orig": "300",
-    "img": "../產品圖片/PRO系列/染燙護色精華油10mL.png?v=1781494155832"
+    "img": "../產品圖片/PRO系列/染燙護色精華油10mL.webp?v=1787799333969"
   },
   {
     "id": "染燙護色精華油70mL",
@@ -162,7 +162,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色精華油",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/染燙護色精華油70mL.png?v=1781494155835"
+    "img": "../產品圖片/PRO系列/染燙護色精華油70mL.webp?v=1787799333973"
   },
   {
     "id": "染燙護色精華油750mL",
@@ -170,7 +170,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色精華油",
     "orig": "9600",
-    "img": "../產品圖片/PRO系列/染燙護色精華油750mL.png?v=1781494155842"
+    "img": "../產品圖片/PRO系列/染燙護色精華油750mL.webp?v=1787799333974"
   },
   {
     "id": "染燙護色護髮素250mL",
@@ -178,7 +178,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色護髮素",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/染燙護色護髮素250mL.png?v=1781494155847"
+    "img": "../產品圖片/PRO系列/染燙護色護髮素250mL.webp?v=1787799333976"
   },
   {
     "id": "強健頭皮洗髮露260mL",
@@ -186,7 +186,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "強健頭皮洗髮露",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/強健頭皮洗髮露260mL.png?v=1781494155799"
+    "img": "../產品圖片/PRO系列/強健頭皮洗髮露260mL.webp?v=1787799333978"
   },
   {
     "id": "強健頭皮洗髮露500mL",
@@ -194,7 +194,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "強健頭皮洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/強健頭皮洗髮露500mL.png?v=1781494155803"
+    "img": "../產品圖片/PRO系列/強健頭皮洗髮露500mL.webp?v=1787799333979"
   },
   {
     "id": "強健頭皮洗髮露750mL",
@@ -202,7 +202,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "強健頭皮洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/強健頭皮洗髮露750mL.png?v=1781494155809"
+    "img": "../產品圖片/PRO系列/強健頭皮洗髮露750mL.webp?v=1787799333982"
   },
   {
     "id": "結構修護洗髮露260mL",
@@ -210,7 +210,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "結構修護洗髮露",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/結構修護洗髮露260mL.png?v=1781494155884"
+    "img": "../產品圖片/PRO系列/結構修護洗髮露260mL.webp?v=1787799333983"
   },
   {
     "id": "結構修護洗髮露500mL",
@@ -218,7 +218,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "結構修護洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/結構修護洗髮露500mL.png?v=1781494155888"
+    "img": "../產品圖片/PRO系列/結構修護洗髮露500mL.webp?v=1787799333984"
   },
   {
     "id": "結構修護精華乳70mL",
@@ -226,7 +226,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "結構修護精華乳",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/結構修護精華乳70mL.png?v=1781494155892"
+    "img": "../產品圖片/PRO系列/結構修護精華乳70mL.webp?v=1787799333986"
   },
   {
     "id": "結構修護精華乳750mL",
@@ -234,7 +234,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "結構修護精華乳",
     "orig": "9600",
-    "img": "../產品圖片/PRO系列/結構修護精華乳750mL.png?v=1781494155898"
+    "img": "../產品圖片/PRO系列/結構修護精華乳750mL.webp?v=1787799333988"
   },
   {
     "id": "結構修護護髮素250mL",
@@ -242,7 +242,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "結構修護護髮素",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/結構修護護髮素250mL.png?v=1781494155903"
+    "img": "../產品圖片/PRO系列/結構修護護髮素250mL.webp?v=1787799333990"
   },
   {
     "id": "舒活抗菌頭皮噴霧60mL",
@@ -250,7 +250,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "舒活抗菌頭皮噴霧",
     "orig": "450",
-    "img": "../產品圖片/PRO系列/舒活抗菌頭皮噴霧60mL.png?v=1781494155907"
+    "img": "../產品圖片/PRO系列/舒活抗菌頭皮噴霧60mL.webp?v=1787799333992"
   },
   {
     "id": "舒活抗菌頭皮噴霧750mL",
@@ -258,7 +258,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "舒活抗菌頭皮噴霧",
     "orig": "4500",
-    "img": "../產品圖片/PRO系列/舒活抗菌頭皮噴霧750mL.png?v=1781494155914"
+    "img": "../產品圖片/PRO系列/舒活抗菌頭皮噴霧750mL.webp?v=1787799333993"
   },
   {
     "id": "舒活身體按摩油220mL",
@@ -266,7 +266,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "舒活身體按摩油",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/舒活身體按摩油220mL.png?v=1781494155919"
+    "img": "../產品圖片/PRO系列/舒活身體按摩油220mL.webp?v=1787799333995"
   },
   {
     "id": "輕盈髮妝水220mL",
@@ -274,7 +274,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "輕盈髮妝水",
     "orig": "1200",
-    "img": "../產品圖片/PRO系列/輕盈髮妝水220mL.png?v=1781494155961"
+    "img": "../產品圖片/PRO系列/輕盈髮妝水220mL.webp?v=1787799333998"
   },
   {
     "id": "濃縮咖啡因養髮洗髮露260mL",
@@ -282,7 +282,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "濃縮咖啡因養髮洗髮露",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/濃縮咖啡因養髮洗髮露260mL.png?v=1781494155860"
+    "img": "../產品圖片/PRO系列/濃縮咖啡因養髮洗髮露260mL.webp?v=1787799334000"
   },
   {
     "id": "濃縮咖啡因養髮洗髮露500mL",
@@ -290,7 +290,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "濃縮咖啡因養髮洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/濃縮咖啡因養髮洗髮露500mL.png?v=1781494155865"
+    "img": "../產品圖片/PRO系列/濃縮咖啡因養髮洗髮露500mL.webp?v=1787799334002"
   },
   {
     "id": "濃縮咖啡因養髮洗髮露750mL",
@@ -298,7 +298,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "濃縮咖啡因養髮洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/濃縮咖啡因養髮洗髮露750mL.png?v=1781494155871"
+    "img": "../產品圖片/PRO系列/濃縮咖啡因養髮洗髮露750mL.webp?v=1787799334003"
   },
   {
     "id": "靜謐舒緩按摩油220mL",
@@ -306,7 +306,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "靜謐舒緩按摩油",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/靜謐舒緩按摩油220mL.png?v=1781494155966"
+    "img": "../產品圖片/PRO系列/靜謐舒緩按摩油220mL.webp?v=1787799334004"
   },
   {
     "id": "豐盈彈韌洗髮露260mL",
@@ -314,7 +314,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌洗髮露",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/豐盈彈韌洗髮露260mL.png?v=1781494155923"
+    "img": "../產品圖片/PRO系列/豐盈彈韌洗髮露260mL.webp?v=1787799334005"
   },
   {
     "id": "豐盈彈韌洗髮露500mL",
@@ -322,7 +322,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/豐盈彈韌洗髮露500mL.png?v=1781494155927"
+    "img": "../產品圖片/PRO系列/豐盈彈韌洗髮露500mL.webp?v=1787799334006"
   },
   {
     "id": "豐盈彈韌洗髮露750mL",
@@ -330,7 +330,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌洗髮露",
     "orig": "2200",
-    "img": "../產品圖片/PRO系列/豐盈彈韌洗髮露750mL.png?v=1781494155934"
+    "img": "../產品圖片/PRO系列/豐盈彈韌洗髮露750mL.webp?v=1787799334007"
   },
   {
     "id": "豐盈彈韌精華油10mL",
@@ -338,7 +338,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌精華油",
     "orig": "300",
-    "img": "../產品圖片/PRO系列/豐盈彈韌精華油10mL.png?v=1781494155936"
+    "img": "../產品圖片/PRO系列/豐盈彈韌精華油10mL.webp?v=1787799334009"
   },
   {
     "id": "豐盈彈韌精華油70mL",
@@ -346,7 +346,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌精華油",
     "orig": "1300",
-    "img": "../產品圖片/PRO系列/豐盈彈韌精華油70mL.png?v=1781494155941"
+    "img": "../產品圖片/PRO系列/豐盈彈韌精華油70mL.webp?v=1787799334009"
   },
   {
     "id": "豐盈彈韌精華油750mL",
@@ -354,7 +354,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌精華油",
     "orig": "9600",
-    "img": "../產品圖片/PRO系列/豐盈彈韌精華油750mL.png?v=1781494155947"
+    "img": "../產品圖片/PRO系列/豐盈彈韌精華油750mL.webp?v=1787799334012"
   },
   {
     "id": "豐盈彈韌調理精華220mL",
@@ -362,7 +362,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌調理精華",
     "orig": "1600",
-    "img": "../產品圖片/PRO系列/豐盈彈韌調理精華220mL.png?v=1781494155952"
+    "img": "../產品圖片/PRO系列/豐盈彈韌調理精華220mL.webp?v=1787799334014"
   },
   {
     "id": "豐盈彈韌護髮素250mL",
@@ -370,7 +370,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌護髮素",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/豐盈彈韌護髮素250mL.png?v=1781494155956"
+    "img": "../產品圖片/PRO系列/豐盈彈韌護髮素250mL.webp?v=1787799334015"
   },
   {
     "id": "BioAir強力造型噴霧350mL",
@@ -378,7 +378,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "BioAir強力造型噴霧",
     "orig": "1200",
-    "img": "../產品圖片/PRO系列/BioAir強力造型噴霧350mL.png?v=1787736749507"
+    "img": "../產品圖片/PRO系列/BioAir強力造型噴霧350mL.webp?v=1787799334017"
   },
   {
     "id": "BioAir造型噴霧350mL",
@@ -386,7 +386,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "BioAir造型噴霧",
     "orig": "1200",
-    "img": "../產品圖片/PRO系列/BioAir造型噴霧350mL.png?v=1787737749875"
+    "img": "../產品圖片/PRO系列/BioAir造型噴霧350mL.webp?v=1787799334019"
   },
   {
     "id": "BioAir髮根支撐豐盈感噴霧350mL",
@@ -394,7 +394,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "BioAir髮根支撐豐盈感噴霧",
     "orig": "1200",
-    "img": "../產品圖片/PRO系列/BioAir髮根支撐豐盈感噴霧350mL.png?v=1787725990615"
+    "img": "../產品圖片/PRO系列/BioAir髮根支撐豐盈感噴霧350mL.webp?v=1787799334021"
   },
   {
     "id": "O'right｜PRO經典氣墊梳",
@@ -410,7 +410,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO 1號香氛沐浴露",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/PRO1號香氛沐浴露500mL.png?v=1781494155706"
+    "img": "../產品圖片/PRO系列/PRO1號香氛沐浴露500mL.webp?v=1787799334022"
   },
   {
     "id": "PRO1號香氛沐浴露750mL",
@@ -418,7 +418,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO 1號香氛沐浴露",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/PRO1號香氛沐浴露750mL.png?v=1781494155713"
+    "img": "../產品圖片/PRO系列/PRO1號香氛沐浴露750mL.webp?v=1787799334024"
   },
   {
     "id": "PRO2號香氛沐浴露260mL",
@@ -426,7 +426,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO 2號香氛沐浴露",
     "orig": "900",
-    "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露260mL.png?v=1781494155716"
+    "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露260mL.webp?v=1787799334026"
   },
   {
     "id": "PRO2號香氛沐浴露500mL",
@@ -434,7 +434,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO 2號香氛沐浴露",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露500mL.png?v=1781494155720"
+    "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露500mL.webp?v=1787799334029"
   },
   {
     "id": "PRO2號香氛沐浴露750mL",
@@ -442,7 +442,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO 2號香氛沐浴露",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露750mL.png?v=1781494155727"
+    "img": "../產品圖片/PRO系列/PRO2號香氛沐浴露750mL.webp?v=1787799334030"
   },
   {
     "id": "PRO6號香氛沐浴露500mL",
@@ -450,7 +450,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO 6號香氛沐浴露",
     "orig": "1500",
-    "img": "../產品圖片/PRO系列/PRO6號香氛沐浴露500mL.jpg?v=1785120062159"
+    "img": "../產品圖片/PRO系列/PRO6號香氛沐浴露500mL.webp?v=1787799334033"
   },
   {
     "id": "PRO香水1號70mL",
@@ -458,7 +458,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO香水1號",
     "orig": "5600",
-    "img": "../產品圖片/PRO系列/PRO香水1號70mL.png?v=1781494155730"
+    "img": "../產品圖片/PRO系列/PRO香水1號70mL.webp?v=1787799334035"
   },
   {
     "id": "PRO香水2號70mL",
@@ -466,7 +466,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO香水2號",
     "orig": "5600",
-    "img": "../產品圖片/PRO系列/PRO香水2號70mL.png?v=1781494155734"
+    "img": "../產品圖片/PRO系列/PRO香水2號70mL.webp?v=1787799334037"
   },
   {
     "id": "PRO香水3號70mL",
@@ -474,7 +474,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO香水3號",
     "orig": "5600",
-    "img": "../產品圖片/PRO系列/PRO香水3號70mL.png?v=1781494155737"
+    "img": "../產品圖片/PRO系列/PRO香水3號70mL.webp?v=1787799334038"
   },
   {
     "id": "PRO香水4號70mL",
@@ -482,7 +482,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO香水4號",
     "orig": "5600",
-    "img": "../產品圖片/PRO系列/PRO香水4號70mL.png?v=1781494155740"
+    "img": "../產品圖片/PRO系列/PRO香水4號70mL.webp?v=1787799334040"
   },
   {
     "id": "PRO香水5號70mL",
@@ -490,7 +490,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "PRO香水5號",
     "orig": "5600",
-    "img": "../產品圖片/PRO系列/PRO香水5號70mL.png?v=1781494155744"
+    "img": "../產品圖片/PRO系列/PRO香水5號70mL.webp?v=1787799334043"
   },
   {
     "id": "木蘭保濕洗髮精2000mL",
@@ -522,7 +522,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "竹萃極致保濕護髮包",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/竹萃極致保濕護髮包.png?v=1781494156200"
+    "img": "../產品圖片/Salon USE系列/竹萃極致保濕護髮包.webp?v=1787799334045"
   },
   {
     "id": "竹萃頭皮油脂調理精華",
@@ -530,7 +530,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "竹萃頭皮油脂調理精華",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/竹萃頭皮油脂調理精華.png?v=1781494156203"
+    "img": "../產品圖片/Salon USE系列/竹萃頭皮油脂調理精華.webp?v=1787799334047"
   },
   {
     "id": "竹萃頭皮滋養凍膜",
@@ -538,7 +538,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "竹萃頭皮滋養凍膜",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/竹萃頭皮滋養凍膜.png?v=1781494156207"
+    "img": "../產品圖片/Salon USE系列/竹萃頭皮滋養凍膜.webp?v=1787799334048"
   },
   {
     "id": "兒茶滋養頭皮保護凝露",
@@ -546,7 +546,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "兒茶滋養頭皮保護凝露",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/兒茶滋養頭皮保護凝露.png?v=1781494155973"
+    "img": "../產品圖片/Salon USE系列/兒茶滋養頭皮保護凝露.webp?v=1787799334050"
   },
   {
     "id": "咖啡因頭皮賦活凍膜",
@@ -554,7 +554,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "咖啡因頭皮賦活凍膜",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/咖啡因頭皮賦活凍膜.png?v=1781494156022"
+    "img": "../產品圖片/Salon USE系列/咖啡因頭皮賦活凍膜.webp?v=1787799334052"
   },
   {
     "id": "咖啡因頭皮賦活精萃",
@@ -562,7 +562,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "咖啡因頭皮賦活精萃",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/咖啡因頭皮賦活精萃.png?v=1781494156023"
+    "img": "../產品圖片/Salon USE系列/咖啡因頭皮賦活精萃.webp?v=1787799334053"
   },
   {
     "id": "活岩藻頭皮淨衡精萃",
@@ -570,7 +570,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "活岩藻頭皮淨衡精萃",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/活岩藻頭皮淨衡精萃.png?v=1781494156153"
+    "img": "../產品圖片/Salon USE系列/活岩藻頭皮淨衡精萃.webp?v=1787799334056"
   },
   {
     "id": "香檸草修護洗髮精2000mL",
@@ -602,7 +602,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "薔薇極光護色護髮包",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/薔薇極光護色護髮包.png?v=1781494156213"
+    "img": "../產品圖片/Salon USE系列/薔薇極光護色護髮包.webp?v=1787799334058"
   },
   {
     "id": "薔薇護色洗髮精2000mL",
@@ -634,6 +634,6 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "Hinoki檜木頭皮去角質凝露",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/Hinoki檜木頭皮去角質凝露.png?v=1781494155970"
+    "img": "../產品圖片/Salon USE系列/Hinoki檜木頭皮去角質凝露.webp?v=1787799334060"
   }
 ];
