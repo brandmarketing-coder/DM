@@ -181,6 +181,8 @@ body {
   border-radius: 999px; margin-bottom: 14px;
   letter-spacing: 1px; font-style: normal; line-height: 1;
 }
+/* 標籤文字清空：隱藏但保留佔位空間 → 版面完全不動 */
+.dm-gift-badge.is-hidden { visibility: hidden; }
 .dm-bprod-name {
   font-size: 16px; color: #8d8d8d; text-align: center;
   margin-top: 5px; line-height: 1.3;
@@ -937,7 +939,7 @@ const UI = {
     generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
     previewOn: '預覽模式', previewOff: '返回編輯', reset: '重設',
     resetConfirm: '確定要清除所有編輯內容，回復預設值？',
-    searchPh: '點選或輸入關鍵字搜尋',
+    searchPh: '點選或輸入關鍵字搜尋', giftLabelClear: '留空＝不顯示標籤',
   },
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
@@ -961,7 +963,7 @@ const UI = {
     generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
     previewOn: 'Preview', previewOff: 'Back to edit', reset: 'Reset',
     resetConfirm: 'Clear all edits and restore defaults?',
-    searchPh: 'Click or type to search',
+    searchPh: 'Click or type to search', giftLabelClear: 'Leave empty to hide the badge',
   },
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
@@ -985,7 +987,7 @@ const UI = {
     generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
     previewOn: 'Podgląd', previewOff: 'Wróć do edycji', reset: 'Resetuj',
     resetConfirm: 'Wyczyścić wszystkie zmiany i przywrócić ustawienia domyślne?',
-    searchPh: 'Kliknij lub wpisz, aby wyszukać',
+    searchPh: 'Kliknij lub wpisz, aby wyszukać', giftLabelClear: 'Puste = bez etykiety',
   },
 };
 function t(k) { return (UI[lang] && UI[lang][k] != null) ? UI[lang][k] : UI.zh[k]; }
@@ -1176,6 +1178,20 @@ const getOrigNum = id => { const p = getProdOrNull(id); return p && p.orig ? Num
 /* 標題／促銷標語：收斂換行為空白（避免禮盒等多行介紹塞進標題時爆版） */
 const cleanHeadline = s => (s || '').replace(/\r?\n+/g, ' ').replace(/[ 　]{2,}/g, ' ').trim();
 
+/* ── 贈品標籤 ──
+   預設「致贈」；使用者清空（空字串）＝ 不顯示標籤，但以 visibility 隱藏保留空間 → 版面不動。 */
+const giftLabelOf = o => (o && o.giftLabel !== undefined) ? o.giftLabel : GIFT_DEFAULTS[lang];
+function giftBadgeHTML(o) {
+  const s = (giftLabelOf(o) || '').trim();
+  /* 隱藏時仍放預設字，只是不可見 → 佔位高度與有標籤時完全一致 */
+  return `<div class="dm-gift-badge${s ? '' : ' is-hidden'}">${s || GIFT_DEFAULTS[lang]}</div>`;
+}
+/* 品名前綴（（致贈）品名）：清空則不加前綴與括號 */
+function giftPrefix(o) {
+  const s = (giftLabelOf(o) || '').trim();
+  return s ? paren(s) + (lang === 'zh' ? '' : ' ') : '';
+}
+
 /* 原價＝所選產品（主商品＋贈品/輔助商品）建議售價「加總」。
    定價預設＝原價；若無原價（加總為 0）則定價寫 5000、原價留空（不顯示）。 */
 function applyPricing(cell, prodIds) {
@@ -1228,7 +1244,7 @@ function cellHTML(c) {
       <img src="${enc(gp.img)}" alt="${gp.name}" onerror="this.style.opacity=0.1">
     </div>` : '';
 
-  const giftName = gp ? `<br><span class="dm-cell-gift-name">${paren(c.giftLabel)}${lang === 'zh' ? '' : ' '}${prodName(gp.id)}</span>` : '';
+  const giftName = gp ? `<br><span class="dm-cell-gift-name">${giftPrefix(c)}${prodName(gp.id)}</span>` : '';
 
   const orig = origText(dispOrig(c))
     ? `<span class="dm-cell-orig">${origText(dispOrig(c))}</span>` : '';
@@ -1269,14 +1285,12 @@ function renderFour(tag) {
    （與一格相同的產品清單模型：每個產品可調主/輔、最多 3 個） */
 function bundleRowHTML(c) {
   const latin = lang !== 'zh';
-  const giftSep = lang === 'zh' ? '' : ' ';   // 中文全形括號後不加空格
   const prods = (c.products || []).filter(p => p && p.prodId);
-  const gl = p => p.giftLabel || GIFT_DEFAULTS[lang];
 
   /* 整行品名（橫式1／特寫用；窄欄下長品名會疊成高塔）：主商品一行、輔助品（致贈）一行 */
   const namesBlock = () => `
       <div class="dm-bundle-names">${prods.map(p => p.role === 'sub'
-        ? `<span class="dm-gift-line">${paren(gl(p))}${giftSep}${prodName(p.prodId)}</span>`
+        ? `<span class="dm-gift-line">${giftPrefix(p)}${prodName(p.prodId)}</span>`
         : prodName(p.prodId)).join('<br>')}</div>`;
 
   const orig = origText(dispOrig(c))
@@ -1290,7 +1304,7 @@ function bundleRowHTML(c) {
       const prod = getProd(p.prodId);
       return p.role === 'sub' ? `
         <div class="dm-bprod is-gift dm-feature-gift">
-          <div class="dm-gift-badge">${gl(p)}</div>
+          ${giftBadgeHTML(p)}
           <div class="dm-bprod-img"><img src="${enc(prod.img)}" alt="${prodName(p.prodId)}" onerror="this.style.opacity=0.1"></div>
         </div>` : `
         <div class="dm-bprod is-main dm-feature-main">
@@ -1322,7 +1336,7 @@ function bundleRowHTML(c) {
     const isMain = p.role === 'main';
     return `
         <div class="dm-bprod ${isMain ? 'is-main' : 'is-gift'}">
-          ${isMain ? '' : `<div class="dm-gift-badge">${gl(p)}</div>`}
+          ${isMain ? '' : giftBadgeHTML(p)}
           <div class="dm-bprod-img">
             <img src="${enc(prod.img)}" alt="${prodName(p.prodId)}" onerror="this.style.opacity=0.1">
           </div>
@@ -1377,7 +1391,7 @@ function renderOne(tag, subtitle) {
     } else {
       return `
         <div class="dm-bprod is-gift">
-          <div class="dm-gift-badge">${p.giftLabel || GIFT_DEFAULTS[lang]}</div>
+          ${giftBadgeHTML(p)}
           <div class="dm-bprod-img">
             <img src="${enc(prod.img)}" alt="${prodName(prod.id)}" onerror="this.style.opacity=0.1">
           </div>
@@ -1390,7 +1404,7 @@ function renderOne(tag, subtitle) {
   // 橫式：圖片與品名分兩列（grid），使圖片底部恆對齊、且品名只有一行時不留空行
   const imgCells = c.products.map(p => {
     const prod = getProd(p.prodId);
-    const badge = p.role !== 'main' ? `<div class="dm-gift-badge">${p.giftLabel || GIFT_DEFAULTS[lang]}</div>` : '';
+    const badge = p.role !== 'main' ? giftBadgeHTML(p) : '';
     return `<div class="dm-one-imgcell ${p.role === 'main' ? 'is-main' : 'is-gift'}">${badge}<div class="dm-bprod-img"><img src="${enc(prod.img)}" alt="${prodName(prod.id)}" onerror="this.style.opacity=0.1"></div></div>`;
   }).join('');
   const nameCells = c.products.map(p => `<div class="dm-one-namecell">${prodName(p.prodId)}</div>`).join('');
@@ -1693,6 +1707,50 @@ function fitTwoGrid() {
       fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-feature-desc')], 0.55), // 最後保險（badge 由 badgeStep 等比例縮）
     ]);
   });
+  unifyTwoRows();
+}
+
+/* 兩列各自縮放後：各類文字／標籤取「兩列最小值」統一，避免上下一大一小
+   （取最小值不會產生新溢出） */
+function unifyTwoRows() {
+  const rows = [...document.querySelectorAll('#dm-sheet .dm-bundle-row')];
+  if (rows.length < 2) return;
+  for (const sel of ['.dm-bprod-name', '.dm-bundle-names', '.dm-bundle-desc', '.dm-feature-name', '.dm-feature-desc',
+                     '.dm-headline-lbl', '.dm-price-num', '.dm-price-unit', '.dm-orig-price']) {
+    const els = rows.flatMap(r => [...r.querySelectorAll(sel)]);
+    if (els.length < 2) continue;
+    const min = Math.min(...els.map(el => parseFloat(getComputedStyle(el).fontSize)));
+    els.forEach(el => { el.style.fontSize = min + 'px'; });
+  }
+  /* 贈品標籤：字級最小者為準，內距／下邊距等比例套用（維持膠囊比例、上下一致） */
+  const badges = rows.flatMap(r => [...r.querySelectorAll('.dm-gift-badge')]);
+  if (badges.length > 1) {
+    const info = badges.map(el => {
+      const cs = getComputedStyle(el);
+      return { el, fs: parseFloat(cs.fontSize), pt: parseFloat(cs.paddingTop) || 0,
+               px: parseFloat(cs.paddingLeft) || 0, mb: parseFloat(cs.marginBottom) || 0 };
+    });
+    const min = info.reduce((a, b) => a.fs <= b.fs ? a : b);
+    info.forEach(i => {
+      const k = min.fs / i.fs;
+      i.el.style.fontSize = min.fs + 'px';
+      i.el.style.padding = (i.pt * k).toFixed(1) + 'px ' + (i.px * k).toFixed(1) + 'px';
+      i.el.style.marginBottom = Math.max(2, i.mb * k).toFixed(1) + 'px';
+    });
+  }
+  /* 商品圖高度也取最小統一 → 兩列商品底線一致（用 offsetHeight，不受預覽縮放影響） */
+  const imgs = rows.flatMap(r => [...r.querySelectorAll('.dm-bprod-img')]);
+  const mains = imgs.filter(el => el.closest('.dm-bprod')?.classList.contains('is-main'));
+  const gifts = imgs.filter(el => el.closest('.dm-bprod')?.classList.contains('is-gift'));
+  for (const group of [mains, gifts]) {
+    if (group.length < 2) continue;
+    const minH = Math.min(...group.map(el => el.offsetHeight));
+    group.forEach(el => {
+      const r = el.offsetWidth / el.offsetHeight;
+      el.style.height = minH + 'px';
+      el.style.width = (minH * r).toFixed(1) + 'px';
+    });
+  }
 }
 
 /* 渲染後統一入口：先收斂主/副標行數，再依版面縮放 */
@@ -1940,7 +1998,7 @@ function cellEditor(idx, title) {
       <div class="gift-label-field" id="gl-field-${idx}" style="${c.giftId ? '' : 'display:none'}">
         <label class="field-lbl">${t('giftLabelField')}</label>
         <input type="text" class="field-input" style="padding:5px 8px"
-          value="${c.giftLabel}" placeholder="${t('giftPh')}"
+          value="${giftLabelOf(c)}" placeholder="${t('giftLabelClear')}"
           oninput="onField(${idx},'giftLabel',this.value)">
       </div>
       <div class="headline-field">
@@ -2033,7 +2091,7 @@ function oneGridProductEditor(p, prodIdx) {
     <div style="margin-top: 6px;">
       <label class="field-lbl">${t('giftLabelField2')}</label>
       <input type="text" class="field-input" style="padding: 5px 8px;"
-        value="${p.giftLabel || GIFT_DEFAULTS[lang]}" placeholder="${t('giftPh')}"
+        value="${giftLabelOf(p)}" placeholder="${t('giftLabelClear')}"
         oninput="onOneProdField(${prodIdx}, 'giftLabel', this.value)">
     </div>
   ` : '';
@@ -2154,7 +2212,7 @@ function twoGridProductEditor(cellIdx, p, prodIdx) {
     <div style="margin-top: 6px;">
       <label class="field-lbl">${t('giftLabelField2')}</label>
       <input type="text" class="field-input" style="padding: 5px 8px;"
-        value="${p.giftLabel || GIFT_DEFAULTS[lang]}" placeholder="${t('giftPh')}"
+        value="${giftLabelOf(p)}" placeholder="${t('giftLabelClear')}"
         oninput="onTwoProdField(${cellIdx},${prodIdx},'giftLabel',this.value)">
     </div>` : '';
   const deleteBtn = prodIdx > 0 ? `
