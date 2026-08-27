@@ -869,7 +869,7 @@ const LAND_POS = {
   h2: { left: '37%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
   h3: { left: '39%', top: '3%',  right: '3%', bottom: '14%' },  // 白區自 36% 起：左右各留約 3%，內容於白框內置中
   h4: { left: '45%', top: '3%',  right: '3%', bottom: '16%' },  // 2026大促橫式：左人像至 43%、下方footer 13%
-  p2: { left: '3%',  top: '27%', right: '3%', bottom: '9.5%' }, // 2026大促直式：上人像 header 至 25%、下方footer 7.5%
+  p2: { left: '3%',  top: '26.5%', right: '3%', bottom: '8%' }, // 2026大促直式：上人像至 25.2%、footer 自 92.5%；內容高≈551px 貼近直式（561px）→ 版面行為與直式一致
 };
 
 /* 方向（決定 A4 尺寸/匯出方向）與滿版底圖（決定渲染模式）分開判斷 */
@@ -1669,7 +1669,9 @@ function fitHeadingLine(sel, maxLines) {
 
 /* 四格：逐格縮放（headline/品名 → 圖高 → 價格） */
 function fitFourGrid() {
-  document.querySelectorAll('#dm-sheet .dm-cell').forEach(cell => {
+  const cells = [...document.querySelectorAll('#dm-sheet .dm-cell')];
+  // 第一遍：逐格縮放到各自塞得下
+  cells.forEach(cell => {
     const text = cell.querySelector('.dm-cell-text');
     const measure = () => Math.max(overOf(cell), overOf(text));
     const q = s => [...cell.querySelectorAll(s)];
@@ -1682,6 +1684,19 @@ function fitFourGrid() {
                ...q('.dm-cell-price'), ...q('.dm-cell-unit'), ...q('.dm-cell-orig')], 0.5),
     ]);
   });
+  // 第二遍：各類文字取「四格最小字級」統一套用、圖高取最小統一
+  // → 四格字級一致、價格列貼底對齊，不會一格大一格小（取最小值不會產生新溢出）
+  for (const sel of ['.dm-cell-headline', '.dm-cell-names', '.dm-cell-price', '.dm-cell-unit', '.dm-cell-orig']) {
+    const els = cells.flatMap(c => [...c.querySelectorAll(sel)]);
+    if (els.length < 2) continue;
+    const min = Math.min(...els.map(el => parseFloat(getComputedStyle(el).fontSize)));
+    els.forEach(el => { el.style.fontSize = min + 'px'; });
+  }
+  const imgBoxes = cells.map(c => c.querySelector('.dm-cell-imgs')).filter(Boolean);
+  if (imgBoxes.length > 1) {
+    const minH = Math.min(...imgBoxes.map(el => el.getBoundingClientRect().height));
+    imgBoxes.forEach(el => { el.style.height = minH + 'px'; });
+  }
 }
 
 /* 兩格：一般（直式／橫式1）與單品特寫（橫式2/3）各自縮放 */
