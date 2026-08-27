@@ -171,14 +171,14 @@ body {
   display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
 }
 .dm-bprod-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+/* 贈品標籤：高度由 padding 撐出（不用固定 height）→ 縮放時高度隨字級等比例，永遠是膠囊不會壓扁 */
 .dm-gift-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 14px; background: #19322F; color: white;
-  height: 24px;
-  padding: 0 10px 0 11px;
-  border-radius: 12px; margin-bottom: 14px;
+  padding: 5px 11px;
+  border-radius: 999px; margin-bottom: 14px;
   letter-spacing: 1px; font-style: normal; line-height: 1;
 }
 .dm-bprod-name {
@@ -290,9 +290,7 @@ body {
 }
 .dm-one-pair.has-3-prods .dm-gift-badge {
   font-size: 15px;
-  height: 26px;
-  padding: 0 12px 0 13px;
-  border-radius: 13px;
+  padding: 5.5px 12px;
   margin-bottom: 10px;
 }
 
@@ -330,9 +328,7 @@ body {
 .is-one-grid .dm-tagline { font-size: 31pt; font-weight: 300; padding: 18px 24px 10px; }
 .dm-one-pair .dm-gift-badge {
   font-size: 22px;
-  height: 38px;
-  padding: 0 18px 0 19px;
-  border-radius: 19px;
+  padding: 8px 18px;
   margin-bottom: 18px;
 }
 .dm-one-block .dm-price-num { font-size: 42px; font-weight: 500; }
@@ -513,7 +509,7 @@ body {
 
 /* 橫式：致贈標籤改小（同時覆蓋 base 24px 與 one-pair 38px 的設定） */
 #dm-sheet.is-landscape .dm-gift-badge {
-  font-size: 12px; height: 19px; padding: 0 9px; border-radius: 10px;
+  font-size: 12px; padding: 3.5px 9px;
   margin-bottom: 8px;
 }
 
@@ -642,9 +638,10 @@ body {
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod-img { max-width: 100%; }
 #dm-sheet.is-landscape .dm-bundle-pair.has-3 { gap: 6px; }
 /* 贈品標籤：長標籤換行為多行膠囊，不撐寬欄位（高度隨行數） */
+/* 橫式：長標籤可換行為多行膠囊（高度隨行數，不撐寬欄位） */
 #dm-sheet.is-landscape .dm-gift-badge {
-  max-width: 100%; height: auto; min-height: 19px; white-space: normal;
-  line-height: 1.2; padding: 2px 9px; border-radius: 10px; text-align: center;
+  max-width: 100%; white-space: normal;
+  line-height: 1.2; text-align: center;
 }
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-main .dm-bprod-img { width: 88px; height: 114px; }
 #dm-sheet.is-landscape .dm-bundle-pair .dm-bprod.is-gift .dm-bprod-img { width: 58px; height: 75px; }
@@ -1561,16 +1558,27 @@ function sizeStep(els, minRatio, keepWidth = false) {
   };
 }
 
-/* 贈品標籤縮小一步：高度與下邊距各 -2px（高度下限 14px、邊距下限 2px） */
+/* 贈品標籤縮小一步：字級／上下內距／下邊距「等比例」同步縮（維持膠囊比例，不會壓成扁餅）。
+   字級下限＝初始的 72%；高度由 padding 撐出，故不直接設 height。 */
 function badgeStep(els) {
-  const bases = els.map(el => ({ h: el.offsetHeight, mb: parseFloat(getComputedStyle(el).marginBottom) || 0 }));
+  const bases = els.map(el => {
+    const cs = getComputedStyle(el);
+    return { fs: parseFloat(cs.fontSize), pt: parseFloat(cs.paddingTop) || 0,
+             px: parseFloat(cs.paddingLeft) || 0, mb: parseFloat(cs.marginBottom) || 0 };
+  });
   return () => {
     let changed = false;
     els.forEach((el, i) => {
-      const h = parseFloat(el.style.height) || bases[i].h;
-      const mb = el.style.marginBottom !== '' ? parseFloat(el.style.marginBottom) : bases[i].mb;
-      if (h - 2 >= 14) { el.style.height = (h - 2) + 'px'; changed = true; }
-      if (mb - 2 >= 2) { el.style.marginBottom = (mb - 2) + 'px'; changed = true; }
+      const b = bases[i];
+      const cur = parseFloat(el.style.fontSize) || b.fs;
+      const next = cur - 0.5;
+      if (next >= b.fs * 0.72) {
+        const k = next / b.fs;                       // 等比例係數
+        el.style.fontSize = next + 'px';
+        el.style.padding = (b.pt * k).toFixed(1) + 'px ' + (b.px * k).toFixed(1) + 'px';
+        el.style.marginBottom = Math.max(2, b.mb * k).toFixed(1) + 'px';
+        changed = true;
+      }
     });
     return changed;
   };
@@ -1668,7 +1676,7 @@ function fitTwoGrid() {
       fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl')], 0.75),
       sizeStep(q('.dm-bprod-img'), 0.25),  // 5) 極端長描述：商品圖再讓位
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc'), ...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.5), // 最後保險
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl'), ...q('.dm-bundle-desc'), ...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.5), // 最後保險（badge 由 badgeStep 等比例縮）
     ]);
   });
   document.querySelectorAll('#dm-sheet .dm-feature-row').forEach(row => {
@@ -1682,7 +1690,7 @@ function fitTwoGrid() {
       padStep([row]),
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
       sizeStep([...q('.dm-feature-img'), ...q('.dm-feature-gift .dm-bprod-img')], 0.3),   // 極端：圖再讓位
-      fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-gift-badge'), ...q('.dm-feature-desc')], 0.55), // 最後保險
+      fontStep([...q('.dm-feature-name'), ...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-feature-desc')], 0.55), // 最後保險（badge 由 badgeStep 等比例縮）
     ]);
   });
 }
@@ -1729,10 +1737,12 @@ function fitOneGrid() {
   }
   guard = 0;
   const lastStep = fontStep([...block.querySelectorAll(       // 4) 最後保險：全區文字再縮
-    '.dm-one-usage, .dm-bprod-name, .dm-one-namecell, .dm-gift-badge, ' +
+    '.dm-one-usage, .dm-bprod-name, .dm-one-namecell, ' +      //（badge 改由 badgeStep 等比例縮）
     '.dm-price-num, .dm-price-unit, .dm-orig-price, .dm-one-headline, .dm-one-headline-i')], 0.7);
+  const lastBadge = badgeStep([...block.querySelectorAll('.dm-gift-badge')]);
   while (overflow() > 1 && guard++ < 40) {
-    if (!lastStep()) break;
+    const a = lastStep(), b = lastBadge();
+    if (!a && !b) break;
   }
 }
 
