@@ -98,7 +98,7 @@ const FOLDERS = [
   { dir: 'PRO系列', series: 'PRO' },
   { dir: 'Salon USE系列', series: 'Salon USE' },
 ];
-const IMG_RE = /\.(png|jpe?g)$/i;
+const IMG_RE = /\.(png|jpe?g|webp)$/i;
 const products = [];
 const unmatched = [];
 for (const { dir, series } of FOLDERS) {

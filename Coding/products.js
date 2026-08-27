@@ -82,7 +82,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "咖啡因麥拉寧養髮液",
     "orig": "6000",
-    "img": "../產品圖片/PRO系列/咖啡因麥拉寧養髮液100mL.png?v=1781494155780"
+    "img": "../產品圖片/PRO系列/咖啡因麥拉寧養髮液100mL.webp?v=1787795826758"
   },
   {
     "id": "咖啡因麥拉寧養髮液10mL",
@@ -106,7 +106,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "咖啡因養髮液",
     "orig": "5000",
-    "img": "../產品圖片/PRO系列/咖啡因養髮液100mL.png?v=1781494155759"
+    "img": "../產品圖片/PRO系列/咖啡因養髮液100mL.webp?v=1787795826055"
   },
   {
     "id": "咖啡因養髮液10mL",
@@ -402,7 +402,7 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "O'right｜PRO 經典氣墊梳",
     "orig": "",
-    "img": "../產品圖片/PRO系列/O'right｜PRO經典氣墊梳.png?v=1781494155702"
+    "img": "../產品圖片/PRO系列/O'right｜PRO經典氣墊梳.webp?v=1787795825384"
   },
   {
     "id": "PRO1號香氛沐浴露500mL",
@@ -498,7 +498,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "木蘭保濕洗髮精",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/木蘭保濕洗髮精2000mL.png?v=1781494156085"
+    "img": "../產品圖片/Salon USE系列/木蘭保濕洗髮精2000mL.webp?v=1787795828445"
   },
   {
     "id": "木蘭保濕護髮素2000mL",
@@ -506,7 +506,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "木蘭保濕護髮素",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/木蘭保濕護髮素2000mL.png?v=1781494156152"
+    "img": "../產品圖片/Salon USE系列/木蘭保濕護髮素2000mL.webp?v=1787795829054"
   },
   {
     "id": "印加果｜極萃鎏金養護高訂喚活套盒",
@@ -514,7 +514,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "印加果｜極萃鎏金養護高訂喚活套盒",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/印加果｜極萃鎏金養護高訂喚活套盒.png?v=1781494156017"
+    "img": "../產品圖片/Salon USE系列/印加果｜極萃鎏金養護高訂喚活套盒.webp?v=1787795827670"
   },
   {
     "id": "竹萃極致保濕護髮包",
@@ -578,7 +578,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "香檸草修護洗髮精",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/香檸草修護洗髮精2000mL.png?v=1781494156537"
+    "img": "../產品圖片/Salon USE系列/香檸草修護洗髮精2000mL.webp?v=1787795833224"
   },
   {
     "id": "海洋藤竹｜極萃鎏金養護高訂喚活套盒",
@@ -586,7 +586,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "海洋藤竹｜極萃鎏金養護高訂喚活套盒",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/海洋藤竹｜極萃鎏金養護高訂喚活套盒.png?v=1781494156194"
+    "img": "../產品圖片/Salon USE系列/海洋藤竹｜極萃鎏金養護高訂喚活套盒.webp?v=1787795829786"
   },
   {
     "id": "雪松橙控油洗髮精2000mL",
@@ -594,7 +594,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "雪松橙控油洗髮精",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/雪松橙控油洗髮精2000mL.png?v=1781494156475"
+    "img": "../產品圖片/Salon USE系列/雪松橙控油洗髮精2000mL.webp?v=1787795832523"
   },
   {
     "id": "薔薇極光護色護髮包",
@@ -610,7 +610,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "薔薇護色洗髮精",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/薔薇護色洗髮精2000mL.png?v=1781494156282"
+    "img": "../產品圖片/Salon USE系列/薔薇護色洗髮精2000mL.webp?v=1787795830469"
   },
   {
     "id": "薔薇護色護髮素2000mL",
@@ -618,7 +618,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "薔薇護色護髮素",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/薔薇護色護髮素2000mL.png?v=1781494156344"
+    "img": "../產品圖片/Salon USE系列/薔薇護色護髮素2000mL.webp?v=1787795831185"
   },
   {
     "id": "薰衣草深層洗髮精2000mL",
@@ -626,7 +626,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "薰衣草深層洗髮精",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/薰衣草深層洗髮精2000mL.png?v=1781494156413"
+    "img": "../產品圖片/Salon USE系列/薰衣草深層洗髮精2000mL.webp?v=1787795831858"
   },
   {
     "id": "Hinoki檜木頭皮去角質凝露",

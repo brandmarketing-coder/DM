@@ -111,7 +111,7 @@ for (const e of entries) {
 }
 
 /* ── 掃商品（圖片檔名）並比對 ── */
-const IMG_RE = /\.(png|jpe?g)$/i;
+const IMG_RE = /\.(png|jpe?g|webp)$/i;
 const products = [];
 for (const dir of ['PRO系列', 'Salon USE系列']) {
   const full = path.join(imgRoot, dir);
