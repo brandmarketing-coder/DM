@@ -7,10 +7,10 @@
 <!-- 匯出用函式庫（html2canvas / jsPDF）改為匯出時才載入，加快初始載入：見 ensureExportLibs() -->
 <!-- 商品清單與產品文案（由 tools/build-copy.mjs 從 產品圖片/ 與 產品文案 CSV 自動產生） -->
 <!-- ?v= 版本號由 build-copy.mjs／build-names.mjs 於重建時自動更新，避免瀏覽器載到舊快取 -->
-<script src="products.js?v=1787737750257"></script>
-<script src="product-copy.js?v=1787737750257"></script>
-<script src="i18n.js?v=1787737750257"></script>
-<script src="names-en.js?v=1787737750257"></script>
+<script src="products.js?v=1787795950955"></script>
+<script src="product-copy.js?v=1787795950955"></script>
+<script src="i18n.js?v=1787795950955"></script>
+<script src="names-en.js?v=1787795950955"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -496,6 +496,9 @@ body {
 }
 /* 橫式：內容區背景透明（白底已由底圖提供），避免白框邊緣溢出綠底 */
 #dm-sheet.is-landscape .dm-content { background: transparent; }
+/* 直式滿版底圖（2026大促 p2）：絕對定位基準＋內容區透明 */
+#dm-sheet.bg-p2 { position: relative; }
+#dm-sheet.bg-p2 .dm-content { background: transparent; }
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
 
@@ -654,8 +657,8 @@ body {
   min-height: 32px;
 }
 
-/* ── BG picker ── */
-.bg-pick { display: flex; gap: 8px; }
+/* ── BG picker（6 選項 → 3 欄網格） ── */
+.bg-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .bg-opt {
   flex: 1; border: 2px solid #e2e2e2; border-radius: 8px;
   padding: 6px 4px; cursor: pointer; text-align: center;
@@ -780,6 +783,14 @@ body {
             <img src="../沙龍DM公版/橫3.jpg" alt="橫式 3" decoding="async" fetchpriority="low">
             <div class="bg-label">橫式 3</div>
           </div>
+          <div class="bg-opt" id="bg-p2" onclick="setBg('p2')">
+            <img src="../沙龍DM公版/2026大促直式.png" alt="大促直式" decoding="async" fetchpriority="low">
+            <div class="bg-label">大促直式</div>
+          </div>
+          <div class="bg-opt" id="bg-h4" onclick="setBg('h4')">
+            <img src="../沙龍DM公版/2026大促橫式.jpg" alt="大促橫式" decoding="async" fetchpriority="low">
+            <div class="bg-label">大促橫式</div>
+          </div>
         </div>
       </div>
 
@@ -847,6 +858,8 @@ const LAND_BG = {
   h1: '../沙龍DM公版/橫1.jpg',
   h2: '../沙龍DM公版/橫2.jpg',
   h3: '../沙龍DM公版/橫3.jpg',
+  h4: '../沙龍DM公版/2026大促橫式.jpg',
+  p2: '../沙龍DM公版/2026大促直式.png',   /* 直式滿版（非 header/footer 拆分） */
 };
 
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
@@ -855,11 +868,15 @@ const LAND_POS = {
   h1: { left: '43%', top: '15%', right: '8%', bottom: '15%' },  // 置中右側白框
   h2: { left: '37%', top: '3%',  right: '2%', bottom: '13%' },  // 右側滿版白＋下方footer
   h3: { left: '39%', top: '3%',  right: '3%', bottom: '14%' },  // 白區自 36% 起：左右各留約 3%，內容於白框內置中
+  h4: { left: '45%', top: '3%',  right: '3%', bottom: '16%' },  // 2026大促橫式：左人像至 43%、下方footer 13%
+  p2: { left: '3%',  top: '27%', right: '3%', bottom: '9.5%' }, // 2026大促直式：上人像 header 至 25%、下方footer 7.5%
 };
 
-function isLandscape() { return bgTemplate !== 'portrait'; }
-/* 橫式2、3 的兩格＝單品特寫樣式（放大圖＋描述、不放贈品）；橫式1 仍為贈品樣式 */
-function isFeatureTwo() { return bgTemplate === 'h2' || bgTemplate === 'h3'; }
+/* 方向（決定 A4 尺寸/匯出方向）與滿版底圖（決定渲染模式）分開判斷 */
+function isLandscape() { return ['h1', 'h2', 'h3', 'h4'].includes(bgTemplate); }
+function isFullBg() { return bgTemplate !== 'portrait'; }   // 滿版底圖＋內容區絕對定位
+/* 橫式2、3、4 的兩格＝單品特寫樣式（放大圖＋描述）；橫式1 仍為贈品樣式 */
+function isFeatureTwo() { return ['h2', 'h3', 'h4'].includes(bgTemplate); }
 
 /* ══════════════════════════════════════════════
    語言與幣值（i18n）
@@ -903,7 +920,7 @@ const UI = {
   zh: {
     navTitle: 'DM 編輯器', exportJPG: '匯出 JPG', exportPDF: '匯出 PDF (A4)',
     secBg: '1. 選擇底圖', secLayout: '2. 選擇版面', secContent: '3. 編輯內容',
-    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3',
+    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgH4: '大促橫式',
     layFour: '四格', layTwo: '兩格', layOne: '一格',
     taglineLabel: '標題文字', subtitleLabel: '副標題（選填）', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
     cellA: '格 A（左上）', cellB: '格 B（右上）', cellC: '格 C（左下）', cellD: '格 D（右下）',
@@ -927,7 +944,7 @@ const UI = {
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
     secBg: '1. Background', secLayout: '2. Layout', secContent: '3. Content',
-    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3',
+    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgH4: 'Sale landscape',
     layFour: '4-grid', layTwo: '2-grid', layOne: '1-grid',
     taglineLabel: 'Title', subtitleLabel: 'Subtitle (optional)', subtitlePh: 'e.g. a short catchphrase',
     cellA: 'Cell A (top-left)', cellB: 'Cell B (top-right)', cellC: 'Cell C (bottom-left)', cellD: 'Cell D (bottom-right)',
@@ -951,7 +968,7 @@ const UI = {
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
     secBg: '1. Tło', secLayout: '2. Układ', secContent: '3. Treść',
-    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3',
+    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgH4: 'Promo poziomy',
     layFour: '4 pola', layTwo: '2 pola', layOne: '1 pole',
     taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł (opcjonalnie)', subtitlePh: 'np. krótkie hasło',
     cellA: 'Pole A (lewy górny)', cellB: 'Pole B (prawy górny)', cellC: 'Pole C (lewy dolny)', cellD: 'Pole D (prawy dolny)',
@@ -991,6 +1008,7 @@ function applyStaticUI() {
   set('#sec-bg', t('secBg')); set('#sec-layout', t('secLayout')); set('#sec-content', t('secContent'));
   set('#bg-portrait .bg-label', t('bgPortrait'));
   set('#bg-h1 .bg-label', t('bgH1')); set('#bg-h2 .bg-label', t('bgH2')); set('#bg-h3 .bg-label', t('bgH3'));
+  set('#bg-p2 .bg-label', t('bgP2')); set('#bg-h4 .bg-label', t('bgH4'));
   set('#opt-four .lt-label', t('layFour')); set('#opt-two .lt-label', t('layTwo')); set('#opt-one .lt-label', t('layOne'));
   set('#lbl-tagline', t('taglineLabel')); set('#lbl-subtitle', t('subtitleLabel'));
   const sub = document.getElementById('dm-subtitle'); if (sub) sub.placeholder = t('subtitlePh');
@@ -1069,7 +1087,7 @@ function setLang(l) {
 
 function setBg(bg) {
   bgTemplate = bg;
-  ['portrait','h1','h2','h3'].forEach(k =>
+  ['portrait','p2','h1','h2','h3','h4'].forEach(k =>
     document.getElementById('bg-'+k).classList.toggle('active', k === bg)
   );
 
@@ -1479,7 +1497,7 @@ function loadState() {
     if (one.products.length) state.one = [{ headline: '', usage: '', price: '', origPrice: '', ...one }];
   }
   if (['four', 'two', 'one'].includes(d.layout)) layout = d.layout;
-  if (['portrait', 'h1', 'h2', 'h3'].includes(d.bgTemplate)) bgTemplate = d.bgTemplate;
+  if (['portrait', 'p2', 'h1', 'h2', 'h3', 'h4'].includes(d.bgTemplate)) bgTemplate = d.bgTemplate;
   if (bgTemplate === 'h1' && layout === 'four') layout = 'two';   // 橫式1 不支援四格
   if (['zh', 'en', 'pl'].includes(d.lang)) lang = d.lang;
   if (d.taglines) Object.assign(taglines, d.taglines);
@@ -1509,8 +1527,9 @@ function renderDM() {
 
   /* 外文（EN/PL）加 lang-latin：品名改整行排版、禁止單字中斷等視覺調整 */
   const latinCls = lang === 'zh' ? '' : ' lang-latin';
-  if (isLandscape()) {
-    sheet.className = ('is-landscape bg-' + bgTemplate + latinCls);
+  if (isFullBg()) {
+    /* 滿版底圖模式（橫式 1~4、直式大促 p2）：底圖鋪滿＋內容區絕對定位 */
+    sheet.className = ((isLandscape() ? 'is-landscape ' : '') + 'bg-' + bgTemplate + latinCls);
     const p = LAND_POS[bgTemplate];
     /* inline style 讓 html2canvas proxy 複製 innerHTML 後仍保有正確定位 */
     const posStyle =
@@ -1679,7 +1698,7 @@ function fitTwoGrid() {
       fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl')], 0.75),
       sizeStep(q('.dm-bprod-img'), 0.25),  // 5) 極端長描述：商品圖再讓位
       fontStep([...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.7),
-      fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc')], 0.55), // 最後保險
+      fontStep([...q('.dm-bprod-name'), ...q('.dm-bundle-names'), ...q('.dm-headline-lbl'), ...q('.dm-gift-badge'), ...q('.dm-bundle-desc'), ...q('.dm-price-num'), ...q('.dm-price-unit'), ...q('.dm-orig-price')], 0.5), // 最後保險
     ]);
   });
   document.querySelectorAll('#dm-sheet .dm-feature-row').forEach(row => {
@@ -2375,7 +2394,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // 還原上次編輯：同步語言／底圖／版面等 UI 狀態（不重新帶入文案，保留手改內容）
     ['zh', 'en', 'pl'].forEach(k => document.getElementById('lang-' + k).classList.toggle('active', k === lang));
     applyStaticUI();
-    ['portrait', 'h1', 'h2', 'h3'].forEach(k => document.getElementById('bg-' + k).classList.toggle('active', k === bgTemplate));
+    ['portrait', 'p2', 'h1', 'h2', 'h3', 'h4'].forEach(k => document.getElementById('bg-' + k).classList.toggle('active', k === bgTemplate));
     const optFour = document.getElementById('opt-four');
     if (optFour) optFour.style.display = (bgTemplate === 'h1') ? 'none' : '';
     ['four', 'two', 'one'].forEach(k => document.getElementById('opt-' + k).classList.toggle('active', k === layout));
