@@ -2500,8 +2500,9 @@ function openShareModal(f) {
   const bShare = document.getElementById('share-btn-share');
   const bDl = document.getElementById('share-btn-dl');
   bShare.hidden = !canShare;
-  /* iOS：系統分享面板內有「儲存影像／儲存到檔案」→ 分享為主鈕、下載為輔
+  /* iOS：系統分享面板內有「儲存影像／儲存到檔案」→ 只留分享鈕（不支援分享的舊 iOS 才顯示下載）
      Android：分享面板只能分享、存檔要靠下載 → 下載為主鈕、分享僅標「分享」 */
+  bDl.hidden = IS_IOS && canShare;
   bShare.textContent = IS_IOS ? (isImg ? t('shareBtn') : t('shareBtnPdf')) : t('shareOnly');
   bDl.textContent = t('dlBtn');
   bShare.className = 'share-btn ' + (IS_IOS ? 'share-btn-primary' : 'share-btn-secondary');
