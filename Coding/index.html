@@ -393,7 +393,6 @@ body {
 }
 .inapp-bar[hidden] { display: none; }
 .inapp-bar a { color: #fff; background: #3a7d44; text-decoration: none; padding: 4px 12px; border-radius: 6px; font-weight: 600; }
-.inapp-bar small { width: 100%; text-align: center; color: #8a6d00; }
 .loading-spin {
   width: 34px; height: 34px; border: 3px solid #bdb9b3; border-top-color: #3a7d44;
   border-radius: 50%; animation: ed-spin 0.8s linear infinite;
@@ -790,7 +789,6 @@ body {
 <div class="inapp-bar" id="inapp-bar" hidden>
   <span id="inapp-hint"></span>
   <a id="inapp-open" href="#" target="_blank" rel="noopener"></a>
-  <small id="inapp-how"></small>
 </div>
 
 <!-- 匯出結果視窗：手機／內建瀏覽器改走此流程（桌面直接下載） -->
@@ -800,9 +798,9 @@ body {
     <div class="share-body" id="share-body"></div>
     <div class="share-hint" id="share-hint"></div>
     <div class="share-actions">
-      <button class="share-btn share-btn-primary" id="share-btn-share" onclick="shareModalShare()"></button>
-      <button class="share-btn share-btn-secondary" id="share-btn-open" onclick="shareModalOpen()"></button>
-      <button class="share-btn share-btn-secondary" id="share-btn-dl" onclick="shareModalDownload()"></button>
+      <!-- iOS：分享（面板內有「儲存影像」）為主、下載為輔；Android：分享只能分享 → 下載為主 -->
+      <button class="share-btn" id="share-btn-share" onclick="shareModalShare()"></button>
+      <button class="share-btn" id="share-btn-dl" onclick="shareModalDownload()"></button>
     </div>
   </div>
 </div>
@@ -996,8 +994,8 @@ const UI = {
     orientP: '直式', orientL: '橫式',
     generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
     shareTitle: '檔案已產生', shareHintImg: '長按上方圖片可「儲存到相簿」，或點下方按鈕', shareHintPdf: 'PDF 已產生，點下方按鈕儲存或分享',
-    shareBtn: '儲存到相簿／分享', shareBtnPdf: '儲存／分享 PDF', openBtn: '在新分頁開啟', dlBtn: '下載檔案', closeBtn: '關閉',
-    inappHint: '目前在 LINE 內開啟，下載可能受限。建議用 Safari／Chrome 開啟：', inappOpen: '用瀏覽器開啟', inappHow: '或點右上角「⋯」→「以瀏覽器開啟」',
+    shareBtn: '儲存到相簿／分享', shareBtnPdf: '儲存／分享 PDF', shareOnly: '分享', dlBtn: '下載檔案', closeBtn: '關閉',
+    inappHint: '目前在 LINE 內開啟，下載可能受限。建議用 Safari／Chrome 開啟：', inappOpen: '用瀏覽器開啟',
     previewOn: '預覽模式', previewOff: '返回編輯', reset: '重設',
     resetConfirm: '確定要清除所有編輯內容，回復預設值？',
     searchPh: '點選或輸入關鍵字搜尋', giftLabelClear: '留空＝不顯示標籤',
@@ -1023,8 +1021,8 @@ const UI = {
     orientP: 'portrait', orientL: 'landscape',
     generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
     shareTitle: 'File ready', shareHintImg: 'Long-press the image to "Save to Photos", or use the buttons below', shareHintPdf: 'PDF ready — save or share it with the buttons below',
-    shareBtn: 'Save to Photos / Share', shareBtnPdf: 'Save / Share PDF', openBtn: 'Open in new tab', dlBtn: 'Download file', closeBtn: 'Close',
-    inappHint: 'You are inside the LINE browser; downloads may be blocked. Open in Safari / Chrome:', inappOpen: 'Open in browser', inappHow: 'or tap "⋯" → "Open in browser"',
+    shareBtn: 'Save to Photos / Share', shareBtnPdf: 'Save / Share PDF', shareOnly: 'Share', dlBtn: 'Download file', closeBtn: 'Close',
+    inappHint: 'You are inside the LINE browser; downloads may be blocked. Open in Safari / Chrome:', inappOpen: 'Open in browser',
     previewOn: 'Preview', previewOff: 'Back to edit', reset: 'Reset',
     resetConfirm: 'Clear all edits and restore defaults?',
     searchPh: 'Click or type to search', giftLabelClear: 'Leave empty to hide the badge',
@@ -1050,8 +1048,8 @@ const UI = {
     orientP: 'pionowy', orientL: 'poziomy',
     generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
     shareTitle: 'Plik gotowy', shareHintImg: 'Przytrzymaj obraz, aby zapisać w Zdjęciach, lub użyj przycisków poniżej', shareHintPdf: 'PDF gotowy — zapisz lub udostępnij przyciskami poniżej',
-    shareBtn: 'Zapisz w Zdjęciach / Udostępnij', shareBtnPdf: 'Zapisz / Udostępnij PDF', openBtn: 'Otwórz w nowej karcie', dlBtn: 'Pobierz plik', closeBtn: 'Zamknij',
-    inappHint: 'Otwarto w przeglądarce LINE; pobieranie może być zablokowane. Otwórz w Safari / Chrome:', inappOpen: 'Otwórz w przeglądarce', inappHow: 'lub „⋯” → „Otwórz w przeglądarce”',
+    shareBtn: 'Zapisz w Zdjęciach / Udostępnij', shareBtnPdf: 'Zapisz / Udostępnij PDF', shareOnly: 'Udostępnij', dlBtn: 'Pobierz plik', closeBtn: 'Zamknij',
+    inappHint: 'Otwarto w przeglądarce LINE; pobieranie może być zablokowane. Otwórz w Safari / Chrome:', inappOpen: 'Otwórz w przeglądarce',
     previewOn: 'Podgląd', previewOff: 'Wróć do edycji', reset: 'Resetuj',
     resetConfirm: 'Wyczyścić wszystkie zmiany i przywrócić ustawienia domyślne?',
     searchPh: 'Kliknij lub wpisz, aby wyszukać', giftLabelClear: 'Puste = bez etykiety',
@@ -2500,9 +2498,16 @@ function openShareModal(f) {
   const canShare = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
   shareFile.file = file;
   const bShare = document.getElementById('share-btn-share');
-  bShare.hidden = !canShare; bShare.textContent = isImg ? t('shareBtn') : t('shareBtnPdf');
-  document.getElementById('share-btn-open').textContent = t('openBtn');
-  document.getElementById('share-btn-dl').textContent = t('dlBtn');
+  const bDl = document.getElementById('share-btn-dl');
+  bShare.hidden = !canShare;
+  /* iOS：系統分享面板內有「儲存影像／儲存到檔案」→ 分享為主鈕、下載為輔
+     Android：分享面板只能分享、存檔要靠下載 → 下載為主鈕、分享僅標「分享」 */
+  bShare.textContent = IS_IOS ? (isImg ? t('shareBtn') : t('shareBtnPdf')) : t('shareOnly');
+  bDl.textContent = t('dlBtn');
+  bShare.className = 'share-btn ' + (IS_IOS ? 'share-btn-primary' : 'share-btn-secondary');
+  bDl.className = 'share-btn ' + (IS_IOS ? 'share-btn-secondary' : 'share-btn-primary');
+  bShare.style.order = IS_IOS ? 0 : 1;
+  bDl.style.order = IS_IOS ? 1 : 0;
   document.getElementById('share-modal').hidden = false;
 }
 function closeShareModal() {
@@ -2511,16 +2516,11 @@ function closeShareModal() {
   if (shareFile) { const u = shareFile.url; setTimeout(() => URL.revokeObjectURL(u), 60000); }
   shareFile = null;
 }
-/* 三個按鈕都在「新的使用者手勢」內執行 → 不會因產生檔案耗時而被擋 */
+/* 按鈕都在「新的使用者手勢」內執行 → 不會因產生檔案耗時而被擋 */
 async function shareModalShare() {
   if (!shareFile) return;
   try { await navigator.share({ files: [shareFile.file], title: shareFile.filename }); }
-  catch (e) { if (e && e.name !== 'AbortError') { console.warn('share failed, fallback to open:', e); shareModalOpen(); } }
-}
-function shareModalOpen() {
-  if (!shareFile) return;
-  const w = window.open(shareFile.url, '_blank');
-  if (!w) triggerDownload(shareFile.url, shareFile.filename);   // 被擋則退回下載
+  catch (e) { if (e && e.name !== 'AbortError') { console.warn('share failed, fallback to download:', e); shareModalDownload(); } }
 }
 function shareModalDownload() {
   if (shareFile) triggerDownload(shareFile.url, shareFile.filename);
@@ -2537,7 +2537,6 @@ function updateInAppBar() {
   a.textContent = t('inappOpen');
   const u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1');
   a.href = u.toString();
-  document.getElementById('inapp-how').textContent = t('inappHow');
 }
 
 function withExportBusy(fn) {
