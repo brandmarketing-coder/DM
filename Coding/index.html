@@ -357,6 +357,43 @@ body {
   transition: opacity 0.35s ease;
 }
 .preview-loading.hide { opacity: 0; pointer-events: none; }
+
+/* ── 匯出結果視窗（手機／內建瀏覽器用）──
+   iOS WebKit（Safari／Chrome／LINE 皆同核心）對 <a download> 支援不穩，
+   改以：長按圖片存相簿 ＋ Web Share（系統分享→儲存影像）＋ 一般下載 三條路徑。 */
+.share-modal {
+  position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 16px;
+  background: rgba(20, 20, 20, 0.92); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.share-modal[hidden] { display: none; }
+.share-card {
+  width: 100%; max-width: 420px; max-height: 100%; display: flex; flex-direction: column;
+  background: #fff; border-radius: 14px; overflow: hidden;
+}
+.share-head { padding: 12px 16px; font-size: 14px; font-weight: 600; color: #222; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.share-close { border: none; background: none; font-size: 20px; line-height: 1; color: #888; cursor: pointer; padding: 4px 6px; }
+.share-body { flex: 1; min-height: 0; overflow: auto; background: #e9e6e2; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.share-body img { max-width: 100%; max-height: 52vh; object-fit: contain; box-shadow: 0 2px 12px rgba(0,0,0,0.25); -webkit-touch-callout: default; }
+.share-body .share-pdf-icon { font-size: 56px; color: #3a7d44; padding: 24px 0; }
+.share-hint { font-size: 12px; color: #555; text-align: center; padding: 10px 16px 0; line-height: 1.5; }
+.share-actions { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 16px; }
+.share-btn {
+  width: 100%; padding: 13px; border-radius: 8px; border: none; font-size: 14px; letter-spacing: 0.5px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.share-btn-primary { background: #3a7d44; color: #fff; }
+.share-btn-secondary { background: #f0eeeb; color: #333; }
+.share-btn[hidden] { display: none; }
+
+/* LINE／FB／IG 內建瀏覽器提示條 */
+.inapp-bar {
+  background: #fff4d6; color: #5a4300; font-size: 12px; line-height: 1.5;
+  padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: center;
+}
+.inapp-bar[hidden] { display: none; }
+.inapp-bar a { color: #fff; background: #3a7d44; text-decoration: none; padding: 4px 12px; border-radius: 6px; font-weight: 600; }
+.inapp-bar small { width: 100%; text-align: center; color: #8a6d00; }
 .loading-spin {
   width: 34px; height: 34px; border: 3px solid #bdb9b3; border-top-color: #3a7d44;
   border-radius: 50%; animation: ed-spin 0.8s linear infinite;
@@ -749,6 +786,27 @@ body {
   </button>
 </nav>
 
+<!-- LINE 等 App 內建瀏覽器提示（偵測到才顯示） -->
+<div class="inapp-bar" id="inapp-bar" hidden>
+  <span id="inapp-hint"></span>
+  <a id="inapp-open" href="#" target="_blank" rel="noopener"></a>
+  <small id="inapp-how"></small>
+</div>
+
+<!-- 匯出結果視窗：手機／內建瀏覽器改走此流程（桌面直接下載） -->
+<div class="share-modal" id="share-modal" hidden onclick="if(event.target===this) closeShareModal()">
+  <div class="share-card" role="dialog" aria-modal="true">
+    <div class="share-head"><span id="share-title"></span><button class="share-close" onclick="closeShareModal()" aria-label="close">×</button></div>
+    <div class="share-body" id="share-body"></div>
+    <div class="share-hint" id="share-hint"></div>
+    <div class="share-actions">
+      <button class="share-btn share-btn-primary" id="share-btn-share" onclick="shareModalShare()"></button>
+      <button class="share-btn share-btn-secondary" id="share-btn-open" onclick="shareModalOpen()"></button>
+      <button class="share-btn share-btn-secondary" id="share-btn-dl" onclick="shareModalDownload()"></button>
+    </div>
+  </div>
+</div>
+
 <div class="workspace">
   <div class="preview-pane" id="previewPane">
     <div class="dm-wrap" id="dmWrap">
@@ -937,6 +995,9 @@ const UI = {
     exportNote: '* 匯出將依目前預覽內容產生 PDF，格式為 A4 {o} *', exportMain: '匯出 PDF (A4 {o})',
     orientP: '直式', orientL: '橫式',
     generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
+    shareTitle: '檔案已產生', shareHintImg: '長按上方圖片可「儲存到相簿」，或點下方按鈕', shareHintPdf: 'PDF 已產生，點下方按鈕儲存或分享',
+    shareBtn: '儲存到相簿／分享', shareBtnPdf: '儲存／分享 PDF', openBtn: '在新分頁開啟', dlBtn: '下載檔案', closeBtn: '關閉',
+    inappHint: '目前在 LINE 內開啟，下載可能受限。建議用 Safari／Chrome 開啟：', inappOpen: '用瀏覽器開啟', inappHow: '或點右上角「⋯」→「以瀏覽器開啟」',
     previewOn: '預覽模式', previewOff: '返回編輯', reset: '重設',
     resetConfirm: '確定要清除所有編輯內容，回復預設值？',
     searchPh: '點選或輸入關鍵字搜尋', giftLabelClear: '留空＝不顯示標籤',
@@ -961,6 +1022,9 @@ const UI = {
     exportNote: '* Exports a PDF of the current preview, A4 {o} *', exportMain: 'Export PDF (A4 {o})',
     orientP: 'portrait', orientL: 'landscape',
     generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
+    shareTitle: 'File ready', shareHintImg: 'Long-press the image to "Save to Photos", or use the buttons below', shareHintPdf: 'PDF ready — save or share it with the buttons below',
+    shareBtn: 'Save to Photos / Share', shareBtnPdf: 'Save / Share PDF', openBtn: 'Open in new tab', dlBtn: 'Download file', closeBtn: 'Close',
+    inappHint: 'You are inside the LINE browser; downloads may be blocked. Open in Safari / Chrome:', inappOpen: 'Open in browser', inappHow: 'or tap "⋯" → "Open in browser"',
     previewOn: 'Preview', previewOff: 'Back to edit', reset: 'Reset',
     resetConfirm: 'Clear all edits and restore defaults?',
     searchPh: 'Click or type to search', giftLabelClear: 'Leave empty to hide the badge',
@@ -985,6 +1049,9 @@ const UI = {
     exportNote: '* Eksportuje PDF bieżącego podglądu, A4 {o} *', exportMain: 'Eksport PDF (A4 {o})',
     orientP: 'pionowy', orientL: 'poziomy',
     generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
+    shareTitle: 'Plik gotowy', shareHintImg: 'Przytrzymaj obraz, aby zapisać w Zdjęciach, lub użyj przycisków poniżej', shareHintPdf: 'PDF gotowy — zapisz lub udostępnij przyciskami poniżej',
+    shareBtn: 'Zapisz w Zdjęciach / Udostępnij', shareBtnPdf: 'Zapisz / Udostępnij PDF', openBtn: 'Otwórz w nowej karcie', dlBtn: 'Pobierz plik', closeBtn: 'Zamknij',
+    inappHint: 'Otwarto w przeglądarce LINE; pobieranie może być zablokowane. Otwórz w Safari / Chrome:', inappOpen: 'Otwórz w przeglądarce', inappHow: 'lub „⋯” → „Otwórz w przeglądarce”',
     previewOn: 'Podgląd', previewOff: 'Wróć do edycji', reset: 'Resetuj',
     resetConfirm: 'Wyczyścić wszystkie zmiany i przywrócić ustawienia domyślne?',
     searchPh: 'Kliknij lub wpisz, aby wyszukać', giftLabelClear: 'Puste = bez etykiety',
@@ -1018,6 +1085,7 @@ function applyStaticUI() {
   const pvBtn = document.getElementById('nav-preview-txt'); if (pvBtn) pvBtn.textContent = editorHidden ? t('previewOff') : t('previewOn');
   const rsBtn = document.getElementById('nav-reset-txt'); if (rsBtn) rsBtn.textContent = t('reset');
   updateExportLabels();
+  if (typeof updateInAppBar === 'function') updateInAppBar();
 }
 
 /* 括號：中文用全形（），英/波用半形() */
@@ -2377,43 +2445,135 @@ async function generateCanvas() {
   }
 }
 
-async function exportPDF() {
+/* ── 環境偵測（決定檔案交付方式）──
+   iOS 上 Safari／Chrome／LINE 全是 WebKit 核心：<a download> 對 data: URL 的行為隨版本浮動
+   （開新分頁預覽／跳「下載」提示／完全沒反應），且產生檔案需時數秒，等到 click() 時
+   使用者手勢已過期，開新分頁會被當彈出視窗擋掉。App 內建瀏覽器（LINE／FB／IG）更是直接封鎖下載。 */
+const UA = navigator.userAgent || '';
+const IS_IOS = /iP(hone|ad|od)/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_INAPP = /\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(UA);
+const IS_MOBILE = IS_IOS || /Android/i.test(UA) || IS_TOUCH;
+
+/* canvas → Blob（比 data: URL 小 33%、不受 URL 長度限制；舊 WebKit 無 toBlob 時退回 dataURL 轉換） */
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((res, rej) => {
+    if (canvas.toBlob) { canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob returned null')), type, quality); return; }
+    const bin = atob(canvas.toDataURL(type, quality).split(',')[1]);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    res(new Blob([arr], { type }));
+  });
+}
+
+/* 一般下載（桌面主路徑；手機視窗內「下載檔案」也用它） */
+function triggerDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* 交付檔案：桌面直接下載；手機／內建瀏覽器開「匯出結果視窗」
+   （長按存相簿 ＋ 系統分享→儲存影像 ＋ 一般下載，三條路徑任一可用即可） */
+function deliverFile(blob, filename, kind) {
+  const url = URL.createObjectURL(blob);
+  if (!IS_MOBILE && !IS_INAPP) {
+    triggerDownload(url, filename);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return;
+  }
+  openShareModal({ blob, url, filename, kind });
+}
+
+/* ── 匯出結果視窗 ── */
+let shareFile = null;
+function openShareModal(f) {
+  closeShareModal();
+  shareFile = f;
+  const isImg = f.kind === 'jpg';
+  document.getElementById('share-title').textContent = t('shareTitle');
+  document.getElementById('share-body').innerHTML = isImg
+    ? `<img src="${f.url}" alt="${f.filename}">`
+    : `<div class="share-pdf-icon">📄<div style="font-size:13px;color:#333;margin-top:6px">${f.filename}</div></div>`;
+  document.getElementById('share-hint').textContent = isImg ? t('shareHintImg') : t('shareHintPdf');
+  /* Web Share（含檔案）：iOS 15+ Safari／Chrome、Android Chrome 皆支援 → 分享面板有「儲存影像」 */
+  const file = new File([f.blob], f.filename, { type: f.blob.type });
+  const canShare = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
+  shareFile.file = file;
+  const bShare = document.getElementById('share-btn-share');
+  bShare.hidden = !canShare; bShare.textContent = isImg ? t('shareBtn') : t('shareBtnPdf');
+  document.getElementById('share-btn-open').textContent = t('openBtn');
+  document.getElementById('share-btn-dl').textContent = t('dlBtn');
+  document.getElementById('share-modal').hidden = false;
+}
+function closeShareModal() {
+  const m = document.getElementById('share-modal');
+  if (m) m.hidden = true;
+  if (shareFile) { const u = shareFile.url; setTimeout(() => URL.revokeObjectURL(u), 60000); }
+  shareFile = null;
+}
+/* 三個按鈕都在「新的使用者手勢」內執行 → 不會因產生檔案耗時而被擋 */
+async function shareModalShare() {
+  if (!shareFile) return;
+  try { await navigator.share({ files: [shareFile.file], title: shareFile.filename }); }
+  catch (e) { if (e && e.name !== 'AbortError') { console.warn('share failed, fallback to open:', e); shareModalOpen(); } }
+}
+function shareModalOpen() {
+  if (!shareFile) return;
+  const w = window.open(shareFile.url, '_blank');
+  if (!w) triggerDownload(shareFile.url, shareFile.filename);   // 被擋則退回下載
+}
+function shareModalDownload() {
+  if (shareFile) triggerDownload(shareFile.url, shareFile.filename);
+}
+
+/* App 內建瀏覽器提示：LINE 支援 ?openExternalBrowser=1 直接跳外部瀏覽器 */
+function updateInAppBar() {
+  const bar = document.getElementById('inapp-bar');
+  if (!bar) return;
+  bar.hidden = !IS_INAPP;
+  if (!IS_INAPP) return;
+  document.getElementById('inapp-hint').textContent = t('inappHint');
+  const a = document.getElementById('inapp-open');
+  a.textContent = t('inappOpen');
+  const u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1');
+  a.href = u.toString();
+  document.getElementById('inapp-how').textContent = t('inappHow');
+}
+
+function withExportBusy(fn) {
   const btns = [...document.querySelectorAll('.nav-btn, .btn-export-main')];
   btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = t('generating'); b.disabled = true; });
+  return fn().finally(() => btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; }));
+}
 
-  try {
-    const canvas = await generateCanvas();
-    const { jsPDF } = window.jspdf;
-    const land = isLandscape();
-    const pdf = new jsPDF({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-    const [pw, ph] = land ? [297, 210] : [210, 297];
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, ph);
-    pdf.save("O'right PRO DM.pdf");
-  } catch (e) {
-    console.error('PDF export failed:', e);
-    alert(t('pdfFail'));
-  } finally {
-    btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
-  }
+async function exportPDF() {
+  return withExportBusy(async () => {
+    try {
+      const canvas = await generateCanvas();
+      const { jsPDF } = window.jspdf;
+      const land = isLandscape();
+      const pdf = new jsPDF({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+      const [pw, ph] = land ? [297, 210] : [210, 297];
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, ph);
+      deliverFile(pdf.output('blob'), "O'right PRO DM.pdf", 'pdf');
+    } catch (e) {
+      console.error('PDF export failed:', e);
+      alert(t('pdfFail'));
+    }
+  });
 }
 
 async function exportJPG() {
-  const btns = [...document.querySelectorAll('.nav-btn, .btn-export-main')];
-  btns.forEach(b => { b.dataset.orig = b.innerHTML; b.innerHTML = t('generating'); b.disabled = true; });
-
-  try {
-    const canvas = await generateCanvas();
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    const link = document.createElement('a');
-    link.download = "O'right PRO DM.jpg";
-    link.href = dataUrl;
-    link.click();
-  } catch (e) {
-    console.error('JPG export failed:', e);
-    alert(t('jpgFail'));
-  } finally {
-    btns.forEach(b => { b.innerHTML = b.dataset.orig; b.disabled = false; });
-  }
+  return withExportBusy(async () => {
+    try {
+      const canvas = await generateCanvas();
+      const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
+      deliverFile(blob, "O'right PRO DM.jpg", 'jpg');
+    } catch (e) {
+      console.error('JPG export failed:', e);
+      alert(t('jpgFail'));
+    }
+  });
 }
 
 /* ══════════════════════════════════════════════
@@ -2431,8 +2591,10 @@ window.addEventListener('DOMContentLoaded', () => {
   renderDM();
   scaleSheet();
   hidePreviewLoading();
+  updateInAppBar();
 });
 window.addEventListener('resize', scaleSheet);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShareModal(); });
 
 /* 畫布圖片（底圖／產品圖）載入完成後移除 loading；最多等 5 秒保底 */
 function hidePreviewLoading() {

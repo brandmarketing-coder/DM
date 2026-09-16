@@ -138,6 +138,20 @@
 - [x] 橫式四格圖片區 100→84px，給文字更多空間
 - [x] 四格標語一律 16px 完整顯示；長品名自動縮至 13.5~14.5px 讓標語有空間；33 組合壓測（含四格標語高度檢查）通過
 
+### v2.5 — 手機下載修正（iOS Safari／Chrome／LINE 內建瀏覽器）
+- [x] 問題：同事回報 iPhone 按「匯出 JPG」無反應或存不到相簿，不同手機／瀏覽器表現不一
+- [x] 根因：(1) iOS 上 Safari／Chrome／LINE 全是 WebKit，`<a download>` 對 data: URL 行為隨版本浮動（開預覽分頁／跳下載提示／沒反應）；(2) 產檔耗時數秒，`click()` 時使用者手勢已過期，開新分頁被當彈窗擋掉；(3) LINE／FB／IG 內建瀏覽器直接封鎖下載
+- [x] 匯出改 Blob（canvas.toBlob／pdf.output('blob')），不再用 data: URL
+- [x] 桌面維持直接下載；手機／內建瀏覽器改開「匯出結果視窗」：預覽圖長按存相簿 ＋「儲存到相簿／分享」（Web Share files→系統分享面板「儲存影像」）＋「在新分頁開啟」＋「下載檔案」，按鈕皆在新手勢內執行
+- [x] 偵測 LINE／FB／IG 內建瀏覽器時顯示提示條，「用瀏覽器開啟」連到 `?openExternalBrowser=1`（LINE 支援直接跳外部瀏覽器）
+- [x] 手機模擬實測 JPG／PDF 視窗、桌面直接下載、LINE UA 偵測（Safari／Chrome iOS 不誤判）
+
+### v2.4 — 贈品標籤修正
+- [x] 標籤被壓扁：舊 badgeStep 只壓高度不縮字級（下限 14px）→ 改 padding 撐高＋字級/內距/邊距等比例縮（下限 72%）
+- [x] 兩格標籤上下一大一小：兩列各自縮放後新增 unifyTwoRows()，文字／標籤／商品圖高度取兩列最小值統一
+- [x] 標籤文字清空＝不顯示（visibility 隱藏保留佔位，版面位移 0px）；四格文字前綴不再出現空括號
+- [x] 51 組合壓測加入「標籤壓扁」「上下不一致」檢查
+
 ### v2.3 — 全面瘦身＋F5 重設＋版面跑掉修正
 - [x] 修 bug：四格統一圖高誤用 getBoundingClientRect（受預覽縮放 transform 影響）→ 改 offsetHeight（「版面有時候跑掉」的根因）
 - [x] F5 重新整理＝完整重設（預設直式・四格）；移除 localStorage 自動還原；重設按鈕＝重新整理
