@@ -50,18 +50,10 @@ repo 根目錄：`C:\Users\oright\Desktop\沙龍\DM`。底圖無 build 工具，
 
 1. `LAND_BG` 物件加一筆：`h5: '../沙龍DM公版/新底圖橫式.jpg'`
 2. `LAND_POS` 物件加一筆：`h5: { left: '..%', top: '..%', right: '..%', bottom: '..%' }`
-3. `isLandscape()` 的陣列：橫式加入 `'h5'`；直式滿版不加入。
-4. `isFeatureTwo()` 的陣列：兩格版用「單品放大＋描述」樣式則加入；用「主商品＋贈品」樣式則不加。
-5. 選單 HTML（`<div class="bg-pick">` 內）加一個選項：
-   ```html
-   <div class="bg-opt" id="bg-h5" onclick="setBg('h5')">
-     <img src="../沙龍DM公版/th-h5.jpg" alt="名稱" decoding="async" fetchpriority="low">
-     <div class="bg-label">名稱</div>
-   </div>
-   ```
-6. `setBg()` 內 active 切換陣列 `['portrait','p2','h1','h2','h3','h4']` 加入 `'h5'`。
-7. `UI` 物件的 `zh` / `en` / `pl` 三區各加 `bgH5: '...'`。
-8. `applyStaticUI()` 加一行：`set('#bg-h5 .bg-label', t('bgH5'));`
+3. `BG_LIST` 陣列加一筆（陣列順序＝選單顯示順序）：`{ id: 'h5', orient: 'l', thumb: 'th-h5.jpg', label: 'bgH5' }`
+   - `orient`：橫式 `'l'`、直式 `'p'`（決定選單分組、A4 尺寸與匯出方向）。
+4. `isFeatureTwo()` 的陣列：兩格版用「單品放大＋描述」樣式則加入 `'h5'`；用「主商品＋贈品」樣式則不加。
+5. `UI` 物件的 `zh` / `en` / `pl` 三區各加 `bgH5: '...'`。
 
 ## 5. 選配
 
@@ -70,7 +62,7 @@ repo 根目錄：`C:\Users\oright\Desktop\沙龍\DM`。底圖無 build 工具，
 
 ## 6. 驗證
 
-1. 預覽頁切換到新底圖，確認底圖、選單縮圖、標籤顯示正常。
+1. 預覽頁切換到新底圖：電腦版確認對應分組下拉出現該選項、滑鼠移入有浮動預覽；觸控版（手機尺寸）確認對應分組列出現該卡片。
 2. 四格／兩格／一格 × zh／en／pl，逐一檢查內容區元素 `scrollHeight - clientHeight` 與 `scrollWidth - clientWidth` 為 0（不溢出）。
 3. 匯出 JPG／PDF，確認尺寸與方向正確（橫式 1684×1190、直式 1190×1684）。
 4. 手機寬度（≤700px）檢查選單與預覽。

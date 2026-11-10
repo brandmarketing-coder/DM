@@ -692,21 +692,88 @@ body {
   min-height: 32px;
 }
 
-/* ── BG picker（6 選項 → 3 欄網格） ── */
-.bg-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.bg-opt {
-  flex: 1; border: 2px solid #e2e2e2; border-radius: 8px;
-  padding: 6px 4px; cursor: pointer; text-align: center;
-  transition: border-color .15s, background .15s; overflow: hidden;
+/* ── BG picker ──
+   觸控裝置：直式／橫式各一列，左右滑動（.bg-strips）
+   有滑鼠的裝置：直式／橫式兩個下拉（.bg-dd-row），選項滑鼠移入顯示浮動預覽（.bg-preview） */
+.bg-dd-row { display: none; gap: 8px; }
+.bg-strips { display: flex; flex-direction: column; gap: 8px; }
+@media (hover: hover) and (pointer: fine) {
+  .bg-dd-row { display: flex; }
+  .bg-strips { display: none; }
 }
-.bg-opt:hover { border-color: #5aaa6a; }
-.bg-opt.active { border-color: #3a7d44; background: #f0f7f1; }
-.bg-opt img {
-  width: 100%; height: 40px; object-fit: cover;
-  display: block; border-radius: 3px; margin-bottom: 4px;
+
+/* 縮圖：直式 210:297、橫式 297:210；直式公版以頁首＋白底＋頁尾組成 */
+.bg-thumb { display: block; position: relative; overflow: hidden; background: #fff; flex-shrink: 0; }
+.bg-thumb.o-p { aspect-ratio: 210 / 297; }
+.bg-thumb.o-l { aspect-ratio: 297 / 210; }
+.bg-thumb > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bg-thumb.is-split > img { position: absolute; left: 0; width: 100%; height: auto; object-fit: initial; }
+.bg-thumb.is-split > img.hdr { top: 0; }
+.bg-thumb.is-split > img.ftr { bottom: 0; }
+
+/* 觸控：兩列滑動 */
+.bg-strip-row { display: flex; align-items: stretch; gap: 6px; }
+.bg-strip-title {
+  flex: 0 0 44px; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #888; background: #f4f3f1; border-radius: 6px; text-align: center; line-height: 1.2;
 }
-.bg-label { font-size: 11px; color: #666; }
-.bg-opt.active .bg-label { color: #3a7d44; font-weight: 600; }
+.bg-strip {
+  flex: 1; min-width: 0; display: flex; gap: 6px;
+  overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; padding: 1px;
+}
+.bg-strip::-webkit-scrollbar { display: none; }
+.bg-card {
+  position: relative; flex: 0 0 auto; height: 64px; border: 2px solid #e2e2e2; border-radius: 7px;
+  overflow: hidden; cursor: pointer; scroll-snap-align: start; padding: 0; background: #fff;
+}
+.bg-card .bg-thumb { height: 100%; }
+.bg-card.active { border-color: #3a7d44; }
+.bg-card-label {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 2px;
+  font-size: 10px; line-height: 1.2; color: #fff; background: rgba(0,0,0,.55); text-align: center;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
+}
+.bg-card.active .bg-card-label { background: rgba(58,125,68,.92); font-weight: 600; }
+
+/* 電腦：兩個下拉 */
+.bg-dd { position: relative; flex: 1; min-width: 0; }
+.bg-dd-btn {
+  width: 100%; height: 34px; display: flex; align-items: center; gap: 7px;
+  padding: 0 8px 0 6px; border: 2px solid #e2e2e2; border-radius: 7px; background: #fff;
+  font-size: 12px; color: #888; cursor: pointer; text-align: left;
+}
+.bg-dd-btn:hover, .bg-dd-btn:focus-visible, .bg-dd.open .bg-dd-btn { border-color: #5aaa6a; outline: none; }
+.bg-dd.has-active .bg-dd-btn { border-color: #3a7d44; background: #f0f7f1; color: #3a7d44; font-weight: 600; }
+.bg-dd-btn .bg-thumb { height: 22px; border-radius: 2px; }
+.bg-dd-val { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bg-dd-btn svg { flex-shrink: 0; transition: transform .15s; }
+.bg-dd.open .bg-dd-btn svg { transform: rotate(180deg); }
+.bg-dd-list {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; min-width: 100%;
+  max-height: 300px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
+  background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.15);
+}
+.bg-dd-list[hidden] { display: none; }
+.bg-dd-opt {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 5px; border-radius: 5px;
+  font-size: 12px; color: #444; cursor: pointer; white-space: nowrap;
+}
+.bg-dd-opt .bg-thumb { height: 30px; border-radius: 2px; border: 1px solid #eee; }
+.bg-dd-opt.is-active { background: #eef6ef; }
+.bg-dd-opt[aria-selected="true"] { color: #3a7d44; font-weight: 600; }
+.bg-dd-opt[aria-selected="true"]::after { content: '✓'; margin-left: auto; padding-left: 10px; }
+
+/* 浮動預覽（fixed，不佔版面） */
+.bg-preview {
+  position: fixed; z-index: 1000; pointer-events: none; background: #fff; padding: 6px;
+  border-radius: 8px; box-shadow: 0 10px 32px rgba(0,0,0,.28);
+}
+.bg-preview[hidden] { display: none; }
+.bg-preview .bg-thumb { border-radius: 3px; }
+.bg-preview .bg-thumb.o-p { width: 212px; }
+.bg-preview .bg-thumb.o-l { width: 300px; }
+.bg-preview-cap { font-size: 12px; color: #555; text-align: center; padding-top: 5px; }
 
 /* ── Print ── */
 @media print {
@@ -821,33 +888,8 @@ body {
       <!-- 1. Background -->
       <div class="editor-sec">
         <div class="editor-sec-num" id="sec-bg">1. 選擇底圖</div>
-        <div class="bg-pick">
-          <!-- 選單縮圖用專屬小圖（th-*.jpg，~10KB），不再載入原尺寸底圖 -->
-          <div class="bg-opt active" id="bg-portrait" onclick="setBg('portrait')">
-            <img src="../沙龍DM公版/th-portrait.jpg" alt="直式" decoding="async" fetchpriority="low">
-            <div class="bg-label">直式</div>
-          </div>
-          <div class="bg-opt" id="bg-h1" onclick="setBg('h1')">
-            <img src="../沙龍DM公版/th-h1.jpg" alt="橫式 1" decoding="async" fetchpriority="low">
-            <div class="bg-label">橫式 1</div>
-          </div>
-          <div class="bg-opt" id="bg-h2" onclick="setBg('h2')">
-            <img src="../沙龍DM公版/th-h2.jpg" alt="橫式 2" decoding="async" fetchpriority="low">
-            <div class="bg-label">橫式 2</div>
-          </div>
-          <div class="bg-opt" id="bg-h3" onclick="setBg('h3')">
-            <img src="../沙龍DM公版/th-h3.jpg" alt="橫式 3" decoding="async" fetchpriority="low">
-            <div class="bg-label">橫式 3</div>
-          </div>
-          <div class="bg-opt" id="bg-p2" onclick="setBg('p2')">
-            <img src="../沙龍DM公版/th-p2.jpg" alt="大促直式" decoding="async" fetchpriority="low">
-            <div class="bg-label">大促直式</div>
-          </div>
-          <div class="bg-opt" id="bg-h4" onclick="setBg('h4')">
-            <img src="../沙龍DM公版/th-h4.jpg" alt="大促橫式" decoding="async" fetchpriority="low">
-            <div class="bg-label">大促橫式</div>
-          </div>
-        </div>
+        <!-- 底圖選單由 buildBgPicker() 依 BG_LIST 產生：電腦＝直式／橫式兩個下拉（滑鼠移入浮動預覽）；觸控＝直式／橫式兩列左右滑動 -->
+        <div class="bg-pick" id="bg-pick"></div>
       </div>
 
       <!-- 2. Layout -->
@@ -928,8 +970,21 @@ const LAND_POS = {
   p2: { left: '3%',  top: '26.5%', right: '3%', bottom: '8%' }, // 2026大促直式：上人像至 25.2%、footer 自 92.5%；內容高≈551px 貼近直式（561px）→ 版面行為與直式一致
 };
 
+/* 底圖選單清單（順序＝選單顯示順序）。orient：'p' 直式、'l' 橫式；thumb：選單縮圖；label：UI 翻譯鍵。
+   portrait 為頁首＋頁尾拆分，縮圖／預覽以 HDR＋FTR 組成（split: true）。 */
+const BG_DIR = '../沙龍DM公版/';
+const BG_LIST = [
+  { id: 'portrait', orient: 'p', thumb: 'th-portrait.jpg', label: 'bgPortrait', split: true },
+  { id: 'p2',       orient: 'p', thumb: 'th-p2.jpg',       label: 'bgP2' },
+  { id: 'h1',       orient: 'l', thumb: 'th-h1.jpg',       label: 'bgH1' },
+  { id: 'h2',       orient: 'l', thumb: 'th-h2.jpg',       label: 'bgH2' },
+  { id: 'h3',       orient: 'l', thumb: 'th-h3.jpg',       label: 'bgH3' },
+  { id: 'h4',       orient: 'l', thumb: 'th-h4.jpg',       label: 'bgH4' },
+];
+const bgItem = id => BG_LIST.find(b => b.id === id);
+
 /* 方向（決定 A4 尺寸/匯出方向）與滿版底圖（決定渲染模式）分開判斷 */
-function isLandscape() { return ['h1', 'h2', 'h3', 'h4'].includes(bgTemplate); }
+function isLandscape() { return (bgItem(bgTemplate) || {}).orient === 'l'; }
 function isFullBg() { return bgTemplate !== 'portrait'; }   // 滿版底圖＋內容區絕對定位
 /* 橫式2、3、4 的兩格＝單品特寫樣式（放大圖＋描述）；橫式1 仍為贈品樣式 */
 function isFeatureTwo() { return ['h2', 'h3', 'h4'].includes(bgTemplate); }
@@ -976,7 +1031,7 @@ const UI = {
   zh: {
     navTitle: 'DM 編輯器', exportJPG: '匯出 JPG', exportPDF: '匯出 PDF (A4)',
     secBg: '1. 選擇底圖', secLayout: '2. 選擇版面', secContent: '3. 編輯內容',
-    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgH4: '大促橫式',
+    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgH4: '大促橫式', bgGroupP: '直式', bgGroupL: '橫式',
     layFour: '四格', layTwo: '兩格', layOne: '一格',
     taglineLabel: '標題文字', subtitleLabel: '副標題（選填）', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
     cellA: '格 A（左上）', cellB: '格 B（右上）', cellC: '格 C（左下）', cellD: '格 D（右下）',
@@ -1003,7 +1058,7 @@ const UI = {
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
     secBg: '1. Background', secLayout: '2. Layout', secContent: '3. Content',
-    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgH4: 'Sale landscape',
+    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgH4: 'Sale landscape', bgGroupP: 'Portrait', bgGroupL: 'Landscape',
     layFour: '4-grid', layTwo: '2-grid', layOne: '1-grid',
     taglineLabel: 'Title', subtitleLabel: 'Subtitle (optional)', subtitlePh: 'e.g. a short catchphrase',
     cellA: 'Cell A (top-left)', cellB: 'Cell B (top-right)', cellC: 'Cell C (bottom-left)', cellD: 'Cell D (bottom-right)',
@@ -1030,7 +1085,7 @@ const UI = {
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
     secBg: '1. Tło', secLayout: '2. Układ', secContent: '3. Treść',
-    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgH4: 'Promo poziomy',
+    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgH4: 'Promo poziomy', bgGroupP: 'Pionowe', bgGroupL: 'Poziome',
     layFour: '4 pola', layTwo: '2 pola', layOne: '1 pole',
     taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł (opcjonalnie)', subtitlePh: 'np. krótkie hasło',
     cellA: 'Pole A (lewy górny)', cellB: 'Pole B (prawy górny)', cellC: 'Pole C (lewy dolny)', cellD: 'Pole D (prawy dolny)',
@@ -1071,9 +1126,7 @@ function applyStaticUI() {
   const set = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   set('.nav-title', t('navTitle'));
   set('#sec-bg', t('secBg')); set('#sec-layout', t('secLayout')); set('#sec-content', t('secContent'));
-  set('#bg-portrait .bg-label', t('bgPortrait'));
-  set('#bg-h1 .bg-label', t('bgH1')); set('#bg-h2 .bg-label', t('bgH2')); set('#bg-h3 .bg-label', t('bgH3'));
-  set('#bg-p2 .bg-label', t('bgP2')); set('#bg-h4 .bg-label', t('bgH4'));
+  buildBgPicker();
   set('#opt-four .lt-label', t('layFour')); set('#opt-two .lt-label', t('layTwo')); set('#opt-one .lt-label', t('layOne'));
   set('#lbl-tagline', t('taglineLabel')); set('#lbl-subtitle', t('subtitleLabel'));
   const sub = document.getElementById('dm-subtitle'); if (sub) sub.placeholder = t('subtitlePh');
@@ -1151,11 +1204,178 @@ function setLang(l) {
   renderDM();
 }
 
+/* ══════════════════════════════════════════════
+   底圖選單（依 BG_LIST 產生）
+   有滑鼠：直式／橫式兩個下拉（W3C APG select-only combobox 行為），選項移入顯示浮動預覽
+   觸控：直式／橫式兩列，左右滑動
+══════════════════════════════════════════════ */
+const BG_GROUPS = [{ orient: 'p', key: 'bgGroupP' }, { orient: 'l', key: 'bgGroupL' }];
+const BG_CHEVRON = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>';
+
+function bgThumbHTML(b) {
+  const o = 'o-' + b.orient;
+  if (b.split) return `<span class="bg-thumb ${o} is-split"><img class="hdr" src="${enc(HDR)}" alt="" decoding="async"><img class="ftr" src="${enc(FTR)}" alt="" decoding="async"></span>`;
+  return `<span class="bg-thumb ${o}"><img src="${enc(BG_DIR + b.thumb)}" alt="" decoding="async"></span>`;
+}
+
+function buildBgPicker() {
+  const box = document.getElementById('bg-pick');
+  if (!box) return;
+  closeBgDropdown();
+  const dd = BG_GROUPS.map(g => {
+    const items = BG_LIST.filter(b => b.orient === g.orient);
+    return `<div class="bg-dd" data-orient="${g.orient}">
+      <button type="button" class="bg-dd-btn" id="bg-dd-${g.orient}" role="combobox" aria-haspopup="listbox"
+        aria-expanded="false" aria-controls="bg-lb-${g.orient}" aria-label="${t(g.key)}">
+        <span class="bg-dd-ico"></span><span class="bg-dd-val"></span>${BG_CHEVRON}
+      </button>
+      <ul class="bg-dd-list" id="bg-lb-${g.orient}" role="listbox" aria-label="${t(g.key)}" hidden>
+        ${items.map(b => `<li class="bg-dd-opt" role="option" id="bg-ddo-${b.id}" data-id="${b.id}" aria-selected="false">${bgThumbHTML(b)}<span>${t(b.label)}</span></li>`).join('')}
+      </ul>
+    </div>`;
+  }).join('');
+  const strips = BG_GROUPS.map(g => `<div class="bg-strip-row">
+      <div class="bg-strip-title">${t(g.key)}</div>
+      <div class="bg-strip">${BG_LIST.filter(b => b.orient === g.orient).map(b =>
+        `<button type="button" class="bg-card" data-id="${b.id}" aria-label="${t(b.label)}">${bgThumbHTML(b)}<span class="bg-card-label">${t(b.label)}</span></button>`).join('')}</div>
+    </div>`).join('');
+  box.innerHTML = `<div class="bg-dd-row">${dd}</div><div class="bg-strips">${strips}</div>`;
+  box.querySelectorAll('.bg-card').forEach(c => c.addEventListener('click', () => setBg(c.dataset.id)));
+  box.querySelectorAll('.bg-dd').forEach(initBgDropdown);
+  syncBgPicker();
+}
+
+function syncBgPicker() {
+  const box = document.getElementById('bg-pick');
+  if (!box) return;
+  const cur = bgItem(bgTemplate);
+  box.querySelectorAll('.bg-card').forEach(c => c.classList.toggle('active', c.dataset.id === bgTemplate));
+  box.querySelectorAll('.bg-dd-opt').forEach(o => o.setAttribute('aria-selected', String(o.dataset.id === bgTemplate)));
+  BG_GROUPS.forEach(g => {
+    const wrap = box.querySelector(`.bg-dd[data-orient="${g.orient}"]`);
+    if (!wrap) return;
+    const on = !!cur && cur.orient === g.orient;
+    wrap.classList.toggle('has-active', on);
+    wrap.querySelector('.bg-dd-val').textContent = on ? t(cur.label) : t(g.key);
+    wrap.querySelector('.bg-dd-ico').innerHTML = on ? bgThumbHTML(cur) : '';
+  });
+  // 觸控列：選中的卡片捲入可視範圍（只捲水平）
+  const card = box.querySelector('.bg-card.active');
+  if (card) {
+    const strip = card.parentElement, r = card.getBoundingClientRect(), sr = strip.getBoundingClientRect();
+    if (sr.width && (r.left < sr.left || r.right > sr.right)) strip.scrollLeft += r.left - sr.left - 4;
+  }
+}
+
+let bgDdOpen = null;   // { wrap, btn, list, opts, idx }
+
+function initBgDropdown(wrap) {
+  const btn = wrap.querySelector('.bg-dd-btn');
+  const opts = [...wrap.querySelectorAll('.bg-dd-opt')];
+  btn.addEventListener('click', () => (bgDdOpen && bgDdOpen.wrap === wrap) ? closeBgDropdown() : openBgDropdown(wrap));
+  btn.addEventListener('keydown', e => {
+    const open = bgDdOpen && bgDdOpen.wrap === wrap;
+    if (!open) {
+      if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); openBgDropdown(wrap); }
+      return;
+    }
+    let i = bgDdOpen.idx;
+    if (e.key === 'ArrowDown') i = Math.min(opts.length - 1, i + 1);
+    else if (e.key === 'ArrowUp') i = Math.max(0, i - 1);
+    else if (e.key === 'Home') i = 0;
+    else if (e.key === 'End') i = opts.length - 1;
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickBg(opts[i].dataset.id); return; }
+    else if (e.key === 'Escape') { e.preventDefault(); closeBgDropdown(); return; }
+    else if (e.key === 'Tab') { closeBgDropdown(); return; }
+    else return;
+    e.preventDefault();
+    setBgDdActive(i);
+  });
+  opts.forEach((o, i) => {
+    o.addEventListener('mouseenter', () => setBgDdActive(i));
+    o.addEventListener('mousedown', e => e.preventDefault());   // 保持焦點在按鈕
+    o.addEventListener('click', () => pickBg(o.dataset.id));
+  });
+}
+
+function openBgDropdown(wrap) {
+  closeBgDropdown();
+  const btn = wrap.querySelector('.bg-dd-btn'), list = wrap.querySelector('.bg-dd-list');
+  const opts = [...list.querySelectorAll('.bg-dd-opt')];
+  list.hidden = false;
+  wrap.classList.add('open');
+  btn.setAttribute('aria-expanded', 'true');
+  let idx = opts.findIndex(o => o.dataset.id === bgTemplate);
+  if (idx < 0) idx = 0;
+  bgDdOpen = { wrap, btn, list, opts, idx };
+  setBgDdActive(idx);
+}
+
+function closeBgDropdown() {
+  if (!bgDdOpen) return;
+  const { wrap, btn, list, opts } = bgDdOpen;
+  list.hidden = true;
+  wrap.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.removeAttribute('aria-activedescendant');
+  opts.forEach(o => o.classList.remove('is-active'));
+  bgDdOpen = null;
+  hideBgPreview();
+}
+
+function setBgDdActive(i) {
+  const d = bgDdOpen;
+  if (!d) return;
+  d.idx = i;
+  d.opts.forEach((o, k) => o.classList.toggle('is-active', k === i));
+  const o = d.opts[i];
+  d.btn.setAttribute('aria-activedescendant', o.id);
+  const lr = d.list.getBoundingClientRect(), or = o.getBoundingClientRect();
+  if (or.top < lr.top) d.list.scrollTop -= lr.top - or.top;
+  else if (or.bottom > lr.bottom) d.list.scrollTop += or.bottom - lr.bottom;
+  showBgPreview(o);
+}
+
+function pickBg(id) {
+  closeBgDropdown();
+  if (id !== bgTemplate) setBg(id);
+}
+
+function showBgPreview(optEl) {
+  const b = bgItem(optEl.dataset.id);
+  if (!b || !bgDdOpen) return;
+  let pv = document.getElementById('bg-preview');
+  if (!pv) {
+    pv = document.createElement('div');
+    pv.id = 'bg-preview';
+    pv.className = 'bg-preview';
+    pv.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(pv);
+  }
+  pv.innerHTML = bgThumbHTML(b) + `<div class="bg-preview-cap">${t(b.label)}</div>`;
+  pv.hidden = false;
+  const lr = bgDdOpen.list.getBoundingClientRect(), or = optEl.getBoundingClientRect();
+  const W = pv.offsetWidth, H = pv.offsetHeight;
+  let x = lr.left - W - 12;                                    // 預設放在清單左側（預覽畫布上方）
+  if (x < 8) x = Math.min(window.innerWidth - W - 8, lr.right + 12);
+  const y = Math.max(8, Math.min(window.innerHeight - H - 8, or.top + or.height / 2 - H / 2));
+  pv.style.left = x + 'px';
+  pv.style.top = y + 'px';
+}
+
+function hideBgPreview() {
+  const pv = document.getElementById('bg-preview');
+  if (pv) pv.hidden = true;
+}
+
+document.addEventListener('pointerdown', e => {
+  if (bgDdOpen && !bgDdOpen.wrap.contains(e.target)) closeBgDropdown();
+});
+window.addEventListener('resize', () => closeBgDropdown());
+
 function setBg(bg) {
   bgTemplate = bg;
-  ['portrait','p2','h1','h2','h3','h4'].forEach(k =>
-    document.getElementById('bg-'+k).classList.toggle('active', k === bg)
-  );
+  syncBgPicker();
 
   // 橫式1 白框較小，不支援四格：隱藏四格選項，若正在四格則自動切回兩格
   const optFour = document.getElementById('opt-four');
@@ -2587,6 +2807,9 @@ window.addEventListener('DOMContentLoaded', () => {
   state.two.forEach(applyTwoMeta);
   state.one[0].products.forEach(setProductUsage);
   applyOneMeta();
+  buildBgPicker();
+  const edScroll = document.querySelector('.editor-scroll');
+  if (edScroll) edScroll.addEventListener('scroll', () => closeBgDropdown(), { passive: true });
   buildEditorBlocks();
   renderDM();
   scaleSheet();
