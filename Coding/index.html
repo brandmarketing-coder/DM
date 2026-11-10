@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O'right PRO | DM 編輯器</title>
+<!-- 流程版面的細體數字（步驟編號／價格）：只取數字與 $ 子集，約 2KB；載不到則退回系統字型 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@200&text=0123456789%24.%2C&display=swap">
 <!-- 匯出用函式庫（html2canvas / jsPDF）改為匯出時才載入，加快初始載入：見 ensureExportLibs() -->
 <!-- 商品清單與產品文案（由 tools/build-copy.mjs 從 產品圖片/ 與 產品文案 CSV 自動產生） -->
 <!-- ?v= 版本號由 build-copy.mjs／build-names.mjs 於重建時自動更新，避免瀏覽器載到舊快取 -->
@@ -533,6 +537,97 @@ body {
 /* 直式滿版底圖（2026大促 p2）：絕對定位基準＋內容區透明 */
 #dm-sheet.bg-p2, #dm-sheet.bg-p3 { position: relative; }
 #dm-sheet.bg-p2 .dm-content, #dm-sheet.bg-p3 .dm-content { background: transparent; }
+
+/* ══ 流程版面（直式 3 專用）：步驟膠囊＋連接箭頭／商品圖／品名＋說明；底部價格列＋QR ══
+   座標皆為 595×842 頁面上的絕對像素（renderFlow 依步驟數算列高，免量測）。 */
+.dm-flow { position: absolute; inset: 0; color: #333; }
+.flow-steps { position: absolute; left: 0; right: 0; top: 244px; height: 510px; }
+.flow-row { display: flex; align-items: stretch; }
+.flow-left {
+  width: 187px; flex-shrink: 0; padding-left: 47px; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center;
+}
+.flow-conn { flex: 1; min-height: 6px; width: 1px; background: #6b6b6b; position: relative; }
+.flow-conn.is-top { margin-bottom: 9px; }
+.flow-conn.is-bottom { margin-top: 9px; }
+.flow-conn.is-blank { background: transparent; }
+.flow-conn .flow-arrow { position: absolute; left: -3px; bottom: -1px; width: 7px; height: 5px; display: block; }
+.flow-pill {
+  position: relative; flex-shrink: 0; width: 96px; box-sizing: border-box;
+  min-height: 34px; padding: 8px 6px; border: 1px solid #3c3c3c; border-radius: 17px;
+  display: flex; align-items: center; justify-content: center;
+}
+.flow-label {
+  font-size: 15px; line-height: 1.3; letter-spacing: 1px; color: #333;
+  text-align: center; white-space: pre-line; word-break: break-word;
+}
+.flow-num {
+  position: absolute; left: 13px; top: 0; transform: translateY(-63%);
+  font-family: 'Jost', 'Helvetica Neue', 'Segoe UI', sans-serif; font-weight: 200;
+  font-size: 34px; line-height: 1; color: #8C7651; background: #EFF1EE; padding: 0 3px;
+}
+.flow-main {
+  flex: 1; min-width: 0; margin-right: 54px;
+  display: flex; align-items: center;
+}
+.flow-main.has-sep { border-top: 1px solid #9b9b9b; }
+.flow-imgs { min-width: 92px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 0 4px; box-sizing: border-box; }
+.flow-imgs img { display: block; width: auto; max-width: 100px; object-fit: contain; }
+.flow-text { flex: 1; min-width: 0; padding-left: 8px; }
+.flow-name { font-size: 15px; font-weight: 500; letter-spacing: 1px; color: #222; margin-bottom: 6px; line-height: 1.4; }
+.flow-desc { font-size: 12.5px; letter-spacing: 0.5px; color: #666; line-height: 1.65; white-space: pre-line; }
+.lang-latin .flow-name, .lang-latin .flow-desc, .lang-latin .flow-label { letter-spacing: 0; }
+
+/* 價格列：線──》標語 $價格《──線（箭頭隨文字長度移動）；線位於頁高 94.5% */
+.flow-price { position: absolute; left: 0; right: 0; top: 796px; transform: translateY(-50%); display: flex; align-items: center; }
+.flow-line { flex: 1; height: 1px; background: #8C7651; }
+.flow-chev { width: 15px; height: 9px; display: block; margin: 0 9px; flex-shrink: 0; }
+.flow-price-group { display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; }
+.flow-price-label { font-size: 14px; letter-spacing: 1.5px; color: #8C7651; }
+.flow-price-num {
+  font-family: 'Jost', 'Helvetica Neue', 'Segoe UI', sans-serif; font-weight: 200;
+  font-size: 38px; line-height: 1; color: #8C7651; letter-spacing: 0.5px;
+}
+.flow-price-unit { font-size: 16px; color: #8C7651; }
+/* QR：蓋在價格線右段上（底色遮住線） */
+.flow-qr {
+  position: absolute; right: 18px; bottom: 16px; min-width: 60px; box-sizing: border-box;
+  padding: 3px 4px 4px; background: #EFF1EE; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+.flow-qr-label { font-size: 12px; line-height: 1.2; color: #8C7651; letter-spacing: 0.5px; margin-bottom: 3px; white-space: nowrap; }
+.flow-qr img { display: block; width: 52px; height: 52px; object-fit: contain; }
+.flow-qr .flow-qr-wait { width: 52px; height: 52px; background: repeating-linear-gradient(45deg, #ddd 0 4px, #e9e9e9 4px 8px); }
+
+/* 編輯區：流程步驟卡片 */
+.flow-step-ed { background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+.flow-step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.flow-step-head b { font-size: 11px; color: #555; }
+.flow-step-tools { display: flex; gap: 4px; }
+.flow-tool {
+  border: 1px solid #d6d6d6; background: #fff; color: #444; border-radius: 4px;
+  font-size: 11px; padding: 3px 8px; cursor: pointer; line-height: 1.2;
+}
+.flow-tool:hover:not(:disabled) { border-color: #5aaa6a; color: #2d6235; }
+.flow-tool:disabled { opacity: 0.35; cursor: default; }
+.flow-tool.is-del { color: #c53030; }
+.flow-tool.is-del:hover:not(:disabled) { border-color: #e53e3e; color: #c53030; }
+.flow-add {
+  width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; transition: background 0.15s;
+}
+.flow-add:hover:not(:disabled) { background: #2d6235; }
+.flow-add.is-sub { background: #f0eeeb; color: #3a7d44; font-weight: 600; margin: 2px 0 8px; padding: 6px; }
+.flow-add.is-sub:hover { background: #e6e3de; }
+.flow-prod-line { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.flow-prod-line img { width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0; }
+.flow-ed-field { margin-bottom: 8px; }
+.flow-ed-field textarea.field-input { resize: vertical; line-height: 1.5; font-family: inherit; }
+.flow-hint { font-size: 10.5px; color: #999; margin-top: 3px; }
+.qr-ed-row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.qr-ed-row img { width: 56px; height: 56px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #EFF1EE; }
+.qr-file-btn { display: inline-block; border: 1px solid #3a7d44; color: #3a7d44; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; background: #fff; }
+.qr-file-btn input { display: none; }
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
 
@@ -958,7 +1053,7 @@ const LAND_BG = {
   h3: '../沙龍DM公版/橫3.jpg',
   h4: '../沙龍DM公版/2026大促橫式.jpg',
   p2: '../沙龍DM公版/2026大促直式.jpg',   /* 直式滿版（非 header/footer 拆分） */
-  p3: '../沙龍DM公版/直3.jpg',            /* 直式 3：墨綠框頁首＋淺灰內容區（滿版） */
+  p3: '../沙龍DM公版/直3.jpg',            /* 直式 3：墨綠框頁首＋淺灰內容區（滿版）；底部箭頭線已抹除，由流程版面依價格文字長度繪製 */
 };
 
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
@@ -969,7 +1064,7 @@ const LAND_POS = {
   h3: { left: '39%', top: '3%',  right: '3%', bottom: '14%' },  // 白區自 36% 起：左右各留約 3%，內容於白框內置中
   h4: { left: '45%', top: '3%',  right: '3%', bottom: '16%' },  // 2026大促橫式：左人像至 43%、下方footer 13%
   p2: { left: '3%',  top: '26.5%', right: '3%', bottom: '8%' }, // 2026大促直式：上人像至 25.2%、footer 自 92.5%；內容高≈551px 貼近直式（561px）→ 版面行為與直式一致
-  p3: { left: '3%',  top: '29.5%', right: '3%', bottom: '8.5%' }, // 直式3：墨綠頁首＋吊牌至 27.9%、footer 線於 93.9%；內容高≈522px
+  p3: { left: '0',   top: '0',     right: '0',  bottom: '0' },    // 直式3＝流程版面專用：內容區＝整頁，各區塊於 renderFlow 以絕對座標定位
 };
 
 /* 底圖選單清單（順序＝選單顯示順序）。orient：'p' 直式、'l' 橫式；thumb：選單縮圖；label：UI 翻譯鍵。
@@ -991,6 +1086,9 @@ function isLandscape() { return (bgItem(bgTemplate) || {}).orient === 'l'; }
 function isFullBg() { return bgTemplate !== 'portrait'; }   // 滿版底圖＋內容區絕對定位
 /* 橫式2、3、4 的兩格＝單品特寫樣式（放大圖＋描述）；橫式1 仍為贈品樣式 */
 function isFeatureTwo() { return ['h2', 'h3', 'h4'].includes(bgTemplate); }
+/* 流程版面：選到此底圖即自動套用（隱藏版面選擇與標題欄），離開時回到先前版面 */
+const FLOW_BG = 'p3';
+let prevLayout = 'four';
 
 /* ══════════════════════════════════════════════
    語言與幣值（i18n）
@@ -1045,6 +1143,12 @@ const UI = {
     descField: '用途說明／產品描述（自動帶入主商品用途，可修改；清空則不顯示）', descPh: '選擇商品後自動帶入',
     priceLabel: '售價', origLabel: '原價',
     prodList: '商品清單 (最多 3 個)', addProduct: '新增商品', deleteProduct: '刪除此商品',
+    flowSteps: '流程步驟（2～5 步）', flowStep: '步驟', flowLabel: '步驟名稱（可換行）', flowLabelPh: '例：淨化',
+    flowProds: '商品（每步驟最多 2 個）', flowAddProd: '＋ 新增商品', flowName: '品名（自動帶入，可修改）',
+    flowDesc: '說明（自動帶入產品介紹，可修改）', flowAddStep: '＋ 新增步驟', flowUp: '↑ 上移', flowDown: '↓ 下移', flowDel: '刪除',
+    flowPriceSec: '價格', flowPriceLabel: '價格標語', flowPrice: '價格',
+    qrSec: 'QR Code', qrLabel: 'QR 上方文字', qrUrl: 'QR 連結網址（自動產生 QR Code）', qrUpload: '或上傳 QR 圖片',
+    qrRemove: '移除圖片，改用連結', qrUsingImg: '目前使用上傳的圖片', qrHint: '連結留空且未上傳圖片＝不顯示 QR Code',
     prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品 (贈品)',
     usageField: '用途說明（自動帶入該商品「用途」，可修改）', usagePh: '選擇商品後自動帶入',
     product: '商品', giftLabelField2: '贈品標籤文字（如：致贈、附贈）',
@@ -1072,6 +1176,12 @@ const UI = {
     descField: 'Description (auto-filled from main product, editable; clear to hide)', descPh: 'Auto-filled after selecting a product',
     priceLabel: 'Price', origLabel: 'Orig. price',
     prodList: 'Products (max 3)', addProduct: 'Add product', deleteProduct: 'Remove',
+    flowSteps: 'Steps (2–5)', flowStep: 'Step', flowLabel: 'Step name (line breaks allowed)', flowLabelPh: 'e.g. Cleanse',
+    flowProds: 'Products (max 2 per step)', flowAddProd: '+ Add product', flowName: 'Name (auto, editable)',
+    flowDesc: 'Description (auto from product intro, editable)', flowAddStep: '+ Add step', flowUp: '↑ Up', flowDown: '↓ Down', flowDel: 'Delete',
+    flowPriceSec: 'Price', flowPriceLabel: 'Price caption', flowPrice: 'Price',
+    qrSec: 'QR Code', qrLabel: 'Text above QR', qrUrl: 'QR link (QR code generated automatically)', qrUpload: 'Or upload a QR image',
+    qrRemove: 'Remove image, use link', qrUsingImg: 'Using the uploaded image', qrHint: 'Empty link and no image = QR code hidden',
     prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary (gift)',
     usageField: 'Usage (auto-filled, editable)', usagePh: 'Auto-filled after selecting a product',
     product: 'Product', giftLabelField2: 'Gift label (e.g. Gift, Free)',
@@ -1099,6 +1209,12 @@ const UI = {
     descField: 'Opis (wypełniany automatycznie z produktu głównego; wyczyść, aby ukryć)', descPh: 'Wypełniane po wybraniu produktu',
     priceLabel: 'Cena', origLabel: 'Cena pierwotna',
     prodList: 'Produkty (maks. 3)', addProduct: 'Dodaj produkt', deleteProduct: 'Usuń',
+    flowSteps: 'Kroki (2–5)', flowStep: 'Krok', flowLabel: 'Nazwa kroku (można łamać linie)', flowLabelPh: 'np. Oczyszczanie',
+    flowProds: 'Produkty (maks. 2 na krok)', flowAddProd: '+ Dodaj produkt', flowName: 'Nazwa (automatycznie, edytowalna)',
+    flowDesc: 'Opis (automatycznie z opisu produktu, edytowalny)', flowAddStep: '+ Dodaj krok', flowUp: '↑ W górę', flowDown: '↓ W dół', flowDel: 'Usuń',
+    flowPriceSec: 'Cena', flowPriceLabel: 'Podpis ceny', flowPrice: 'Cena',
+    qrSec: 'Kod QR', qrLabel: 'Tekst nad kodem QR', qrUrl: 'Link QR (kod generowany automatycznie)', qrUpload: 'Lub prześlij obraz QR',
+    qrRemove: 'Usuń obraz, użyj linku', qrUsingImg: 'Używany jest przesłany obraz', qrHint: 'Pusty link i brak obrazu = brak kodu QR',
     prodType: 'Typ', roleMain: 'Główny', roleSub: 'Dodatkowy (prezent)',
     usageField: 'Zastosowanie (wypełniane automatycznie)', usagePh: 'Wypełniane po wybraniu produktu',
     product: 'Produkt', giftLabelField2: 'Etykieta prezentu (np. Prezent)',
@@ -1140,6 +1256,7 @@ function applyStaticUI() {
   const rsBtn = document.getElementById('nav-reset-txt'); if (rsBtn) rsBtn.textContent = t('reset');
   updateExportLabels();
   if (typeof updateInAppBar === 'function') updateInAppBar();
+  syncFlowUI();
 }
 
 /* 括號：中文用全形（），英/波用半形() */
@@ -1195,6 +1312,7 @@ function setLang(l) {
   applyStaticUI();
   // 贈品標籤本地化，並依該語言重新帶入各版面文案（介紹/用途/價格加總）
   localizeGiftLabels();
+  localizeFlowPresets();
   state.four.forEach(applyMainCopy);
   state.two.forEach(applyTwoMeta);
   state.one[0].products.forEach(setProductUsage);
@@ -1387,8 +1505,15 @@ function setBg(bg) {
 
   updateExportLabels();
 
-  if (noFour && layout === 'four') {
-    setLayout('two');   // 含 tagline／編輯區同步與 renderDM
+  /* 直式 3＝流程版面（自動套用）；離開直式 3 回到進入前的版面 */
+  let target = layout;
+  if (bg === FLOW_BG) target = 'flow';
+  else if (layout === 'flow') target = prevLayout;
+  if (noFour && target === 'four') target = 'two';
+  if (target === 'flow' && layout !== 'flow') prevLayout = layout;
+
+  if (target !== layout) {
+    setLayout(target);   // 含 tagline／編輯區同步與 renderDM
   } else {
     renderDM();
   }
@@ -1442,6 +1567,355 @@ const subtitles = {
   two:  '',
   one:  '',
 };
+
+/* ══════════════════════════════════════════════
+   流程版面（直式 3 專用）
+   步驟：{ label 步驟名稱, prods [商品 id ×1~2], name 品名, desc 說明 }
+   name/desc 為 null＝自動（品名去容量／CSV「介紹」，隨語言切換）；使用者修改後存字串。
+══════════════════════════════════════════════ */
+const FLOW_MIN = 2, FLOW_MAX = 5, FLOW_PROD_MAX = 2;
+const FLOW_LABEL_PRESETS = [   /* 切語言時，仍為預設值的步驟名稱自動翻譯；自訂者保留 */
+  { zh: '淨化',           en: 'Cleanse',        pl: 'Oczyszczanie' },
+  { zh: '潔淨頭皮\n洗髮露', en: 'Scalp\nShampoo', pl: 'Szampon\ndo skóry głowy' },
+  { zh: '頭皮凍膜',        en: 'Scalp\nMask',    pl: 'Maska\ndo skóry głowy' },
+  { zh: '滋養',           en: 'Nourish',        pl: 'Odżywianie' },
+];
+const FLOW_PRICE_LABELS = { zh: '深層頭皮養護價', en: 'Deep Scalp Care', pl: 'Głęboka pielęgnacja' };
+const QR_LABELS = { zh: '官方line', en: 'Official LINE', pl: 'Oficjalny LINE' };
+const QR_DEFAULT_URL = 'https://lin.ee/W3sKQQh';
+
+state.flow = {
+  steps: [
+    { label: '淨化',           prods: ['咖啡因頭皮賦活精萃'],                              name: null, desc: null },
+    { label: '潔淨頭皮\n洗髮露', prods: ['雪松橙控油洗髮精2000mL'],                         name: null, desc: null },
+    { label: '頭皮凍膜',        prods: ['竹萃頭皮滋養凍膜'],                                name: null, desc: null },
+    { label: '滋養',           prods: ['舒活抗菌頭皮噴霧60mL', '舒活抗菌頭皮噴霧750mL'],     name: null, desc: null },
+  ],
+  priceLabel: FLOW_PRICE_LABELS.zh, price: '899', origPrice: '',
+  qrUrl: QR_DEFAULT_URL,   // 由連結產生 QR
+  qrImg: '',               // 上傳的 QR 圖片（dataURL）；有值時優先使用
+  qrLabel: QR_LABELS.zh,
+};
+
+const flowEsc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function localizeFlowPresets() {
+  const f = state.flow;
+  f.steps.forEach(s => {
+    const row = FLOW_LABEL_PRESETS.find(r => Object.values(r).includes(s.label));
+    if (row) s.label = row[lang];
+  });
+  if (Object.values(FLOW_PRICE_LABELS).includes(f.priceLabel)) f.priceLabel = FLOW_PRICE_LABELS[lang];
+  if (Object.values(QR_LABELS).includes(f.qrLabel)) f.qrLabel = QR_LABELS[lang];
+}
+
+/* 品名去容量（雪松橙控油洗髮精2000mL → 雪松橙控油洗髮精）；同步驟兩商品同名只寫一次 */
+const flowBaseName = id => prodName(id).replace(/\s*\d+(?:\.\d+)?\s*(?:ml|l|g|kg)\b/gi, '').trim();
+function stepName(s) {
+  if (s.name != null) return s.name;
+  const names = [...new Set(s.prods.filter(id => getProdOrNull(id)).map(flowBaseName))];
+  return names.join(' / ');
+}
+function stepDesc(s) {
+  if (s.desc != null) return s.desc;
+  const c = getCopy(s.prods[0]);
+  return c && c.intro ? c.intro.trim() : '';
+}
+
+/* ── QR Code：連結 → 以 qrcode-generator（cdnjs 固定版本，切到流程版面才載入）產生 PNG ── */
+let qrLibPromise = null;
+function ensureQrLib() {
+  if (window.qrcode) return Promise.resolve();
+  if (!qrLibPromise) {
+    qrLibPromise = new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+      s.crossOrigin = 'anonymous';
+      s.onload = res;
+      s.onerror = () => { qrLibPromise = null; rej(new Error('qrcode lib load failed')); };
+      document.head.appendChild(s);
+    });
+  }
+  return qrLibPromise;
+}
+const qrCache = new Map();
+function qrDataURL(text) {
+  if (qrCache.has(text)) return qrCache.get(text);
+  if (!window.qrcode) {   // 函式庫尚未載入：先顯示佔位，載入後重繪
+    ensureQrLib().then(() => { if (layout === 'flow') renderDM(); }).catch(() => {});
+    return '';
+  }
+  const qr = window.qrcode(0, 'M');
+  /* 函式庫預設逐字元取低 8 位 → 先轉 UTF-8 位元組字串，中文網址也正確 */
+  qr.addData(String.fromCharCode(...new TextEncoder().encode(text)));
+  qr.make();
+  const n = qr.getModuleCount(), cell = 8, quiet = 2, size = (n + quiet * 2) * cell;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#EFF1EE'; g.fillRect(0, 0, size, size);
+  g.fillStyle = '#4E4029';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+    if (qr.isDark(r, c)) g.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+  const url = cv.toDataURL('image/png');
+  qrCache.set(text, url);
+  return url;
+}
+
+/* 小圖示以 SVG data URI 的 <img> 呈現（html2canvas 匯出穩定） */
+const svgURI = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+const FLOW_CHEV_R = svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="15" height="9" viewBox="0 0 15 9" fill="none" stroke="#8C7651" stroke-width="1"><polyline points="1,0.5 5,4.5 1,8.5"/><polyline points="7,0.5 11,4.5 7,8.5"/></svg>');
+const FLOW_CHEV_L = svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="15" height="9" viewBox="0 0 15 9" fill="none" stroke="#8C7651" stroke-width="1"><polyline points="14,0.5 10,4.5 14,8.5"/><polyline points="8,0.5 4,4.5 8,8.5"/></svg>');
+const FLOW_ARROW = svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="7" height="5" viewBox="0 0 7 5"><polygon points="0,0 7,0 3.5,5" fill="#6b6b6b"/></svg>');
+
+/* 步驟區：頁高 29%～89.6%（吊牌下緣到 QR 上方）；列高＝區高／步驟數 */
+const FLOW_AREA_H = 510;
+let flowFontTried = false;
+function renderFlow() {
+  const f = state.flow, n = f.steps.length;
+  const rowH = FLOW_AREA_H / n;
+  const imgH = Math.round(Math.min(rowH * 0.7, 128));
+  const rows = f.steps.map((s, i) => {
+    const imgs = s.prods.map(getProdOrNull).filter(Boolean).map(p =>
+      `<img src="${enc(p.img)}" alt="" style="height:${imgH}px" onerror="this.style.opacity=0.1">`).join('');
+    const desc = stepDesc(s);
+    return `
+      <div class="flow-row" style="height:${rowH.toFixed(2)}px">
+        <div class="flow-left">
+          <div class="flow-conn is-top${i ? '' : ' is-blank'}">${i ? `<img class="flow-arrow" src="${FLOW_ARROW}" alt="">` : ''}</div>
+          <div class="flow-pill"><span class="flow-num">${i + 1}</span><span class="flow-label">${flowEsc(s.label)}</span></div>
+          <div class="flow-conn is-bottom${i < n - 1 ? '' : ' is-blank'}"></div>
+        </div>
+        <div class="flow-main${i ? ' has-sep' : ''}">
+          <div class="flow-imgs">${imgs}</div>
+          <div class="flow-text">
+            <div class="flow-name">${flowEsc(stepName(s))}</div>
+            ${desc ? `<div class="flow-desc">${flowEsc(desc)}</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  /* 價格列：線──》標語 $價格《──線 */
+  const price = String(dispPrice(f) || '').trim();
+  const priceHTML = !price ? ''
+    : lang === 'pl' ? `<span class="flow-price-num">${fmt(price)}</span><span class="flow-price-unit">&nbsp;zł</span>`
+    : `<span class="flow-price-num">$${fmt(price)}</span>`;
+  const label = (f.priceLabel || '').trim();
+  const priceBar = (label || price)
+    ? `<div class="flow-price"><div class="flow-line"></div><img class="flow-chev" src="${FLOW_CHEV_R}" alt="">` +
+      `<div class="flow-price-group">${label ? `<span class="flow-price-label">${flowEsc(label)}</span>` : ''}${priceHTML}</div>` +
+      `<img class="flow-chev" src="${FLOW_CHEV_L}" alt=""><div class="flow-line"></div></div>`
+    : `<div class="flow-price"><div class="flow-line"></div></div>`;
+
+  /* QR：上傳圖片優先，否則由連結產生；兩者皆無則不顯示 */
+  const url = (f.qrUrl || '').trim();
+  let qr = '';
+  if (f.qrImg || url) {
+    const src = f.qrImg || qrDataURL(url);
+    const qrLabel = (f.qrLabel || '').trim();
+    qr = `<div class="flow-qr">${qrLabel ? `<div class="flow-qr-label">${flowEsc(qrLabel)}</div>` : ''}` +
+         (src ? `<img src="${src}" alt="QR">` : '<div class="flow-qr-wait"></div>') + `</div>`;
+  }
+
+  /* 細體數字字型載入後重繪一次（量測以實際字型為準；載入失敗只試一次，避免無限重繪） */
+  if (!flowFontTried && document.fonts && !document.fonts.check('200 34px Jost')) {
+    flowFontTried = true;
+    document.fonts.load('200 34px Jost', '0123456789$').then(() => { if (layout === 'flow') renderDM(); }).catch(() => {});
+  }
+  return `<div class="dm-flow"><div class="flow-steps">${rows}</div>${priceBar}${qr}</div>`;
+}
+
+/* 防破版：先縮說明→品名→商品圖→步驟名稱；價格列不得壓到 QR */
+function fitFlow() {
+  const q = s => [...document.querySelectorAll('#dm-sheet ' + s)];
+  const rows = q('.flow-row');
+  shrinkStages(() => Math.max(0, ...rows.map(overOf)), [
+    fontStep(q('.flow-desc'), 0.85),
+    fontStep(q('.flow-name'), 0.85),
+    sizeStep(q('.flow-imgs img'), 0.6, true),   // 只縮高，寬度隨比例（圖未載入時寬為 0，不可鎖寬）
+    fontStep(q('.flow-label'), 0.8),
+    fontStep([...q('.flow-desc'), ...q('.flow-name'), ...q('.flow-label')], 0.7),
+  ]);
+  const group = document.querySelector('#dm-sheet .flow-price-group');
+  if (!group) return;
+  const sheet = document.getElementById('dm-sheet');
+  const qrEl = document.querySelector('#dm-sheet .flow-qr');
+  const over = () => {
+    const g = group.getBoundingClientRect(), sr = sheet.getBoundingClientRect();
+    const right = qrEl ? qrEl.getBoundingClientRect().left - 8 : sr.right - 12;
+    return Math.max(g.right - right, sr.left + 12 - g.left);
+  };
+  shrinkStages(over, [
+    fontStep([...group.querySelectorAll('.flow-price-label')], 0.7),
+    fontStep([...group.querySelectorAll('.flow-price-num, .flow-price-unit')], 0.7),
+  ]);
+}
+
+/* ── 流程編輯區 ── */
+function flowEditor() {
+  const f = state.flow, n = f.steps.length;
+  const steps = f.steps.map((s, i) => {
+    const prods = s.prods.map((id, pi) => `
+      <div class="flow-prod-line">
+        <img src="${enc(getProd(id).img)}" alt="">
+        <div style="flex:1;min-width:0">${prodSearchInput(id, `onFlowProdSearch(this,${i},${pi})`, false, `onFlowProdId(${i},${pi},this.value)`)}</div>
+        ${s.prods.length > 1 ? `<button type="button" class="flow-tool is-del" onclick="delFlowProd(${i},${pi})" title="${t('flowDel')}">✕</button>` : ''}
+      </div>`).join('');
+    return `
+      <div class="flow-step-ed">
+        <div class="flow-step-head">
+          <b>${t('flowStep')} ${i + 1}</b>
+          <div class="flow-step-tools">
+            <button type="button" class="flow-tool" onclick="moveFlowStep(${i},-1)" ${i === 0 ? 'disabled' : ''}>${t('flowUp')}</button>
+            <button type="button" class="flow-tool" onclick="moveFlowStep(${i},1)" ${i === n - 1 ? 'disabled' : ''}>${t('flowDown')}</button>
+            <button type="button" class="flow-tool is-del" onclick="delFlowStep(${i})" ${n <= FLOW_MIN ? 'disabled' : ''}>${t('flowDel')}</button>
+          </div>
+        </div>
+        <div class="flow-ed-field">
+          <label class="field-lbl">${t('flowLabel')}</label>
+          <textarea class="field-input" rows="2" placeholder="${t('flowLabelPh')}" oninput="onFlowStep(${i},'label',this.value)">${flowEsc(s.label)}</textarea>
+        </div>
+        <div class="flow-ed-field">
+          <label class="field-lbl">${t('flowProds')}</label>
+          ${prods}
+          ${s.prods.length < FLOW_PROD_MAX ? `<button type="button" class="flow-add is-sub" onclick="addFlowProd(${i})">${t('flowAddProd')}</button>` : ''}
+        </div>
+        <div class="flow-ed-field">
+          <label class="field-lbl">${t('flowName')}</label>
+          <input type="text" class="field-input" value="${flowEsc(stepName(s))}" oninput="onFlowStep(${i},'name',this.value)">
+        </div>
+        <div class="flow-ed-field" style="margin-bottom:0">
+          <label class="field-lbl">${t('flowDesc')}</label>
+          <textarea class="field-input" rows="2" oninput="onFlowStep(${i},'desc',this.value)">${flowEsc(stepDesc(s))}</textarea>
+        </div>
+      </div>`;
+  }).join('');
+  const addStep = n < FLOW_MAX ? `<button type="button" class="flow-add" onclick="addFlowStep()">${t('flowAddStep')}</button>` : '';
+  const qrImgRow = f.qrImg ? `
+      <div class="qr-ed-row">
+        <img src="${f.qrImg}" alt="">
+        <div>
+          <div class="flow-hint" style="margin:0 0 6px">${t('qrUsingImg')}</div>
+          <button type="button" class="flow-tool is-del" onclick="removeQrImg()">${t('qrRemove')}</button>
+        </div>
+      </div>` : '';
+  return `
+    <div class="block-ed">
+      <div class="block-ed-title">${t('flowSteps')}</div>
+      ${steps}
+      ${addStep}
+    </div>
+    <div class="block-ed">
+      <div class="block-ed-title">${t('flowPriceSec')}</div>
+      <div class="flow-ed-field">
+        <label class="field-lbl">${t('flowPriceLabel')}</label>
+        <input type="text" class="field-input" value="${flowEsc(f.priceLabel)}" oninput="onFlowField('priceLabel',this.value)">
+      </div>
+      <div class="flow-ed-field" style="margin-bottom:0">
+        <label class="field-lbl">${t('flowPrice')}${paren(CUR_UNIT[lang])}</label>
+        <input type="text" class="field-input" inputmode="decimal" value="${flowEsc(dispPrice(f))}" oninput="onFlowPrice(this.value)">
+      </div>
+    </div>
+    <div class="block-ed">
+      <div class="block-ed-title">${t('qrSec')}</div>
+      <div class="flow-ed-field">
+        <label class="field-lbl">${t('qrLabel')}</label>
+        <input type="text" class="field-input" value="${flowEsc(f.qrLabel)}" oninput="onFlowField('qrLabel',this.value)">
+      </div>
+      <div class="flow-ed-field">
+        <label class="field-lbl">${t('qrUrl')}</label>
+        <input type="url" class="field-input" value="${flowEsc(f.qrUrl)}" placeholder="${QR_DEFAULT_URL}" ${f.qrImg ? 'disabled' : ''}
+          oninput="onFlowField('qrUrl',this.value)">
+      </div>
+      <label class="qr-file-btn">${t('qrUpload')}<input type="file" accept="image/*" onchange="onQrUpload(this)"></label>
+      ${qrImgRow}
+      <div class="flow-hint">${t('qrHint')}</div>
+    </div>`;
+}
+
+function flowRefresh() { buildEditorBlocks(); renderDM(); }
+/* 文字欄：只重繪 DM、不重建編輯區（保留輸入焦點） */
+function onFlowStep(i, field, val) { state.flow.steps[i][field] = val; renderDM(); }
+function onFlowField(field, val) { state.flow[field] = val; renderDM(); }
+function onFlowPrice(val) { setDispPrice(state.flow, 'price', val); renderDM(); }
+/* 換商品：品名／說明回到自動帶入 */
+function onFlowProdId(i, pi, id) {
+  const s = state.flow.steps[i];
+  s.prods[pi] = id; s.name = null;
+  if (pi === 0) s.desc = null;
+  flowRefresh();
+}
+function onFlowProdSearch(el, i, pi) {
+  const id = el.value.trim() ? resolveProdInput(el) : null;
+  if (!id) { el.value = el.dataset.prev || prodDisplay(state.flow.steps[i].prods[pi]); return; }
+  onFlowProdId(i, pi, id);
+}
+function addFlowProd(i) {
+  const s = state.flow.steps[i];
+  if (s.prods.length >= FLOW_PROD_MAX) return;
+  s.prods.push((PRODUCTS[0] && PRODUCTS[0].id) || '');
+  s.name = null;
+  flowRefresh();
+}
+function delFlowProd(i, pi) {
+  const s = state.flow.steps[i];
+  if (s.prods.length <= 1) return;
+  s.prods.splice(pi, 1);
+  s.name = null;
+  if (pi === 0) s.desc = null;
+  flowRefresh();
+}
+function addFlowStep() {
+  const f = state.flow;
+  if (f.steps.length >= FLOW_MAX) return;
+  f.steps.push({ label: '', prods: [(PRODUCTS[0] && PRODUCTS[0].id) || ''], name: null, desc: null });
+  flowRefresh();
+}
+function delFlowStep(i) {
+  if (state.flow.steps.length <= FLOW_MIN) return;
+  state.flow.steps.splice(i, 1);
+  flowRefresh();
+}
+function moveFlowStep(i, d) {
+  const a = state.flow.steps, j = i + d;
+  if (j < 0 || j >= a.length) return;
+  [a[i], a[j]] = [a[j], a[i]];
+  flowRefresh();
+}
+/* 上傳 QR 圖片：縮到最長邊 600px 存成 dataURL（只存在記憶體，F5 即重設） */
+function onQrUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 600 / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(img.width * k));
+      cv.height = Math.max(1, Math.round(img.height * k));
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      state.flow.qrImg = cv.toDataURL('image/png');
+      flowRefresh();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeQrImg() { state.flow.qrImg = ''; flowRefresh(); }
+
+/* 流程版面時：隱藏「選擇版面」與標題欄，「編輯內容」改為第 2 節 */
+function syncFlowUI() {
+  const flow = layout === 'flow';
+  const secLayout = document.getElementById('sec-layout');
+  if (secLayout) secLayout.parentElement.style.display = flow ? 'none' : '';
+  const tag = document.getElementById('dm-tagline');
+  if (tag) tag.parentElement.style.display = flow ? 'none' : '';
+  const sc = document.getElementById('sec-content');
+  if (sc) sc.textContent = flow ? t('secContent').replace(/^3\./, '2.') : t('secContent');
+}
 
 /* ══════════════════════════════════════════════
    HELPERS
@@ -1774,7 +2248,8 @@ const FTR = '../沙龍DM公版/公版DM_2.jpg';
 function renderDM() {
   const tag = document.getElementById('dm-tagline')?.value || '';
   const subtitle = document.getElementById('dm-subtitle')?.value || '';
-  const body = layout === 'four' ? renderFour(tag)
+  const body = layout === 'flow' ? renderFlow()
+             : layout === 'four' ? renderFour(tag)
              : layout === 'two'  ? renderTwo(tag)
              : renderOne(tag, subtitle);
   const sheet = document.getElementById('dm-sheet');
@@ -2044,6 +2519,7 @@ function unifyTwoRows() {
 
 /* 渲染後統一入口：先收斂主/副標行數，再依版面縮放 */
 function fitDM() {
+  if (layout === 'flow') { fitFlow(); return; }
   fitHeadingLine('.dm-tagline', 2);
   fitHeadingLine('.dm-subtitle', 2);
   if (layout === 'one') fitOneGrid();
@@ -2314,7 +2790,9 @@ function cellEditor(idx, title) {
 function buildEditorBlocks() {
   buildProdDatalist();   // 搜尋選單的選項（依當前語言）
   let html = '';
-  if (layout === 'four') {
+  if (layout === 'flow') {
+    html = flowEditor();
+  } else if (layout === 'four') {
     html = cellEditor(0,t('cellA')) + cellEditor(1,t('cellB')) +
            cellEditor(2,t('cellC')) + cellEditor(3,t('cellD'));
   } else if (layout === 'two') {
@@ -2563,12 +3041,15 @@ function deleteTwoProd(ci, pi) {
 }
 
 function setLayout(l) {
-  taglines[layout] = document.getElementById('dm-tagline')?.value || '';
-  subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
+  if (layout !== 'flow') {   // 流程版面沒有標題／副標，不覆寫其他版面的暫存
+    taglines[layout] = document.getElementById('dm-tagline')?.value || '';
+    subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
+  }
   layout = l;
   ['four','two','one'].forEach(k =>
     document.getElementById('opt-'+k).classList.toggle('active', k === l));
-  document.getElementById('dm-tagline').value = taglines[l];
+  if (l !== 'flow') document.getElementById('dm-tagline').value = taglines[l];
+  syncFlowUI();
   const subtitleField = document.getElementById('dm-subtitle-field');
   const subtitleInput = document.getElementById('dm-subtitle');
   if (subtitleField) subtitleField.style.display = l === 'one' ? '' : 'none';
@@ -2626,6 +3107,12 @@ function ensureExportLibs() {
 
 async function generateCanvas() {
   await ensureExportLibs();
+  /* 流程版面：QR 函式庫與細體數字字型就緒後再重繪，避免匯出到佔位圖／替代字型 */
+  if (layout === 'flow') {
+    if (!state.flow.qrImg && (state.flow.qrUrl || '').trim()) { try { await ensureQrLib(); } catch (e) {} }
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+    renderDM();
+  }
   /* 直接渲染真正的 #dm-sheet（不用 proxy）：樣式天生與預覽一致，
      也避免「重複 id」造成 html2canvas 卡死。
      渲染前暫時把預覽縮放(transform)設為 1，使輸出為原生 A4 尺寸，完成後還原。 */
