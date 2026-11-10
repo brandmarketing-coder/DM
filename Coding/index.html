@@ -541,8 +541,9 @@ body {
 /* ══ 流程版面（直式 3 專用）：步驟膠囊＋連接箭頭／商品圖／品名＋說明；底部價格列＋QR ══
    座標皆為 595×842 頁面上的絕對像素（renderFlow 依步驟數算列高，免量測）。 */
 .dm-flow { position: absolute; inset: 0; color: #333; }
-.flow-steps { position: absolute; left: 0; right: 0; top: 244px; height: 510px; }
-.flow-row { display: flex; align-items: stretch; }
+.flow-steps { position: absolute; left: 0; right: 0; top: 244px; height: 510px; display: flex; flex-direction: column; }
+/* 列高＝內容高＋平分剩餘空間：內容相近時等距；某步說明較長時向其他列借空間 */
+.flow-row { display: flex; align-items: stretch; flex: 1 1 auto; min-height: 0; }
 .flow-left {
   width: 187px; flex-shrink: 0; padding-left: 47px; box-sizing: border-box;
   display: flex; flex-direction: column; align-items: center;
@@ -601,32 +602,48 @@ body {
 
 /* 編輯區：流程步驟卡片 */
 .flow-step-ed { background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
-.flow-step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.flow-step-head b { font-size: 11px; color: #555; }
-.flow-step-tools { display: flex; gap: 4px; }
-.flow-tool {
-  border: 1px solid #d6d6d6; background: #fff; color: #444; border-radius: 4px;
-  font-size: 11px; padding: 3px 8px; cursor: pointer; line-height: 1.2;
+.flow-step-no { font-size: 11px; color: #555; }
+/* 卡片標題列：左＝名稱，右＝工具圖示（排序在前、刪除以間隔分開，避免誤觸） */
+.ed-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; min-height: 28px; }
+.ed-card-tools { display: flex; align-items: center; gap: 4px; }
+.ed-tools-sep { width: 1px; height: 18px; background: #e2e2e2; margin: 0 4px; }
+/* 清單標題列：左＝欄位名，右＝新增圖示 */
+.ed-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; min-height: 28px; }
+.ed-list-head .field-lbl { margin-bottom: 0; }
+.ic-btn {
+  width: 28px; height: 28px; padding: 0; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid #dcdcdc; border-radius: 6px; background: #fff; color: #555;
+  cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.flow-tool:hover:not(:disabled) { border-color: #5aaa6a; color: #2d6235; }
-.flow-tool:disabled { opacity: 0.35; cursor: default; }
-.flow-tool.is-del { color: #c53030; }
-.flow-tool.is-del:hover:not(:disabled) { border-color: #e53e3e; color: #c53030; }
+.ic-btn:hover:not(:disabled) { border-color: #5aaa6a; color: #2d6235; }
+.ic-btn:disabled { opacity: 0.3; cursor: default; }
+.ic-btn.is-add { border-color: #3a7d44; background: #3a7d44; color: #fff; }
+.ic-btn.is-add:hover { background: #2d6235; border-color: #2d6235; color: #fff; }
+.ic-btn.is-del { color: #b3261e; }
+.ic-btn.is-del:hover:not(:disabled) { border-color: #e53e3e; background: #fff5f5; color: #c53030; }
+@media (pointer: coarse) {
+  .ic-btn { width: 34px; height: 34px; }
+  .ed-card-head, .ed-list-head { min-height: 34px; }
+  .ed-card-tools { gap: 6px; }
+}
 .flow-add {
-  width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px;
+  width: 100%; background: #3a7d44; color: white; border: none; padding: 9px; border-radius: 6px;
   font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.flow-add:hover:not(:disabled) { background: #2d6235; }
-.flow-add.is-sub { background: #f0eeeb; color: #3a7d44; font-weight: 600; margin: 2px 0 8px; padding: 6px; }
-.flow-add.is-sub:hover { background: #e6e3de; }
+.flow-add:hover { background: #2d6235; }
 .flow-prod-line { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
 .flow-prod-line img { width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0; }
 .flow-ed-field { margin-bottom: 8px; }
 .flow-ed-field textarea.field-input { resize: vertical; line-height: 1.5; font-family: inherit; }
-.flow-hint { font-size: 10.5px; color: #999; margin-top: 3px; }
-.qr-ed-row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.qr-ed-row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
 .qr-ed-row img { width: 56px; height: 56px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #EFF1EE; }
-.qr-file-btn { display: inline-block; border: 1px solid #3a7d44; color: #3a7d44; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; background: #fff; }
+.qr-file-btn {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid #3a7d44; color: #3a7d44;
+  border-radius: 6px; padding: 7px 12px; font-size: 12px; cursor: pointer; background: #fff;
+}
+.qr-file-btn:hover { background: #f1f7f2; }
 .qr-file-btn input { display: none; }
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
@@ -1015,7 +1032,7 @@ body {
             value="永續美妝 Sustainable Beauty" oninput="renderDM()">
         </div>
         <div id="dm-subtitle-field" style="margin-bottom:4px; display:none">
-          <label class="field-lbl" id="lbl-subtitle">副標題（選填）</label>
+          <label class="field-lbl" id="lbl-subtitle">副標題</label>
           <input type="text" id="dm-subtitle" class="field-input"
             value="" placeholder="例：抗暑，從頭噴到腳底的救星" oninput="renderDM()">
         </div>
@@ -1134,24 +1151,24 @@ const UI = {
     secBg: '1. 選擇底圖', secLayout: '2. 選擇版面', secContent: '3. 編輯內容',
     bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgP3: '直式 3', bgH4: '大促橫式', bgGroupP: '直式', bgGroupL: '橫式',
     layFour: '四格', layTwo: '兩格', layOne: '一格',
-    taglineLabel: '標題文字', subtitleLabel: '副標題（選填）', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
-    cellA: '格 A（左上）', cellB: '格 B（右上）', cellC: '格 C（左下）', cellD: '格 D（右下）',
+    taglineLabel: '標題文字', subtitleLabel: '副標題', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
+    cellA: '格 A', cellB: '格 B', cellC: '格 C', cellD: '格 D',
     blockTop: '上方區塊', blockBottom: '下方區塊', blockOne: '商品',
-    mainProduct: '主商品', giftProduct: '贈品（可不選）', giftNone: '— 不顯示贈品 —',
-    giftLabelField: '贈品標籤文字（如：致贈、附贈、組合）', giftPh: '致贈',
-    headlineField: '標題／促銷標語（選填）', headlinePh: '例：強健髮根 甦醒美麗',
-    descField: '用途說明／產品描述（自動帶入主商品用途，可修改；清空則不顯示）', descPh: '選擇商品後自動帶入',
+    mainProduct: '主商品', giftProduct: '贈品', giftNone: '— 不顯示贈品 —',
+    giftLabelField: '贈品標籤文字', giftPh: '致贈',
+    headlineField: '標題／促銷標語', headlinePh: '例：強健髮根 甦醒美麗',
+    descField: '用途說明／產品描述', descPh: '選擇商品後自動帶入',
     priceLabel: '售價', origLabel: '原價',
-    prodList: '商品清單 (最多 3 個)', addProduct: '新增商品', deleteProduct: '刪除此商品',
-    flowSteps: '流程步驟（2～5 步）', flowStep: '步驟', flowLabel: '步驟名稱（可換行）', flowLabelPh: '例：淨化',
-    flowProds: '商品（每步驟最多 2 個）', flowAddProd: '＋ 新增商品', flowName: '品名（自動帶入，可修改）',
-    flowDesc: '說明（自動帶入產品介紹，可修改）', flowAddStep: '＋ 新增步驟', flowUp: '↑ 上移', flowDown: '↓ 下移', flowDel: '刪除',
+    prodList: '商品清單', addProduct: '新增商品', deleteProduct: '刪除此商品',
+    flowSteps: '流程步驟', flowStep: '步驟', flowLabel: '步驟名稱', flowLabelPh: '例：淨化',
+    flowProds: '商品', flowAddProd: '新增商品', flowName: '品名',
+    flowDesc: '說明', flowAddStep: '新增步驟', flowUp: '上移', flowDown: '下移', flowDel: '刪除',
     flowPriceSec: '價格', flowPriceLabel: '價格標語', flowPrice: '價格',
-    qrSec: 'QR Code', qrLabel: 'QR 上方文字', qrUrl: 'QR 連結網址（自動產生 QR Code）', qrUpload: '或上傳 QR 圖片',
-    qrRemove: '移除圖片，改用連結', qrUsingImg: '目前使用上傳的圖片', qrHint: '連結留空且未上傳圖片＝不顯示 QR Code',
-    prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品 (贈品)',
-    usageField: '用途說明（自動帶入該商品「用途」，可修改）', usagePh: '選擇商品後自動帶入',
-    product: '商品', giftLabelField2: '贈品標籤文字（如：致贈、附贈）',
+    qrSec: 'QR Code', qrLabel: 'QR 上方文字', qrUrl: 'QR 連結網址', qrUpload: '上傳 QR 圖片',
+    qrRemove: '移除圖片',
+    prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品',
+    usageField: '用途說明', usagePh: '選擇商品後自動帶入',
+    product: '商品', giftLabelField2: '贈品標籤文字',
     exportNote: '* 匯出將依目前預覽內容產生 PDF，格式為 A4 {o} *', exportMain: '匯出 PDF (A4 {o})',
     orientP: '直式', orientL: '橫式',
     generating: '產生中&hellip;', pdfFail: 'PDF 產生失敗，請改用瀏覽器列印（Ctrl+P / 分享→列印）。', jpgFail: 'JPG 產生失敗。',
@@ -1167,24 +1184,24 @@ const UI = {
     secBg: '1. Background', secLayout: '2. Layout', secContent: '3. Content',
     bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgP3: 'Portrait 3', bgH4: 'Sale landscape', bgGroupP: 'Portrait', bgGroupL: 'Landscape',
     layFour: '4-grid', layTwo: '2-grid', layOne: '1-grid',
-    taglineLabel: 'Title', subtitleLabel: 'Subtitle (optional)', subtitlePh: 'e.g. a short catchphrase',
-    cellA: 'Cell A (top-left)', cellB: 'Cell B (top-right)', cellC: 'Cell C (bottom-left)', cellD: 'Cell D (bottom-right)',
+    taglineLabel: 'Title', subtitleLabel: 'Subtitle', subtitlePh: 'e.g. a short catchphrase',
+    cellA: 'Cell A', cellB: 'Cell B', cellC: 'Cell C', cellD: 'Cell D',
     blockTop: 'Top block', blockBottom: 'Bottom block', blockOne: 'Product',
-    mainProduct: 'Main product', giftProduct: 'Gift (optional)', giftNone: '— No gift —',
-    giftLabelField: 'Gift label (e.g. Gift, Free, Set)', giftPh: 'Gift',
-    headlineField: 'Headline / slogan (optional)', headlinePh: 'e.g. Strong roots, radiant beauty',
-    descField: 'Description (auto-filled from main product, editable; clear to hide)', descPh: 'Auto-filled after selecting a product',
+    mainProduct: 'Main product', giftProduct: 'Gift', giftNone: '— No gift —',
+    giftLabelField: 'Gift label', giftPh: 'Gift',
+    headlineField: 'Headline / slogan', headlinePh: 'e.g. Strong roots, radiant beauty',
+    descField: 'Description', descPh: 'Auto-filled after selecting a product',
     priceLabel: 'Price', origLabel: 'Orig. price',
-    prodList: 'Products (max 3)', addProduct: 'Add product', deleteProduct: 'Remove',
-    flowSteps: 'Steps (2–5)', flowStep: 'Step', flowLabel: 'Step name (line breaks allowed)', flowLabelPh: 'e.g. Cleanse',
-    flowProds: 'Products (max 2 per step)', flowAddProd: '+ Add product', flowName: 'Name (auto, editable)',
-    flowDesc: 'Description (auto from product intro, editable)', flowAddStep: '+ Add step', flowUp: '↑ Up', flowDown: '↓ Down', flowDel: 'Delete',
+    prodList: 'Products', addProduct: 'Add product', deleteProduct: 'Remove',
+    flowSteps: 'Steps', flowStep: 'Step', flowLabel: 'Step name', flowLabelPh: 'e.g. Cleanse',
+    flowProds: 'Products', flowAddProd: 'Add product', flowName: 'Name',
+    flowDesc: 'Description', flowAddStep: 'Add step', flowUp: 'Move up', flowDown: 'Move down', flowDel: 'Delete',
     flowPriceSec: 'Price', flowPriceLabel: 'Price caption', flowPrice: 'Price',
-    qrSec: 'QR Code', qrLabel: 'Text above QR', qrUrl: 'QR link (QR code generated automatically)', qrUpload: 'Or upload a QR image',
-    qrRemove: 'Remove image, use link', qrUsingImg: 'Using the uploaded image', qrHint: 'Empty link and no image = QR code hidden',
-    prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary (gift)',
-    usageField: 'Usage (auto-filled, editable)', usagePh: 'Auto-filled after selecting a product',
-    product: 'Product', giftLabelField2: 'Gift label (e.g. Gift, Free)',
+    qrSec: 'QR Code', qrLabel: 'Text above QR', qrUrl: 'QR link', qrUpload: 'Upload QR image',
+    qrRemove: 'Remove image',
+    prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary',
+    usageField: 'Usage', usagePh: 'Auto-filled after selecting a product',
+    product: 'Product', giftLabelField2: 'Gift label',
     exportNote: '* Exports a PDF of the current preview, A4 {o} *', exportMain: 'Export PDF (A4 {o})',
     orientP: 'portrait', orientL: 'landscape',
     generating: 'Generating&hellip;', pdfFail: 'PDF export failed. Please print from the browser instead (Ctrl+P).', jpgFail: 'JPG export failed.',
@@ -1200,24 +1217,24 @@ const UI = {
     secBg: '1. Tło', secLayout: '2. Układ', secContent: '3. Treść',
     bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgP3: 'Pionowy 3', bgH4: 'Promo poziomy', bgGroupP: 'Pionowe', bgGroupL: 'Poziome',
     layFour: '4 pola', layTwo: '2 pola', layOne: '1 pole',
-    taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł (opcjonalnie)', subtitlePh: 'np. krótkie hasło',
-    cellA: 'Pole A (lewy górny)', cellB: 'Pole B (prawy górny)', cellC: 'Pole C (lewy dolny)', cellD: 'Pole D (prawy dolny)',
+    taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł', subtitlePh: 'np. krótkie hasło',
+    cellA: 'Pole A', cellB: 'Pole B', cellC: 'Pole C', cellD: 'Pole D',
     blockTop: 'Blok górny', blockBottom: 'Blok dolny', blockOne: 'Produkt',
-    mainProduct: 'Produkt główny', giftProduct: 'Prezent (opcjonalnie)', giftNone: '— Bez prezentu —',
-    giftLabelField: 'Etykieta prezentu (np. Prezent, Gratis)', giftPh: 'Prezent',
-    headlineField: 'Nagłówek / hasło (opcjonalnie)', headlinePh: 'np. Mocne cebulki, promienne piękno',
-    descField: 'Opis (wypełniany automatycznie z produktu głównego; wyczyść, aby ukryć)', descPh: 'Wypełniane po wybraniu produktu',
+    mainProduct: 'Produkt główny', giftProduct: 'Prezent', giftNone: '— Bez prezentu —',
+    giftLabelField: 'Etykieta prezentu', giftPh: 'Prezent',
+    headlineField: 'Nagłówek / hasło', headlinePh: 'np. Mocne cebulki, promienne piękno',
+    descField: 'Opis', descPh: 'Wypełniane po wybraniu produktu',
     priceLabel: 'Cena', origLabel: 'Cena pierwotna',
-    prodList: 'Produkty (maks. 3)', addProduct: 'Dodaj produkt', deleteProduct: 'Usuń',
-    flowSteps: 'Kroki (2–5)', flowStep: 'Krok', flowLabel: 'Nazwa kroku (można łamać linie)', flowLabelPh: 'np. Oczyszczanie',
-    flowProds: 'Produkty (maks. 2 na krok)', flowAddProd: '+ Dodaj produkt', flowName: 'Nazwa (automatycznie, edytowalna)',
-    flowDesc: 'Opis (automatycznie z opisu produktu, edytowalny)', flowAddStep: '+ Dodaj krok', flowUp: '↑ W górę', flowDown: '↓ W dół', flowDel: 'Usuń',
+    prodList: 'Produkty', addProduct: 'Dodaj produkt', deleteProduct: 'Usuń',
+    flowSteps: 'Kroki', flowStep: 'Krok', flowLabel: 'Nazwa kroku', flowLabelPh: 'np. Oczyszczanie',
+    flowProds: 'Produkty', flowAddProd: 'Dodaj produkt', flowName: 'Nazwa',
+    flowDesc: 'Opis', flowAddStep: 'Dodaj krok', flowUp: 'W górę', flowDown: 'W dół', flowDel: 'Usuń',
     flowPriceSec: 'Cena', flowPriceLabel: 'Podpis ceny', flowPrice: 'Cena',
-    qrSec: 'Kod QR', qrLabel: 'Tekst nad kodem QR', qrUrl: 'Link QR (kod generowany automatycznie)', qrUpload: 'Lub prześlij obraz QR',
-    qrRemove: 'Usuń obraz, użyj linku', qrUsingImg: 'Używany jest przesłany obraz', qrHint: 'Pusty link i brak obrazu = brak kodu QR',
-    prodType: 'Typ', roleMain: 'Główny', roleSub: 'Dodatkowy (prezent)',
-    usageField: 'Zastosowanie (wypełniane automatycznie)', usagePh: 'Wypełniane po wybraniu produktu',
-    product: 'Produkt', giftLabelField2: 'Etykieta prezentu (np. Prezent)',
+    qrSec: 'Kod QR', qrLabel: 'Tekst nad kodem QR', qrUrl: 'Link QR', qrUpload: 'Prześlij obraz QR',
+    qrRemove: 'Usuń obraz',
+    prodType: 'Typ', roleMain: 'Główny', roleSub: 'Dodatkowy',
+    usageField: 'Zastosowanie', usagePh: 'Wypełniane po wybraniu produktu',
+    product: 'Produkt', giftLabelField2: 'Etykieta prezentu',
     exportNote: '* Eksportuje PDF bieżącego podglądu, A4 {o} *', exportMain: 'Eksport PDF (A4 {o})',
     orientP: 'pionowy', orientL: 'poziomy',
     generating: 'Generowanie&hellip;', pdfFail: 'Eksport PDF nie powiódł się. Użyj drukowania w przeglądarce (Ctrl+P).', jpgFail: 'Eksport JPG nie powiódł się.',
@@ -1571,7 +1588,7 @@ const subtitles = {
 /* ══════════════════════════════════════════════
    流程版面（直式 3 專用）
    步驟：{ label 步驟名稱, prods [商品 id ×1~2], name 品名, desc 說明 }
-   name/desc 為 null＝自動（品名去容量／CSV「介紹」，隨語言切換）；使用者修改後存字串。
+   name/desc 為 null＝自動（品名去容量／CSV「用途」，隨語言切換）；使用者修改後存字串。
 ══════════════════════════════════════════════ */
 const FLOW_MIN = 2, FLOW_MAX = 5, FLOW_PROD_MAX = 2;
 const FLOW_LABEL_PRESETS = [   /* 切語言時，仍為預設值的步驟名稱自動翻譯；自訂者保留 */
@@ -1597,6 +1614,18 @@ state.flow = {
   qrLabel: QR_LABELS.zh,
 };
 
+/* 編輯區圖示按鈕（新增／上移／下移／刪除）：文字放 title＋aria-label，畫面只留圖示 */
+const ICON = {
+  plus:   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  up:     '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>',
+  down:   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+  trash:  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+  upload: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+};
+function iconBtn(icon, onclick, label, cls = '', disabled = false) {
+  return `<button type="button" class="ic-btn ${cls}" onclick="${onclick}" title="${label}" aria-label="${label}"${disabled ? ' disabled' : ''}>${ICON[icon]}</button>`;
+}
+
 const flowEsc = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -1620,7 +1649,7 @@ function stepName(s) {
 function stepDesc(s) {
   if (s.desc != null) return s.desc;
   const c = getCopy(s.prods[0]);
-  return c && c.intro ? c.intro.trim() : '';
+  return c && c.usage ? c.usage.trim() : '';
 }
 
 /* ── QR Code：連結 → 以 qrcode-generator（cdnjs 固定版本，切到流程版面才載入）產生 PNG ── */
@@ -1681,7 +1710,7 @@ function renderFlow() {
       `<img src="${enc(p.img)}" alt="" style="height:${imgH}px" onerror="this.style.opacity=0.1">`).join('');
     const desc = stepDesc(s);
     return `
-      <div class="flow-row" style="height:${rowH.toFixed(2)}px">
+      <div class="flow-row">
         <div class="flow-left">
           <div class="flow-conn is-top${i ? '' : ' is-blank'}">${i ? `<img class="flow-arrow" src="${FLOW_ARROW}" alt="">` : ''}</div>
           <div class="flow-pill"><span class="flow-num">${i + 1}</span><span class="flow-label">${flowEsc(s.label)}</span></div>
@@ -1731,12 +1760,14 @@ function renderFlow() {
 function fitFlow() {
   const q = s => [...document.querySelectorAll('#dm-sheet ' + s)];
   const rows = q('.flow-row');
-  shrinkStages(() => Math.max(0, ...rows.map(overOf)), [
+  const steps = document.querySelector('#dm-sheet .flow-steps');
+  shrinkStages(() => Math.max(0, overOf(steps), ...rows.map(overOf)), [
     fontStep(q('.flow-desc'), 0.85),
     fontStep(q('.flow-name'), 0.85),
     sizeStep(q('.flow-imgs img'), 0.6, true),   // 只縮高，寬度隨比例（圖未載入時寬為 0，不可鎖寬）
     fontStep(q('.flow-label'), 0.8),
     fontStep([...q('.flow-desc'), ...q('.flow-name'), ...q('.flow-label')], 0.7),
+    sizeStep(q('.flow-imgs img'), 0.4, true),   // 極端（5 步＋外文長說明）：商品圖再讓位
   ]);
   const group = document.querySelector('#dm-sheet .flow-price-group');
   if (!group) return;
@@ -1761,16 +1792,17 @@ function flowEditor() {
       <div class="flow-prod-line">
         <img src="${enc(getProd(id).img)}" alt="">
         <div style="flex:1;min-width:0">${prodSearchInput(id, `onFlowProdSearch(this,${i},${pi})`, false, `onFlowProdId(${i},${pi},this.value)`)}</div>
-        ${s.prods.length > 1 ? `<button type="button" class="flow-tool is-del" onclick="delFlowProd(${i},${pi})" title="${t('flowDel')}">✕</button>` : ''}
+        ${s.prods.length > 1 ? iconBtn('trash', `delFlowProd(${i},${pi})`, t('deleteProduct'), 'is-del') : ''}
       </div>`).join('');
     return `
       <div class="flow-step-ed">
-        <div class="flow-step-head">
-          <b>${t('flowStep')} ${i + 1}</b>
-          <div class="flow-step-tools">
-            <button type="button" class="flow-tool" onclick="moveFlowStep(${i},-1)" ${i === 0 ? 'disabled' : ''}>${t('flowUp')}</button>
-            <button type="button" class="flow-tool" onclick="moveFlowStep(${i},1)" ${i === n - 1 ? 'disabled' : ''}>${t('flowDown')}</button>
-            <button type="button" class="flow-tool is-del" onclick="delFlowStep(${i})" ${n <= FLOW_MIN ? 'disabled' : ''}>${t('flowDel')}</button>
+        <div class="ed-card-head">
+          <b class="flow-step-no">${t('flowStep')} ${i + 1}</b>
+          <div class="ed-card-tools">
+            ${iconBtn('up', `moveFlowStep(${i},-1)`, t('flowUp'), '', i === 0)}
+            ${iconBtn('down', `moveFlowStep(${i},1)`, t('flowDown'), '', i === n - 1)}
+            <span class="ed-tools-sep"></span>
+            ${iconBtn('trash', `delFlowStep(${i})`, t('flowDel'), 'is-del', n <= FLOW_MIN)}
           </div>
         </div>
         <div class="flow-ed-field">
@@ -1778,9 +1810,11 @@ function flowEditor() {
           <textarea class="field-input" rows="2" placeholder="${t('flowLabelPh')}" oninput="onFlowStep(${i},'label',this.value)">${flowEsc(s.label)}</textarea>
         </div>
         <div class="flow-ed-field">
-          <label class="field-lbl">${t('flowProds')}</label>
+          <div class="ed-list-head">
+            <span class="field-lbl">${t('flowProds')}</span>
+            ${s.prods.length < FLOW_PROD_MAX ? iconBtn('plus', `addFlowProd(${i})`, t('flowAddProd'), 'is-add') : ''}
+          </div>
           ${prods}
-          ${s.prods.length < FLOW_PROD_MAX ? `<button type="button" class="flow-add is-sub" onclick="addFlowProd(${i})">${t('flowAddProd')}</button>` : ''}
         </div>
         <div class="flow-ed-field">
           <label class="field-lbl">${t('flowName')}</label>
@@ -1792,14 +1826,11 @@ function flowEditor() {
         </div>
       </div>`;
   }).join('');
-  const addStep = n < FLOW_MAX ? `<button type="button" class="flow-add" onclick="addFlowStep()">${t('flowAddStep')}</button>` : '';
+  const addStep = n < FLOW_MAX ? `<button type="button" class="flow-add" onclick="addFlowStep()">${ICON.plus}<span>${t('flowAddStep')}</span></button>` : '';
   const qrImgRow = f.qrImg ? `
       <div class="qr-ed-row">
         <img src="${f.qrImg}" alt="">
-        <div>
-          <div class="flow-hint" style="margin:0 0 6px">${t('qrUsingImg')}</div>
-          <button type="button" class="flow-tool is-del" onclick="removeQrImg()">${t('qrRemove')}</button>
-        </div>
+        ${iconBtn('trash', 'removeQrImg()', t('qrRemove'), 'is-del')}
       </div>` : '';
   return `
     <div class="block-ed">
@@ -1814,7 +1845,7 @@ function flowEditor() {
         <input type="text" class="field-input" value="${flowEsc(f.priceLabel)}" oninput="onFlowField('priceLabel',this.value)">
       </div>
       <div class="flow-ed-field" style="margin-bottom:0">
-        <label class="field-lbl">${t('flowPrice')}${paren(CUR_UNIT[lang])}</label>
+        <label class="field-lbl">${t('flowPrice')}</label>
         <input type="text" class="field-input" inputmode="decimal" value="${flowEsc(dispPrice(f))}" oninput="onFlowPrice(this.value)">
       </div>
     </div>
@@ -1829,9 +1860,8 @@ function flowEditor() {
         <input type="url" class="field-input" value="${flowEsc(f.qrUrl)}" placeholder="${QR_DEFAULT_URL}" ${f.qrImg ? 'disabled' : ''}
           oninput="onFlowField('qrUrl',this.value)">
       </div>
-      <label class="qr-file-btn">${t('qrUpload')}<input type="file" accept="image/*" onchange="onQrUpload(this)"></label>
+      <label class="qr-file-btn">${ICON.upload}<span>${t('qrUpload')}</span><input type="file" accept="image/*" onchange="onQrUpload(this)"></label>
       ${qrImgRow}
-      <div class="flow-hint">${t('qrHint')}</div>
     </div>`;
 }
 
@@ -2650,25 +2680,17 @@ function cellEditor(idx, title) {
   if (layout === 'one') {
     const c = state.one[0];
     const prodsHtml = c.products.map((p, i) => oneGridProductEditor(p, i)).join('');
-    
-    const addProdBtn = c.products.length < 3 ? `
-      <button type="button" style="width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s;"
-        onclick="addOneProd()"
-        onmouseover="this.style.background='#2d6235'" 
-        onmouseout="this.style.background='#3a7d44'">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        ${t('addProduct')}
-      </button>
-    ` : '';
 
     return `
       <div class="block-ed">
         <div class="block-ed-title">${title}</div>
 
         <div style="margin-bottom: 12px;">
-          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">${t('prodList')}</span>
+          <div class="ed-list-head">
+            <span class="field-lbl">${t('prodList')}</span>
+            ${c.products.length < 3 ? iconBtn('plus', 'addOneProd()', t('addProduct'), 'is-add') : ''}
+          </div>
           ${prodsHtml}
-          ${addProdBtn}
         </div>
 
         <div class="headline-field">
@@ -2679,12 +2701,12 @@ function cellEditor(idx, title) {
         </div>
         <div class="price-pair">
           <div class="price-slot">
-            <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
+            <label>${t('priceLabel')}</label>
             <input type="text" class="price-input" value="${dispPrice(c)}"
               oninput="onField(${idx},'price',this.value)">
           </div>
           <div class="price-slot">
-            <label>${t('origLabel')}${paren(CUR_UNIT[lang])}</label>
+            <label>${t('origLabel')}</label>
             <input type="text" class="price-input" value="${dispOrig(c)}"
               oninput="onField(${idx},'origPrice',this.value)">
           </div>
@@ -2696,21 +2718,15 @@ function cellEditor(idx, title) {
   if (layout === 'two') {
     const c = state.two[idx];
     const prodsHtml = c.products.map((p, i) => twoGridProductEditor(idx, p, i)).join('');
-    const addBtn = c.products.length < 3 ? `
-      <button type="button" style="width: 100%; background: #3a7d44; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s;"
-        onclick="addTwoProd(${idx})"
-        onmouseover="this.style.background='#2d6235'"
-        onmouseout="this.style.background='#3a7d44'">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        ${t('addProduct')}
-      </button>` : '';
     return `
       <div class="block-ed">
         <div class="block-ed-title">${title}</div>
         <div style="margin-bottom: 12px;">
-          <span class="field-lbl" style="font-weight: 700; margin-bottom: 8px; display: block;">${t('prodList')}</span>
+          <div class="ed-list-head">
+            <span class="field-lbl">${t('prodList')}</span>
+            ${c.products.length < 3 ? iconBtn('plus', `addTwoProd(${idx})`, t('addProduct'), 'is-add') : ''}
+          </div>
           ${prodsHtml}
-          ${addBtn}
         </div>
         <div class="headline-field">
           <label class="field-lbl">${t('headlineField')}</label>
@@ -2726,12 +2742,12 @@ function cellEditor(idx, title) {
         </div>
         <div class="price-pair">
           <div class="price-slot">
-            <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
+            <label>${t('priceLabel')}</label>
             <input type="text" class="price-input" value="${dispPrice(c)}"
               oninput="onField(${idx},'price',this.value)">
           </div>
           <div class="price-slot">
-            <label>${t('origLabel')}${paren(CUR_UNIT[lang])}</label>
+            <label>${t('origLabel')}</label>
             <input type="text" class="price-input" value="${dispOrig(c)}"
               oninput="onField(${idx},'origPrice',this.value)">
           </div>
@@ -2774,12 +2790,12 @@ function cellEditor(idx, title) {
       </div>
       <div class="price-pair">
         <div class="price-slot">
-          <label>${t('priceLabel')}${paren(CUR_UNIT[lang])}</label>
+          <label>${t('priceLabel')}</label>
           <input type="text" class="price-input" value="${dispPrice(c)}"
             oninput="onField(${idx},'price',this.value)">
         </div>
         <div class="price-slot">
-          <label>${t('origLabel')}${paren(CUR_UNIT[lang])}</label>
+          <label>${t('origLabel')}</label>
           <input type="text" class="price-input" value="${dispOrig(c)}"
             oninput="onField(${idx},'origPrice',this.value)">
         </div>
@@ -2873,20 +2889,11 @@ function oneGridProductEditor(p, prodIdx) {
     </div>
   `;
 
-  // Delete button (for any product other than the first one)
-  const deleteBtn = prodIdx > 0 ? `
-    <button type="button" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 8px; transition: background 0.15s;" 
-      onclick="deleteOneProd(${prodIdx})"
-      onmouseover="this.style.background='#c53030'" 
-      onmouseout="this.style.background='#e53e3e'">
-      ${t('deleteProduct')}
-    </button>
-  ` : '';
-
   return `
     <div style="background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+      <div class="ed-card-head">
         <span style="font-size: 11px; font-weight: 700; color: #555;">${t('product')} ${prodIdx + 1}</span>
+        ${prodIdx > 0 ? iconBtn('trash', `deleteOneProd(${prodIdx})`, t('deleteProduct'), 'is-del') : ''}
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" id="th-one-${prodIdx}" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
@@ -2895,7 +2902,6 @@ function oneGridProductEditor(p, prodIdx) {
       ${roleSelect}
       ${giftLabelInput}
       ${usageInput}
-      ${deleteBtn}
     </div>
   `;
 }
@@ -2982,17 +2988,11 @@ function twoGridProductEditor(cellIdx, p, prodIdx) {
         value="${giftLabelOf(p)}" placeholder="${t('giftLabelClear')}"
         oninput="onTwoProdField(${cellIdx},${prodIdx},'giftLabel',this.value)">
     </div>` : '';
-  const deleteBtn = prodIdx > 0 ? `
-    <button type="button" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 8px; transition: background 0.15s;"
-      onclick="deleteTwoProd(${cellIdx},${prodIdx})"
-      onmouseover="this.style.background='#c53030'"
-      onmouseout="this.style.background='#e53e3e'">
-      ${t('deleteProduct')}
-    </button>` : '';
   return `
     <div style="background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+      <div class="ed-card-head">
         <span style="font-size: 11px; font-weight: 700; color: #555;">${t('product')} ${prodIdx + 1}</span>
+        ${prodIdx > 0 ? iconBtn('trash', `deleteTwoProd(${cellIdx},${prodIdx})`, t('deleteProduct'), 'is-del') : ''}
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
         <img class="prod-thumb" src="${enc(prod.img)}" alt="" style="width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0;">
@@ -3000,7 +3000,6 @@ function twoGridProductEditor(cellIdx, p, prodIdx) {
       </div>
       ${roleSelect}
       ${giftLabelInput}
-      ${deleteBtn}
     </div>`;
 }
 
