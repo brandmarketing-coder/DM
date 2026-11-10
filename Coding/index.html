@@ -531,8 +531,8 @@ body {
 /* 橫式：內容區背景透明（白底已由底圖提供），避免白框邊緣溢出綠底 */
 #dm-sheet.is-landscape .dm-content { background: transparent; }
 /* 直式滿版底圖（2026大促 p2）：絕對定位基準＋內容區透明 */
-#dm-sheet.bg-p2 { position: relative; }
-#dm-sheet.bg-p2 .dm-content { background: transparent; }
+#dm-sheet.bg-p2, #dm-sheet.bg-p3 { position: relative; }
+#dm-sheet.bg-p2 .dm-content, #dm-sheet.bg-p3 .dm-content { background: transparent; }
 /* .dm-land-content 的座標由 renderDM() 以 inline style 注入，
    方便 html2canvas proxy 複製 innerHTML 時保留定位資訊 */
 
@@ -958,6 +958,7 @@ const LAND_BG = {
   h3: '../沙龍DM公版/橫3.jpg',
   h4: '../沙龍DM公版/2026大促橫式.jpg',
   p2: '../沙龍DM公版/2026大促直式.jpg',   /* 直式滿版（非 header/footer 拆分） */
+  p3: '../沙龍DM公版/直3.jpg',            /* 直式 3：墨綠框頁首＋淺灰內容區（滿版） */
 };
 
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
@@ -968,6 +969,7 @@ const LAND_POS = {
   h3: { left: '39%', top: '3%',  right: '3%', bottom: '14%' },  // 白區自 36% 起：左右各留約 3%，內容於白框內置中
   h4: { left: '45%', top: '3%',  right: '3%', bottom: '16%' },  // 2026大促橫式：左人像至 43%、下方footer 13%
   p2: { left: '3%',  top: '26.5%', right: '3%', bottom: '8%' }, // 2026大促直式：上人像至 25.2%、footer 自 92.5%；內容高≈551px 貼近直式（561px）→ 版面行為與直式一致
+  p3: { left: '3%',  top: '29.5%', right: '3%', bottom: '8.5%' }, // 直式3：墨綠頁首＋吊牌至 27.9%、footer 線於 93.9%；內容高≈522px
 };
 
 /* 底圖選單清單（順序＝選單顯示順序）。orient：'p' 直式、'l' 橫式；thumb：選單縮圖；label：UI 翻譯鍵。
@@ -976,6 +978,7 @@ const BG_DIR = '../沙龍DM公版/';
 const BG_LIST = [
   { id: 'portrait', orient: 'p', thumb: 'th-portrait.jpg', label: 'bgPortrait', split: true },
   { id: 'p2',       orient: 'p', thumb: 'th-p2.jpg',       label: 'bgP2' },
+  { id: 'p3',       orient: 'p', thumb: 'th-p3.jpg',       label: 'bgP3' },
   { id: 'h1',       orient: 'l', thumb: 'th-h1.jpg',       label: 'bgH1' },
   { id: 'h2',       orient: 'l', thumb: 'th-h2.jpg',       label: 'bgH2' },
   { id: 'h3',       orient: 'l', thumb: 'th-h3.jpg',       label: 'bgH3' },
@@ -1031,7 +1034,7 @@ const UI = {
   zh: {
     navTitle: 'DM 編輯器', exportJPG: '匯出 JPG', exportPDF: '匯出 PDF (A4)',
     secBg: '1. 選擇底圖', secLayout: '2. 選擇版面', secContent: '3. 編輯內容',
-    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgH4: '大促橫式', bgGroupP: '直式', bgGroupL: '橫式',
+    bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgP3: '直式 3', bgH4: '大促橫式', bgGroupP: '直式', bgGroupL: '橫式',
     layFour: '四格', layTwo: '兩格', layOne: '一格',
     taglineLabel: '標題文字', subtitleLabel: '副標題（選填）', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
     cellA: '格 A（左上）', cellB: '格 B（右上）', cellC: '格 C（左下）', cellD: '格 D（右下）',
@@ -1058,7 +1061,7 @@ const UI = {
   en: {
     navTitle: 'DM Editor', exportJPG: 'Export JPG', exportPDF: 'Export PDF (A4)',
     secBg: '1. Background', secLayout: '2. Layout', secContent: '3. Content',
-    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgH4: 'Sale landscape', bgGroupP: 'Portrait', bgGroupL: 'Landscape',
+    bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgP3: 'Portrait 3', bgH4: 'Sale landscape', bgGroupP: 'Portrait', bgGroupL: 'Landscape',
     layFour: '4-grid', layTwo: '2-grid', layOne: '1-grid',
     taglineLabel: 'Title', subtitleLabel: 'Subtitle (optional)', subtitlePh: 'e.g. a short catchphrase',
     cellA: 'Cell A (top-left)', cellB: 'Cell B (top-right)', cellC: 'Cell C (bottom-left)', cellD: 'Cell D (bottom-right)',
@@ -1085,7 +1088,7 @@ const UI = {
   pl: {
     navTitle: 'Edytor DM', exportJPG: 'Eksport JPG', exportPDF: 'Eksport PDF (A4)',
     secBg: '1. Tło', secLayout: '2. Układ', secContent: '3. Treść',
-    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgH4: 'Promo poziomy', bgGroupP: 'Pionowe', bgGroupL: 'Poziome',
+    bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgP3: 'Pionowy 3', bgH4: 'Promo poziomy', bgGroupP: 'Pionowe', bgGroupL: 'Poziome',
     layFour: '4 pola', layTwo: '2 pola', layOne: '1 pole',
     taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł (opcjonalnie)', subtitlePh: 'np. krótkie hasło',
     cellA: 'Pole A (lewy górny)', cellB: 'Pole B (prawy górny)', cellC: 'Pole C (lewy dolny)', cellD: 'Pole D (prawy dolny)',
