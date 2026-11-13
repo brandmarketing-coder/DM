@@ -1067,12 +1067,12 @@ let layout = 'four';
 let bgTemplate = 'portrait'; // 'portrait' | 'h1' | 'h2' | 'h3'
 
 const LAND_BG = {
-  h1: '../沙龍DM公版/橫1.jpg',
-  h2: '../沙龍DM公版/橫2.jpg',
-  h3: '../沙龍DM公版/橫3.jpg',
-  h4: '../沙龍DM公版/2026大促橫式.jpg',
-  p2: '../沙龍DM公版/2026大促直式.jpg',   /* 直式滿版（非 header/footer 拆分） */
-  p3: '../沙龍DM公版/直3.jpg',            /* 直式 3：墨綠框頁首＋淺灰內容區（滿版）；底部箭頭線已抹除，由流程版面依價格文字長度繪製 */
+  h1: '../沙龍DM公版/橫式/橫式1.jpg',
+  h2: '../沙龍DM公版/橫式/橫式2.jpg',
+  h3: '../沙龍DM公版/橫式/橫式3.jpg',
+  h4: '../沙龍DM公版/橫式/大促橫式.jpg',
+  p2: '../沙龍DM公版/直式/大促直式.jpg',   /* 直式滿版（非 header/footer 拆分） */
+  p3: '../沙龍DM公版/直式/流程.jpg',       /* 流程：墨綠框頁首＋淺灰內容區（滿版）；底部箭頭線已抹除，由流程版面依價格文字長度繪製 */
 };
 
 /* 橫式底圖的內容覆蓋區座標（相對於 842×595 的 #dm-sheet）
@@ -1090,13 +1090,13 @@ const LAND_POS = {
    portrait 為頁首＋頁尾拆分，縮圖／預覽以 HDR＋FTR 組成（split: true）。 */
 const BG_DIR = '../沙龍DM公版/';
 const BG_LIST = [
-  { id: 'portrait', orient: 'p', thumb: 'th-portrait.jpg', label: 'bgPortrait', split: true },
-  { id: 'p2',       orient: 'p', thumb: 'th-p2.jpg',       label: 'bgP2' },
-  { id: 'p3',       orient: 'p', thumb: 'th-p3.jpg',       label: 'bgP3' },
-  { id: 'h1',       orient: 'l', thumb: 'th-h1.jpg',       label: 'bgH1' },
-  { id: 'h2',       orient: 'l', thumb: 'th-h2.jpg',       label: 'bgH2' },
-  { id: 'h3',       orient: 'l', thumb: 'th-h3.jpg',       label: 'bgH3' },
-  { id: 'h4',       orient: 'l', thumb: 'th-h4.jpg',       label: 'bgH4' },
+  { id: 'portrait', orient: 'p',                               label: 'bgPortrait', split: true },
+  { id: 'p2',       orient: 'p', thumb: '直式/縮圖/大促直式.jpg', label: 'bgP2' },
+  { id: 'p3',       orient: 'p', thumb: '直式/縮圖/流程.jpg',     label: 'bgP3' },
+  { id: 'h1',       orient: 'l', thumb: '橫式/縮圖/橫式1.jpg',    label: 'bgH1' },
+  { id: 'h2',       orient: 'l', thumb: '橫式/縮圖/橫式2.jpg',    label: 'bgH2' },
+  { id: 'h3',       orient: 'l', thumb: '橫式/縮圖/橫式3.jpg',    label: 'bgH3' },
+  { id: 'h4',       orient: 'l', thumb: '橫式/縮圖/大促橫式.jpg', label: 'bgH4' },
 ];
 const bgItem = id => BG_LIST.find(b => b.id === id);
 
@@ -2305,8 +2305,8 @@ function resetAll() {
 /* ══════════════════════════════════════════════
    MAIN RENDER
 ══════════════════════════════════════════════ */
-const HDR = '../沙龍DM公版/公版DM_1.jpg';
-const FTR = '../沙龍DM公版/公版DM_2.jpg';
+const HDR = '../沙龍DM公版/直式/直式-頁首.jpg';
+const FTR = '../沙龍DM公版/直式/直式-頁尾.jpg';
 
 function renderDM() {
   const tag = document.getElementById('dm-tagline')?.value || '';
