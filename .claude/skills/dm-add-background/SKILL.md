@@ -10,13 +10,17 @@ repo 根目錄：`C:\Users\oright\Desktop\沙龍\DM`。底圖無 build 工具，
 ## 1. 決定代號
 
 - 橫式：`h` + 流水號（既有 h1～h4），例：`h5`。
-- 直式滿版：`p` + 流水號（既有 p2），例：`p3`。
-- 以下以 `h5` 表示新代號。
+- 直式滿版：`p` + 流水號（既有 p2、p3），例：`p4`。
+- 以下以 `h5`、選單名稱「秋季橫式」表示新底圖。
 
-## 2. 圖檔（放 `沙龍DM公版/`）
+## 2. 圖檔（依方向放 `沙龍DM公版/直式/` 或 `沙龍DM公版/橫式/`）
 
-1. 底圖本體：滿版 A4 設計圖，保留白色內容區。橫式約 3508×2480、直式約 2480×3508。使用新檔名，例：`新底圖橫式.jpg`。
-2. 選單縮圖：`th-h5.jpg`，約 10KB 縮小圖。
+檔名＝編輯器選單上顯示的名稱，不含空格（選單「橫式 1」→ `橫式1.jpg`）。
+
+1. 底圖本體：滿版 A4 設計圖，保留白色內容區。橫式約 3508×2480、直式約 2480×3508。
+   例：`沙龍DM公版/橫式/秋季橫式.jpg`。
+2. 選單縮圖：約 10KB 縮小圖，與底圖同名，放同方向的 `縮圖/` 子資料夾。
+   例：`沙龍DM公版/橫式/縮圖/秋季橫式.jpg`。
 
 ## 3. 量測內容區座標
 
@@ -25,7 +29,7 @@ repo 根目錄：`C:\Users\oright\Desktop\沙龍\DM`。底圖無 build 工具，
 ```js
 (async () => {
   const img = new Image();
-  img.src = '../沙龍DM公版/新底圖橫式.jpg';
+  img.src = '../沙龍DM公版/橫式/秋季橫式.jpg';
   await new Promise(r => { img.onload = r; img.onerror = r; });
   const W = 200, H = Math.round(200 * img.naturalHeight / img.naturalWidth);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -48,9 +52,10 @@ repo 根目錄：`C:\Users\oright\Desktop\沙龍\DM`。底圖無 build 工具，
 
 ## 4. `Coding/index.html` 設定
 
-1. `LAND_BG` 物件加一筆：`h5: '../沙龍DM公版/新底圖橫式.jpg'`
+1. `LAND_BG` 物件加一筆：`h5: '../沙龍DM公版/橫式/秋季橫式.jpg'`
 2. `LAND_POS` 物件加一筆：`h5: { left: '..%', top: '..%', right: '..%', bottom: '..%' }`
-3. `BG_LIST` 陣列加一筆（陣列順序＝選單顯示順序）：`{ id: 'h5', orient: 'l', thumb: 'th-h5.jpg', label: 'bgH5' }`
+3. `BG_LIST` 陣列加一筆（陣列順序＝選單顯示順序）：`{ id: 'h5', orient: 'l', thumb: '橫式/縮圖/秋季橫式.jpg', label: 'bgH5' }`
+   - `thumb`：相對於 `沙龍DM公版/`（`BG_DIR`）的路徑。
    - `orient`：橫式 `'l'`、直式 `'p'`（決定選單分組、A4 尺寸與匯出方向）。
 4. `isFeatureTwo()` 的陣列：兩格版用「單品放大＋描述」樣式則加入 `'h5'`；用「主商品＋贈品」樣式則不加。
 5. `UI` 物件的 `zh` / `en` / `pl` 三區各加 `bgH5: '...'`。
