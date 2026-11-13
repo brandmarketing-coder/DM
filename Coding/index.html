@@ -555,17 +555,19 @@ body {
 .flow-conn .flow-arrow { position: absolute; left: -3px; bottom: -1px; width: 7px; height: 5px; display: block; }
 .flow-pill {
   position: relative; flex-shrink: 0; width: 96px; box-sizing: border-box;
-  min-height: 34px; padding: 8px 6px; border: 1px solid #3c3c3c; border-radius: 17px;
+  min-height: 34px; padding: 11px 6px 9px; border: 1px solid #3c3c3c; border-radius: 17px;
   display: flex; align-items: center; justify-content: center;
 }
 .flow-label {
   font-size: 15px; line-height: 1.3; letter-spacing: 1px; color: #333;
   text-align: center; white-space: pre-line; word-break: break-word;
 }
+/* 步驟編號壓在框線上：line-height 0.8 讓底色塊只包住數字本身（不含字型下方留白），
+   底色塊下緣約在框線下 9px；膠囊上內距 11px → 第一行字從色塊下方開始，不被遮住 */
 .flow-num {
-  position: absolute; left: 13px; top: 0; transform: translateY(-63%);
+  position: absolute; left: 13px; top: -19px;
   font-family: 'Jost', 'Helvetica Neue', 'Segoe UI', sans-serif; font-weight: 200;
-  font-size: 34px; line-height: 1; color: #8C7651; background: #EFF1EE; padding: 0 3px;
+  font-size: 34px; line-height: 0.8; color: #8C7651; background: #EFF1EE; padding: 0 3px;
 }
 .flow-main {
   flex: 1; min-width: 0; margin-right: 54px;
@@ -575,7 +577,7 @@ body {
 .flow-imgs { min-width: 92px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 0 4px; box-sizing: border-box; }
 .flow-imgs img { display: block; width: auto; max-width: 100px; object-fit: contain; }
 .flow-text { flex: 1; min-width: 0; padding-left: 8px; }
-.flow-name { font-size: 15px; font-weight: 500; letter-spacing: 1px; color: #222; margin-bottom: 6px; line-height: 1.4; }
+.flow-name { font-size: 15px; font-weight: 400; letter-spacing: 1px; color: #19322F; margin-bottom: 6px; line-height: 1.4; }
 .flow-desc { font-size: 12.5px; letter-spacing: 0.5px; color: #666; line-height: 1.65; white-space: pre-line; }
 .lang-latin .flow-name, .lang-latin .flow-desc, .lang-latin .flow-label { letter-spacing: 0; }
 
@@ -1646,10 +1648,14 @@ function stepName(s) {
   const names = [...new Set(s.prods.filter(id => getProdOrNull(id)).map(flowBaseName))];
   return names.join(' / ');
 }
+/* 說明＝步驟內每個商品的用途，以「 / 」隔開；用途相同者只寫一次（如同品不同容量） */
 function stepDesc(s) {
   if (s.desc != null) return s.desc;
-  const c = getCopy(s.prods[0]);
-  return c && c.usage ? c.usage.trim() : '';
+  const usages = s.prods.map(id => {
+    const c = getCopy(id);
+    return c && c.usage ? c.usage.trim() : '';
+  }).filter(Boolean);
+  return [...new Set(usages)].join(' / ');
 }
 
 /* ── QR Code：連結 → 以 qrcode-generator（cdnjs 固定版本，切到流程版面才載入）產生 PNG ── */
@@ -1756,6 +1762,30 @@ function renderFlow() {
   return `<div class="dm-flow"><div class="flow-steps">${rows}</div>${priceBar}${qr}</div>`;
 }
 
+/* 行距收緊一步：每次 -0.05 倍，低於 min 不再縮 */
+function flowLineHeightStep(els, min) {
+  return () => {
+    let changed = false;
+    els.forEach(el => {
+      const cs = getComputedStyle(el);
+      const cur = parseFloat(cs.lineHeight) / parseFloat(cs.fontSize);
+      if (cur - 0.05 >= min) { el.style.lineHeight = (cur - 0.05).toFixed(2); changed = true; }
+    });
+    return changed;
+  };
+}
+/* 文字欄右側留白縮小一步：每次 -4px，低於 min 不再縮 */
+function flowWidenStep(els, min) {
+  return () => {
+    let changed = false;
+    els.forEach(el => {
+      const m = parseFloat(getComputedStyle(el).marginRight);
+      if (m - 4 >= min) { el.style.marginRight = (m - 4) + 'px'; changed = true; }
+    });
+    return changed;
+  };
+}
+
 /* 防破版：先縮說明→品名→商品圖→步驟名稱；價格列不得壓到 QR */
 function fitFlow() {
   const q = s => [...document.querySelectorAll('#dm-sheet ' + s)];
@@ -1768,6 +1798,9 @@ function fitFlow() {
     fontStep(q('.flow-label'), 0.8),
     fontStep([...q('.flow-desc'), ...q('.flow-name'), ...q('.flow-label')], 0.7),
     sizeStep(q('.flow-imgs img'), 0.4, true),   // 極端（5 步＋外文長說明）：商品圖再讓位
+    /* 最後手段（5 步×每步兩個不同商品×外文用途）：說明行距收緊，再讓文字欄往右延伸 */
+    flowLineHeightStep(q('.flow-desc'), 1.3),
+    flowWidenStep(q('.flow-main'), 18),
   ]);
   const group = document.querySelector('#dm-sheet .flow-price-group');
   if (!group) return;
