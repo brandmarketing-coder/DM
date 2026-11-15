@@ -600,6 +600,14 @@ body {
 .flow-qr-label { font-size: 12px; line-height: 1.2; color: #8C7651; letter-spacing: 0.5px; margin-bottom: 3px; white-space: nowrap; }
 .flow-qr img { display: block; width: 52px; height: 52px; object-fit: contain; }
 .flow-qr .flow-qr-wait { width: 52px; height: 52px; background: repeating-linear-gradient(45deg, #ddd 0 4px, #e9e9e9 4px 8px); }
+.flow-promo { position: absolute; left: 0; right: 0; top: 800px; display: flex; justify-content: center; }
+.flow-promo span {
+  background: #19322F; color: #E6D3A7; font-size: 13px; letter-spacing: 2px; line-height: 1.3;
+  padding: 5px 18px; border-radius: 999px; white-space: nowrap;
+}
+.dm-flow.has-promo .flow-body { height: 484px; }
+.dm-flow.has-promo .flow-price { top: 770px; }
+.dm-flow.has-promo .flow-qr { bottom: 42px; }
 
 /* 編輯區：流程步驟卡片 */
 .flow-step-ed { background: #fdfdfd; border: 1px solid #e2e2e2; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
@@ -1165,7 +1173,7 @@ const UI = {
     flowSteps: '流程步驟', flowStep: '步驟', flowLabel: '步驟名稱', flowLabelPh: '例：淨化',
     flowProds: '商品', flowAddProd: '新增商品', flowName: '品名',
     flowDesc: '說明', flowAddStep: '新增步驟', flowUp: '上移', flowDown: '下移', flowDel: '刪除',
-    flowPriceSec: '價格', flowPriceLabel: '價格標語', flowPrice: '價格',
+    flowPriceSec: '價格', flowPriceLabel: '價格標語', flowPrice: '價格', flowPromo: '促銷標語',
     qrSec: 'QR Code', qrLabel: 'QR 上方文字', qrUrl: 'QR 連結網址', qrUpload: '上傳 QR 圖片',
     qrRemove: '移除圖片',
     prodType: '商品類型', roleMain: '主商品', roleSub: '輔助商品',
@@ -1198,7 +1206,7 @@ const UI = {
     flowSteps: 'Steps', flowStep: 'Step', flowLabel: 'Step name', flowLabelPh: 'e.g. Cleanse',
     flowProds: 'Products', flowAddProd: 'Add product', flowName: 'Name',
     flowDesc: 'Description', flowAddStep: 'Add step', flowUp: 'Move up', flowDown: 'Move down', flowDel: 'Delete',
-    flowPriceSec: 'Price', flowPriceLabel: 'Price caption', flowPrice: 'Price',
+    flowPriceSec: 'Price', flowPriceLabel: 'Price caption', flowPrice: 'Price', flowPromo: 'Promo slogan',
     qrSec: 'QR Code', qrLabel: 'Text above QR', qrUrl: 'QR link', qrUpload: 'Upload QR image',
     qrRemove: 'Remove image',
     prodType: 'Type', roleMain: 'Main', roleSub: 'Secondary',
@@ -1231,7 +1239,7 @@ const UI = {
     flowSteps: 'Kroki', flowStep: 'Krok', flowLabel: 'Nazwa kroku', flowLabelPh: 'np. Oczyszczanie',
     flowProds: 'Produkty', flowAddProd: 'Dodaj produkt', flowName: 'Nazwa',
     flowDesc: 'Opis', flowAddStep: 'Dodaj krok', flowUp: 'W górę', flowDown: 'W dół', flowDel: 'Usuń',
-    flowPriceSec: 'Cena', flowPriceLabel: 'Podpis ceny', flowPrice: 'Cena',
+    flowPriceSec: 'Cena', flowPriceLabel: 'Podpis ceny', flowPrice: 'Cena', flowPromo: 'Hasło promocyjne',
     qrSec: 'Kod QR', qrLabel: 'Tekst nad kodem QR', qrUrl: 'Link QR', qrUpload: 'Prześlij obraz QR',
     qrRemove: 'Usuń obraz',
     prodType: 'Typ', roleMain: 'Główny', roleSub: 'Dodatkowy',
@@ -1602,6 +1610,7 @@ const FLOW_LABEL_PRESETS = [   /* 切語言時，仍為預設值的步驟名稱�
   { zh: '滋養',           en: 'Nourish',        pl: 'Odżywianie' },
 ];
 const FLOW_PRICE_LABELS = { zh: '深層頭皮養護價', en: 'Deep Scalp Care', pl: 'Głęboka pielęgnacja' };
+const FLOW_PROMO_LABELS = { zh: '買五堂送頭皮噴霧一瓶', en: 'Buy 5 sessions, get a free scalp spray', pl: 'Kup 5 zabiegów – spray do skóry głowy gratis' };
 const QR_LABELS = { zh: '官方line', en: 'Official LINE', pl: 'Oficjalny LINE' };
 const QR_DEFAULT_URL = 'https://lin.ee/W3sKQQh';
 
@@ -1613,6 +1622,7 @@ state.flow = {
     { label: '滋養',           prods: ['舒活抗菌頭皮噴霧60mL', '舒活抗菌頭皮噴霧750mL'],     name: null, desc: null },
   ],
   priceLabel: FLOW_PRICE_LABELS.zh, price: '899', origPrice: '',
+  promo: FLOW_PROMO_LABELS.zh,
   qrUrl: QR_DEFAULT_URL,   // 由連結產生 QR
   qrImg: '',               // 上傳的 QR 圖片（dataURL）；有值時優先使用
   qrLabel: QR_LABELS.zh,
@@ -1640,6 +1650,7 @@ function localizeFlowPresets() {
     if (row) s.label = row[lang];
   });
   if (Object.values(FLOW_PRICE_LABELS).includes(f.priceLabel)) f.priceLabel = FLOW_PRICE_LABELS[lang];
+  if (Object.values(FLOW_PROMO_LABELS).includes(f.promo)) f.promo = FLOW_PROMO_LABELS[lang];
   if (Object.values(QR_LABELS).includes(f.qrLabel)) f.qrLabel = QR_LABELS[lang];
 }
 
@@ -1712,7 +1723,8 @@ let flowFontTried = false;
 function renderFlow(tag) {
   const f = state.flow, n = f.steps.length;
   const title = (tag || '').trim();
-  const rowH = (FLOW_AREA_H - (title ? 37 : 0)) / n;
+  const promo = (f.promo || '').trim();
+  const rowH = (FLOW_AREA_H - (title ? 37 : 0) - (promo ? 26 : 0)) / n;
   const imgH = Math.round(Math.min(rowH * 0.7, 128));
   const rows = f.steps.map((s, i) => {
     const imgs = s.prods.map(getProdOrNull).filter(Boolean).map(p =>
@@ -1762,8 +1774,9 @@ function renderFlow(tag) {
     flowFontTried = true;
     document.fonts.load('200 34px Jost', '0123456789$').then(() => { if (layout === 'flow') renderDM(); }).catch(() => {});
   }
-  return `<div class="dm-flow"><div class="flow-body">${title ? `<div class="dm-tagline">${flowEsc(title)}</div>` : ''}` +
-         `<div class="flow-steps">${rows}</div></div>${priceBar}${qr}</div>`;
+  return `<div class="dm-flow${promo ? ' has-promo' : ''}"><div class="flow-body">${title ? `<div class="dm-tagline">${flowEsc(title)}</div>` : ''}` +
+         `<div class="flow-steps">${rows}</div></div>${priceBar}` +
+         (promo ? `<div class="flow-promo"><span>${flowEsc(promo)}</span></div>` : '') + `${qr}</div>`;
 }
 
 /* 行距收緊一步：每次 -0.05 倍，低於 min 不再縮 */
@@ -1806,10 +1819,19 @@ function fitFlow() {
     flowLineHeightStep(q('.flow-desc'), 1.3),
     flowWidenStep(q('.flow-main'), 18),
   ]);
-  const group = document.querySelector('#dm-sheet .flow-price-group');
-  if (!group) return;
   const sheet = document.getElementById('dm-sheet');
   const qrEl = document.querySelector('#dm-sheet .flow-qr');
+  const pill = document.querySelector('#dm-sheet .flow-promo span');
+  if (pill) {
+    const pillOver = () => {
+      const p = pill.getBoundingClientRect(), sr = sheet.getBoundingClientRect();
+      const right = qrEl ? qrEl.getBoundingClientRect().left - 8 : sr.right - 12;
+      return Math.max(p.right - right, sr.left + 12 - p.left);
+    };
+    shrinkStages(pillOver, [fontStep([pill], 0.6)]);
+  }
+  const group = document.querySelector('#dm-sheet .flow-price-group');
+  if (!group) return;
   const over = () => {
     const g = group.getBoundingClientRect(), sr = sheet.getBoundingClientRect();
     const right = qrEl ? qrEl.getBoundingClientRect().left - 8 : sr.right - 12;
@@ -1881,9 +1903,13 @@ function flowEditor() {
         <label class="field-lbl">${t('flowPriceLabel')}</label>
         <input type="text" class="field-input" value="${flowEsc(f.priceLabel)}" oninput="onFlowField('priceLabel',this.value)">
       </div>
-      <div class="flow-ed-field" style="margin-bottom:0">
+      <div class="flow-ed-field">
         <label class="field-lbl">${t('flowPrice')}</label>
         <input type="text" class="field-input" inputmode="decimal" value="${flowEsc(dispPrice(f))}" oninput="onFlowPrice(this.value)">
+      </div>
+      <div class="flow-ed-field" style="margin-bottom:0">
+        <label class="field-lbl">${t('flowPromo')}</label>
+        <input type="text" class="field-input" value="${flowEsc(f.promo)}" oninput="onFlowField('promo',this.value)">
       </div>
     </div>
     <div class="block-ed">
