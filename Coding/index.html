@@ -638,6 +638,7 @@ body {
 .flow-prod-line img { width: 32px; height: 32px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #f5f5f5; flex-shrink: 0; }
 .flow-ed-field { margin-bottom: 8px; }
 .flow-ed-field textarea.field-input { resize: vertical; line-height: 1.5; font-family: inherit; }
+.flow-ed-field textarea.flow-label-input { resize: none; overflow: hidden; line-height: 1.4; padding-top: 4px; padding-bottom: 4px; display: block; }
 .qr-ed-row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
 .qr-ed-row img { width: 56px; height: 56px; object-fit: contain; border: 1px solid #e5e5e5; border-radius: 4px; background: #EFF1EE; }
 .qr-file-btn {
@@ -1843,7 +1844,7 @@ function flowEditor() {
         </div>
         <div class="flow-ed-field">
           <label class="field-lbl">${t('flowLabel')}</label>
-          <textarea class="field-input" rows="2" placeholder="${t('flowLabelPh')}" oninput="onFlowStep(${i},'label',this.value)">${flowEsc(s.label)}</textarea>
+          <textarea class="field-input flow-label-input" rows="${Math.max(1, s.label.split('\n').length)}" placeholder="${t('flowLabelPh')}" oninput="this.rows=Math.max(1,this.value.split('\\n').length);onFlowStep(${i},'label',this.value)">${flowEsc(s.label)}</textarea>
         </div>
         <div class="flow-ed-field">
           <div class="ed-list-head">
