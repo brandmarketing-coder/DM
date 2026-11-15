@@ -1,8 +1,3 @@
-/* eslint-disable */
-/* products.js — 商品清單（每個圖片檔一筆）
- * 自動產生，請勿手動編輯。來源：產品文案/PRO.csv、Salon.csv 與 產品圖片/
- * 重新產生：node tools/build-copy.mjs
- */
 window.PRODUCTS = [
   {
     "id": "4S造型掌控乳160mL",

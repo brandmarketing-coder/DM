@@ -1,8 +1,3 @@
-/* eslint-disable */
-/* product-copy.js — 產品文案（key = 官網名稱）
- * 自動產生，請勿手動編輯。來源：產品文案/PRO.csv、Salon.csv 與 產品圖片/
- * 重新產生：node tools/build-copy.mjs
- */
 window.PRODUCT_COPY = {
   "強健頭皮洗髮露": {
     "intro": "活絡頭皮 深度滋養",

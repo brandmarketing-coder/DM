@@ -1,8 +1,3 @@
-/* eslint-disable */
-/* names-en.js — 官方英文品名（國際部對照表；key = 商品 id）
- * 自動產生，請勿手動編輯。來源：產品文案/產品名中英文對照.xlsx
- * 重新產生：node tools/build-names.mjs
- */
 window.PRODUCT_NAMES_EN = {
   "4S造型掌控乳160mL": "4S STYLE LOCK DEFINING CREAM 160ML",
   "4S植萃彈力造型油70mL": "4S BOTANICAL CURL DEFINING OIL 70ML",
