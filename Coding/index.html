@@ -539,7 +539,8 @@ body {
 /* ══ 流程版面（直式 3 專用）：步驟膠囊＋連接箭頭／商品圖／品名＋說明；底部價格列＋QR ══
    座標皆為 595×842 頁面上的絕對像素（renderFlow 依步驟數算列高，免量測）。 */
 .dm-flow { position: absolute; inset: 0; color: #333; }
-.flow-steps { position: absolute; left: 0; right: 0; top: 244px; height: 510px; display: flex; flex-direction: column; }
+.flow-body { position: absolute; left: 0; right: 0; top: 244px; height: 510px; display: flex; flex-direction: column; }
+.flow-steps { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 /* 列高＝內容高＋平分剩餘空間：內容相近時等距；某步說明較長時向其他列借空間 */
 .flow-row { display: flex; align-items: stretch; flex: 1 1 auto; min-height: 0; }
 .flow-left {
@@ -1337,6 +1338,7 @@ function setLang(l) {
   // 標題預設改為該語言（並同步輸入框）
   taglines.four = TAGLINES[l].four; taglines.two = TAGLINES[l].two; taglines.one = TAGLINES[l].one;
   const tagInput = document.getElementById('dm-tagline');
+  if (tagInput && layout === 'flow') taglines.flow = tagInput.value;
   if (tagInput) tagInput.value = taglines[layout] || '';
   buildEditorBlocks();
   renderDM();
@@ -1577,6 +1579,7 @@ const taglines = {
   four: '永續美妝 Sustainable Beauty',
   two:  '永續美妝',
   one:  '永續美妝',
+  flow: '',
 };
 
 const subtitles = {
@@ -1705,9 +1708,10 @@ const FLOW_ARROW = svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="7" hei
 /* 步驟區：頁高 29%～89.6%（吊牌下緣到 QR 上方）；列高＝區高／步驟數 */
 const FLOW_AREA_H = 510;
 let flowFontTried = false;
-function renderFlow() {
+function renderFlow(tag) {
   const f = state.flow, n = f.steps.length;
-  const rowH = FLOW_AREA_H / n;
+  const title = (tag || '').trim();
+  const rowH = (FLOW_AREA_H - (title ? 37 : 0)) / n;
   const imgH = Math.round(Math.min(rowH * 0.7, 128));
   const rows = f.steps.map((s, i) => {
     const imgs = s.prods.map(getProdOrNull).filter(Boolean).map(p =>
@@ -1757,7 +1761,8 @@ function renderFlow() {
     flowFontTried = true;
     document.fonts.load('200 34px Jost', '0123456789$').then(() => { if (layout === 'flow') renderDM(); }).catch(() => {});
   }
-  return `<div class="dm-flow"><div class="flow-steps">${rows}</div>${priceBar}${qr}</div>`;
+  return `<div class="dm-flow"><div class="flow-body">${title ? `<div class="dm-tagline">${flowEsc(title)}</div>` : ''}` +
+         `<div class="flow-steps">${rows}</div></div>${priceBar}${qr}</div>`;
 }
 
 /* 行距收緊一步：每次 -0.05 倍，低於 min 不再縮 */
@@ -1967,13 +1972,11 @@ function onQrUpload(input) {
 }
 function removeQrImg() { state.flow.qrImg = ''; flowRefresh(); }
 
-/* 流程版面時：隱藏「選擇版面」與標題欄，「編輯內容」改為第 2 節 */
+/* 流程版面時：隱藏「選擇版面」，「編輯內容」改為第 2 節 */
 function syncFlowUI() {
   const flow = layout === 'flow';
   const secLayout = document.getElementById('sec-layout');
   if (secLayout) secLayout.parentElement.style.display = flow ? 'none' : '';
-  const tag = document.getElementById('dm-tagline');
-  if (tag) tag.parentElement.style.display = flow ? 'none' : '';
   const sc = document.getElementById('sec-content');
   if (sc) sc.textContent = flow ? t('secContent').replace(/^3\./, '2.') : t('secContent');
 }
@@ -2309,7 +2312,7 @@ const FTR = '../沙龍DM公版/直式/直式-頁尾.jpg';
 function renderDM() {
   const tag = document.getElementById('dm-tagline')?.value || '';
   const subtitle = document.getElementById('dm-subtitle')?.value || '';
-  const body = layout === 'flow' ? renderFlow()
+  const body = layout === 'flow' ? renderFlow(tag)
              : layout === 'four' ? renderFour(tag)
              : layout === 'two'  ? renderTwo(tag)
              : renderOne(tag, subtitle);
@@ -2580,8 +2583,8 @@ function unifyTwoRows() {
 
 /* 渲染後統一入口：先收斂主/副標行數，再依版面縮放 */
 function fitDM() {
-  if (layout === 'flow') { fitFlow(); return; }
   fitHeadingLine('.dm-tagline', 2);
+  if (layout === 'flow') { fitFlow(); return; }
   fitHeadingLine('.dm-subtitle', 2);
   if (layout === 'one') fitOneGrid();
   else if (layout === 'two') fitTwoGrid();
@@ -3071,19 +3074,19 @@ function deleteTwoProd(ci, pi) {
 }
 
 function setLayout(l) {
-  if (layout !== 'flow') {   // 流程版面沒有標題／副標，不覆寫其他版面的暫存
-    taglines[layout] = document.getElementById('dm-tagline')?.value || '';
+  taglines[layout] = document.getElementById('dm-tagline')?.value || '';
+  if (layout !== 'flow') {   // 流程版面沒有副標，不覆寫其他版面的暫存
     subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
   }
   layout = l;
   ['four','two','one'].forEach(k =>
     document.getElementById('opt-'+k).classList.toggle('active', k === l));
-  if (l !== 'flow') document.getElementById('dm-tagline').value = taglines[l];
+  document.getElementById('dm-tagline').value = taglines[l] || '';
   syncFlowUI();
   const subtitleField = document.getElementById('dm-subtitle-field');
   const subtitleInput = document.getElementById('dm-subtitle');
   if (subtitleField) subtitleField.style.display = l === 'one' ? '' : 'none';
-  if (subtitleInput) subtitleInput.value = subtitles[l];
+  if (subtitleInput) subtitleInput.value = subtitles[l] || '';
   buildEditorBlocks();
   renderDM();
 }
