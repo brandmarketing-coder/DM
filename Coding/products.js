@@ -149,7 +149,8 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "染燙護色精華油",
     "orig": "300",
-    "img": "../產品圖片/PRO系列/染燙護色精華油10mL.webp?v=1787799333969"
+    "img": "../產品圖片/PRO系列/染燙護色精華油10mL.webp?v=1787799333969",
+    "size": 0.4
   },
   {
     "id": "染燙護色精華油70mL",
@@ -333,7 +334,8 @@ window.PRODUCTS = [
     "series": "PRO",
     "copyKey": "豐盈彈韌精華油",
     "orig": "300",
-    "img": "../產品圖片/PRO系列/豐盈彈韌精華油10mL.webp?v=1787799334009"
+    "img": "../產品圖片/PRO系列/豐盈彈韌精華油10mL.webp?v=1787799334009",
+    "size": 0.4
   },
   {
     "id": "豐盈彈韌精華油70mL",
@@ -517,7 +519,8 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "印加果護髮油",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/印加果護髮油.webp?v=1795580571165"
+    "img": "../產品圖片/Salon USE系列/印加果護髮油.webp?v=1795580571165",
+    "size": 0.4
   },
   {
     "id": "竹萃極致保濕護髮包",
@@ -605,7 +608,8 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "海洋藤竹護髮油",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/海洋藤竹護髮油.webp?v=1795590779463"
+    "img": "../產品圖片/Salon USE系列/海洋藤竹護髮油.webp?v=1795590779463",
+    "size": 0.4
   },
   {
     "id": "雪松橙控油洗髮精2000mL",

@@ -9,10 +9,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@200&text=0123456789%24.%2C&display=swap">
 <!-- 匯出用函式庫（html2canvas / jsPDF）改為匯出時才載入，加快初始載入：見 ensureExportLibs() -->
-<script src="products.js?v=1795590856455"></script>
-<script src="product-copy.js?v=1795590856455"></script>
-<script src="i18n.js?v=1795590856455"></script>
-<script src="names-en.js?v=1795590856455"></script>
+<script src="products.js?v=1795591628700"></script>
+<script src="product-copy.js?v=1795591628700"></script>
+<script src="i18n.js?v=1795591628700"></script>
+<script src="names-en.js?v=1795591628700"></script>
 <style>
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1735,8 +1735,10 @@ function renderFlow(tag) {
   const rowH = ((narrow ? 570 : FLOW_AREA_H) - (title ? (narrow ? 56 : 37) : 0) - (promo ? 26 : 0)) / n;
   const imgH = Math.round(Math.min(rowH * 0.7, 128));
   const rows = f.steps.map((s, i) => {
-    const imgs = s.prods.map(getProdOrNull).filter(Boolean).map(p =>
-      `<img src="${enc(p.img)}" alt="" style="height:${imgH}px" onerror="this.style.opacity=0.1">`).join('');
+    const stepProds = s.prods.map(getProdOrNull).filter(Boolean);
+    const maxSize = Math.max(1e-6, ...stepProds.map(p => p.size || 1));
+    const imgs = stepProds.map(p =>
+      `<img src="${enc(p.img)}" alt="" style="height:${Math.round(imgH * (p.size || 1) / maxSize)}px" onerror="this.style.opacity=0.1">`).join('');
     const desc = stepDesc(s);
     return `
       <div class="flow-row">
@@ -2377,6 +2379,7 @@ function renderDM() {
       `<div class="dm-ftr"><img src="${enc(FTR)}" alt="footer"></div>`;
   }
 
+  applyProductSizes();
   fitDM();
   if (!isLandscape()) {
     // 直式：頁首/頁尾圖載入後內容高度才確定，載完後重新渲染校正（圖已快取，不會重複觸發）
@@ -2405,6 +2408,24 @@ function overOf(el) {
     over = Math.max(over, dr.bottom - r.bottom, r.top - dr.top, dr.right - r.right, r.left - dr.left);
   });
   return over;
+}
+
+/* 並排商品依 products.js 的 size（未設定＝1）調整圖高：同組最大商品的圖框高 × size ÷ 同組最大 size */
+function applyProductSizes() {
+  const sizeOf = src => { const p = PRODUCTS.find(x => enc(x.img) === src); return (p && p.size) || 1; };
+  document.querySelectorAll('#dm-sheet .dm-cell-imgs, #dm-sheet .dm-bundle-pair, #dm-sheet .dm-feature-imgs, #dm-sheet .dm-one-pair').forEach(group => {
+    const items = [...group.querySelectorAll('img')].map(img => ({ img, box: img.parentElement, size: sizeOf(img.getAttribute('src')) }));
+    if (items.length < 2) return;
+    const maxSize = Math.max(...items.map(i => i.size));
+    if (items.every(i => i.size === maxSize)) return;
+    const refH = Math.max(...items.filter(i => i.size === maxSize).map(i => i.box.offsetHeight));
+    items.forEach(i => {
+      if (i.size === maxSize || !i.box.offsetHeight) return;
+      const h = Math.min(i.box.offsetHeight, refH * i.size / maxSize);
+      i.box.style.height = `calc(${h.toFixed(1)}px * var(--imgScale, 1))`;
+      i.box.dataset.psized = '1';
+    });
+  });
 }
 
 /* 字級縮小一步：各元素 -step px，低於「初始字級×minRatio」者不再縮；全到下限回 false */
@@ -2605,7 +2626,7 @@ function unifyTwoRows() {
     });
   }
   /* 商品圖高度也取最小統一 → 兩列商品底線一致（用 offsetHeight，不受預覽縮放影響） */
-  const imgs = rows.flatMap(r => [...r.querySelectorAll('.dm-bprod-img')]);
+  const imgs = rows.flatMap(r => [...r.querySelectorAll('.dm-bprod-img')]).filter(el => !el.dataset.psized);
   const mains = imgs.filter(el => el.closest('.dm-bprod')?.classList.contains('is-main'));
   const gifts = imgs.filter(el => el.closest('.dm-bprod')?.classList.contains('is-gift'));
   for (const group of [mains, gifts]) {
@@ -2617,6 +2638,7 @@ function unifyTwoRows() {
       el.style.width = (minH * r).toFixed(1) + 'px';
     });
   }
+  applyProductSizes();
 }
 
 /* 渲染後統一入口：先收斂主/副標行數，再依版面縮放 */
