@@ -1750,7 +1750,9 @@ function renderFlow(tag) {
 
   /* 價格列：線──》標語 $價格《──線 */
   const price = String(dispPrice(f) || '').trim();
+  const isNumPrice = /^\d[\d,]*(\.\d+)?$/.test(price);
   const priceHTML = !price ? ''
+    : !isNumPrice ? `<span class="flow-price-num">${flowEsc(price)}</span>`
     : lang === 'pl' ? `<span class="flow-price-num">${fmt(price)}</span><span class="flow-price-unit">&nbsp;zł</span>`
     : `<span class="flow-price-num">$${fmt(price)}</span>`;
   const label = (f.priceLabel || '').trim();
@@ -1841,6 +1843,7 @@ function fitFlow() {
   shrinkStages(over, [
     fontStep([...group.querySelectorAll('.flow-price-label')], 0.7),
     fontStep([...group.querySelectorAll('.flow-price-num, .flow-price-unit')], 0.7),
+    fontStep([...group.querySelectorAll('.flow-price-label, .flow-price-num, .flow-price-unit')], 0.5),
   ]);
 }
 
@@ -1906,7 +1909,7 @@ function flowEditor() {
       </div>
       <div class="flow-ed-field">
         <label class="field-lbl">${t('flowPrice')}</label>
-        <input type="text" class="field-input" inputmode="decimal" value="${flowEsc(dispPrice(f))}" oninput="onFlowPrice(this.value)">
+        <input type="text" class="field-input" value="${flowEsc(dispPrice(f))}" oninput="onFlowPrice(this.value)">
       </div>
       <div class="flow-ed-field" style="margin-bottom:0">
         <label class="field-lbl">${t('flowPromo')}</label>
