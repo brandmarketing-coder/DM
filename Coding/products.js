@@ -576,6 +576,14 @@ window.PRODUCTS = [
     "img": "../產品圖片/Salon USE系列/香檸草修護洗髮精2000mL.webp?v=1787795833224"
   },
   {
+    "id": "香檸草修護洗髮精5000mL",
+    "name": "香檸草修護洗髮精5000mL",
+    "series": "Salon USE",
+    "copyKey": "香檸草修護洗髮精",
+    "orig": "",
+    "img": "../產品圖片/Salon USE系列/香檸草修護洗髮精5000mL.webp?v=1795579988430"
+  },
+  {
     "id": "海洋藤竹｜極萃鎏金養護高訂喚活護髮",
     "name": "海洋藤竹｜極萃鎏金養護高訂喚活護髮",
     "series": "Salon USE",
@@ -592,6 +600,14 @@ window.PRODUCTS = [
     "img": "../產品圖片/Salon USE系列/雪松橙控油洗髮精2000mL.webp?v=1787795832523"
   },
   {
+    "id": "雪松橙控油洗髮精5000mL",
+    "name": "雪松橙控油洗髮精5000mL",
+    "series": "Salon USE",
+    "copyKey": "雪松橙控油洗髮精",
+    "orig": "",
+    "img": "../產品圖片/Salon USE系列/雪松橙控油洗髮精5000mL.webp?v=1795580091013"
+  },
+  {
     "id": "薔薇極光護色護髮包",
     "name": "薔薇極光護色護髮包",
     "series": "Salon USE",
@@ -606,6 +622,14 @@ window.PRODUCTS = [
     "copyKey": "薔薇護色洗髮精",
     "orig": "",
     "img": "../產品圖片/Salon USE系列/薔薇護色洗髮精2000mL.webp?v=1787795830469"
+  },
+  {
+    "id": "薔薇護色洗髮精5000mL",
+    "name": "薔薇護色洗髮精5000mL",
+    "series": "Salon USE",
+    "copyKey": "薔薇護色洗髮精",
+    "orig": "",
+    "img": "../產品圖片/Salon USE系列/薔薇護色洗髮精5000mL.webp?v=1795579988467"
   },
   {
     "id": "薔薇護色護髮素2000mL",

@@ -366,21 +366,21 @@ window.PRODUCT_COPY = {
   "薔薇護色洗髮精": {
     "intro": "護色豐盈柔亮",
     "usage": "染燙髮質潔淨，秀髮柔亮。",
-    "price": "2000mL",
+    "price": "2000mL\n5000mL",
     "orig": "",
     "series": "Salon USE"
   },
   "雪松橙控油洗髮精": {
     "intro": "平衡調理油脂",
     "usage": "深層潔淨，平衡油脂。",
-    "price": "2000mL",
+    "price": "2000mL\n5000mL",
     "orig": "",
     "series": "Salon USE"
   },
   "香檸草修護洗髮精": {
     "intro": "清新淨化舒緩",
     "usage": "淨化修護，頭皮清新舒暢。",
-    "price": "2000mL",
+    "price": "2000mL\n5000mL",
     "orig": "",
     "series": "Salon USE"
   },
