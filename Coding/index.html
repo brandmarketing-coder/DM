@@ -610,6 +610,12 @@ body {
 .dm-flow.is-narrow .flow-body { top: 184px; height: 570px; }
 .dm-flow.is-narrow.has-promo .flow-body { height: 544px; }
 .dm-flow.is-narrow .dm-tagline { font-size: 28px; letter-spacing: 6px; padding-top: 14px; padding-bottom: 8px; }
+.flow-subtitle {
+  flex-shrink: 0; text-align: center; padding: 0 56px 8px;
+  font-size: 14px; letter-spacing: 2px; line-height: 1.6; color: #666;
+}
+.flow-subtitle:first-child { padding-top: 14px; }
+.lang-latin .flow-subtitle { letter-spacing: 0.5px; }
 .dm-flow.has-promo .flow-price { top: 770px; }
 .dm-flow.has-promo .flow-qr { bottom: 42px; }
 
@@ -1169,6 +1175,7 @@ const UI = {
     bgPortrait: '直式', bgH1: '橫式 1', bgH2: '橫式 2', bgH3: '橫式 3', bgP2: '大促直式', bgP3: '流程', bgP4: '流程(窄版)', bgH4: '大促橫式', bgGroupP: '直式', bgGroupL: '橫式',
     layFour: '四格', layTwo: '兩格', layOne: '一格',
     taglineLabel: '標題文字', subtitleLabel: '副標題', subtitlePh: '例：抗暑，從頭噴到腳底的救星',
+    flowSubLabel: '說明文字', flowSubPh: '例：三步驟深層養護，找回健康頭皮',
     cellA: '格 A', cellB: '格 B', cellC: '格 C', cellD: '格 D',
     blockTop: '上方區塊', blockBottom: '下方區塊', blockOne: '商品',
     mainProduct: '主商品', giftProduct: '贈品', giftNone: '— 不顯示贈品 —',
@@ -1202,6 +1209,7 @@ const UI = {
     bgPortrait: 'Portrait', bgH1: 'Landscape 1', bgH2: 'Landscape 2', bgH3: 'Landscape 3', bgP2: 'Sale portrait', bgP3: 'Process', bgP4: 'Process (narrow)', bgH4: 'Sale landscape', bgGroupP: 'Portrait', bgGroupL: 'Landscape',
     layFour: '4-grid', layTwo: '2-grid', layOne: '1-grid',
     taglineLabel: 'Title', subtitleLabel: 'Subtitle', subtitlePh: 'e.g. a short catchphrase',
+    flowSubLabel: 'Description', flowSubPh: 'e.g. A 3-step deep care routine for a healthy scalp',
     cellA: 'Cell A', cellB: 'Cell B', cellC: 'Cell C', cellD: 'Cell D',
     blockTop: 'Top block', blockBottom: 'Bottom block', blockOne: 'Product',
     mainProduct: 'Main product', giftProduct: 'Gift', giftNone: '— No gift —',
@@ -1235,6 +1243,7 @@ const UI = {
     bgPortrait: 'Pionowy', bgH1: 'Poziomy 1', bgH2: 'Poziomy 2', bgH3: 'Poziomy 3', bgP2: 'Promo pionowy', bgP3: 'Proces', bgP4: 'Proces (wąski)', bgH4: 'Promo poziomy', bgGroupP: 'Pionowe', bgGroupL: 'Poziome',
     layFour: '4 pola', layTwo: '2 pola', layOne: '1 pole',
     taglineLabel: 'Tytuł', subtitleLabel: 'Podtytuł', subtitlePh: 'np. krótkie hasło',
+    flowSubLabel: 'Opis', flowSubPh: 'np. 3-etapowa pielęgnacja dla zdrowej skóry głowy',
     cellA: 'Pole A', cellB: 'Pole B', cellC: 'Pole C', cellD: 'Pole D',
     blockTop: 'Blok górny', blockBottom: 'Blok dolny', blockOne: 'Produkt',
     mainProduct: 'Produkt główny', giftProduct: 'Prezent', giftNone: '— Bez prezentu —',
@@ -1550,6 +1559,7 @@ function setBg(bg) {
   if (target !== layout) {
     setLayout(target);   // 含 tagline／編輯區同步與 renderDM
   } else {
+    syncFlowUI();
     renderDM();
   }
   scaleSheet();
@@ -1602,6 +1612,7 @@ const subtitles = {
   four: '',
   two:  '',
   one:  '',
+  flow: '',
 };
 
 /* ══════════════════════════════════════════════
@@ -1727,12 +1738,13 @@ const FLOW_ARROW = svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="7" hei
 /* 步驟區：頁高 29%～89.6%（吊牌下緣到 QR 上方）；列高＝區高／步驟數 */
 const FLOW_AREA_H = 510;
 let flowFontTried = false;
-function renderFlow(tag) {
+function renderFlow(tag, subtitle) {
   const f = state.flow, n = f.steps.length;
   const title = (tag || '').trim();
   const promo = (f.promo || '').trim();
   const narrow = bgTemplate === 'p4';
-  const rowH = ((narrow ? 570 : FLOW_AREA_H) - (title ? (narrow ? 56 : 37) : 0) - (promo ? 26 : 0)) / n;
+  const sub = narrow ? (subtitle || '').trim() : '';
+  const rowH = ((narrow ? 570 : FLOW_AREA_H) - (title ? (narrow ? 56 : 37) : 0) - (sub ? 44 : 0) - (promo ? 26 : 0)) / n;
   const imgH = Math.round(Math.min(rowH * 0.7, 128));
   const rows = f.steps.map((s, i) => {
     const stepProds = s.prods.map(getProdOrNull).filter(Boolean);
@@ -1787,6 +1799,7 @@ function renderFlow(tag) {
     document.fonts.load('200 34px Jost', '0123456789$').then(() => { if (layout === 'flow') renderDM(); }).catch(() => {});
   }
   return `<div class="dm-flow${narrow ? ' is-narrow' : ''}${promo ? ' has-promo' : ''}"><div class="flow-body">${title ? `<div class="dm-tagline">${flowEsc(title)}</div>` : ''}` +
+         (sub ? `<div class="flow-subtitle">${flowEsc(sub)}</div>` : '') +
          `<div class="flow-steps">${rows}</div></div>${priceBar}` +
          (promo ? `<div class="flow-promo"><span>${flowEsc(promo)}</span></div>` : '') + `${qr}</div>`;
 }
@@ -1830,6 +1843,7 @@ function fitFlow() {
     /* 最後手段（5 步×每步兩個不同商品×外文用途）：說明行距收緊，再讓文字欄往右延伸 */
     flowLineHeightStep(q('.flow-desc'), 1.3),
     flowWidenStep(q('.flow-main'), 18),
+    fontStep(q('.flow-subtitle'), 0.8),
   ]);
   const sheet = document.getElementById('dm-sheet');
   const qrEl = document.querySelector('#dm-sheet .flow-qr');
@@ -2019,6 +2033,13 @@ function syncFlowUI() {
   if (secLayout) secLayout.parentElement.style.display = flow ? 'none' : '';
   const sc = document.getElementById('sec-content');
   if (sc) sc.textContent = flow ? t('secContent').replace(/^3\./, '2.') : t('secContent');
+  const narrowSub = flow && bgTemplate === 'p4';
+  const subField = document.getElementById('dm-subtitle-field');
+  if (subField) subField.style.display = (layout === 'one' || narrowSub) ? '' : 'none';
+  const subLbl = document.getElementById('lbl-subtitle');
+  if (subLbl) subLbl.textContent = narrowSub ? t('flowSubLabel') : t('subtitleLabel');
+  const subInput = document.getElementById('dm-subtitle');
+  if (subInput) subInput.placeholder = narrowSub ? t('flowSubPh') : t('subtitlePh');
 }
 
 /* ══════════════════════════════════════════════
@@ -2352,7 +2373,7 @@ const FTR = '../沙龍DM公版/直式/直式-頁尾.jpg';
 function renderDM() {
   const tag = document.getElementById('dm-tagline')?.value || '';
   const subtitle = document.getElementById('dm-subtitle')?.value || '';
-  const body = layout === 'flow' ? renderFlow(tag)
+  const body = layout === 'flow' ? renderFlow(tag, subtitle)
              : layout === 'four' ? renderFour(tag)
              : layout === 'two'  ? renderTwo(tag)
              : renderOne(tag, subtitle);
@@ -2644,7 +2665,7 @@ function unifyTwoRows() {
 /* 渲染後統一入口：先收斂主/副標行數，再依版面縮放 */
 function fitDM() {
   fitHeadingLine('.dm-tagline', 2);
-  if (layout === 'flow') { fitFlow(); return; }
+  if (layout === 'flow') { fitHeadingLine('.flow-subtitle', 3); fitFlow(); return; }
   fitHeadingLine('.dm-subtitle', 2);
   if (layout === 'one') fitOneGrid();
   else if (layout === 'two') fitTwoGrid();
@@ -3135,18 +3156,14 @@ function deleteTwoProd(ci, pi) {
 
 function setLayout(l) {
   taglines[layout] = document.getElementById('dm-tagline')?.value || '';
-  if (layout !== 'flow') {   // 流程版面沒有副標，不覆寫其他版面的暫存
-    subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
-  }
+  subtitles[layout] = document.getElementById('dm-subtitle')?.value || '';
   layout = l;
   ['four','two','one'].forEach(k =>
     document.getElementById('opt-'+k).classList.toggle('active', k === l));
   document.getElementById('dm-tagline').value = taglines[l] || '';
-  syncFlowUI();
-  const subtitleField = document.getElementById('dm-subtitle-field');
   const subtitleInput = document.getElementById('dm-subtitle');
-  if (subtitleField) subtitleField.style.display = l === 'one' ? '' : 'none';
   if (subtitleInput) subtitleInput.value = subtitles[l] || '';
+  syncFlowUI();
   buildEditorBlocks();
   renderDM();
 }
