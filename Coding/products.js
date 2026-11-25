@@ -512,6 +512,14 @@ window.PRODUCTS = [
     "img": "../產品圖片/Salon USE系列/印加果｜極萃鎏金養護高訂喚活護髮.webp?v=1787795827670"
   },
   {
+    "id": "印加果護髮油",
+    "name": "印加果護髮油",
+    "series": "Salon USE",
+    "copyKey": "印加果護髮油",
+    "orig": "",
+    "img": "../產品圖片/Salon USE系列/印加果護髮油.webp?v=1795580571165"
+  },
+  {
     "id": "竹萃極致保濕護髮包",
     "name": "竹萃極致保濕護髮包",
     "series": "Salon USE",
@@ -590,6 +598,14 @@ window.PRODUCTS = [
     "copyKey": "海洋藤竹｜極萃鎏金養護高訂喚活護髮",
     "orig": "",
     "img": "../產品圖片/Salon USE系列/海洋藤竹｜極萃鎏金養護高訂喚活護髮.webp?v=1787795829786"
+  },
+  {
+    "id": "海洋藤竹護髮油",
+    "name": "海洋藤竹護髮油",
+    "series": "Salon USE",
+    "copyKey": "海洋藤竹護髮油",
+    "orig": "",
+    "img": "../產品圖片/Salon USE系列/海洋藤竹護髮油.webp?v=1795580549674"
   },
   {
     "id": "雪松橙控油洗髮精2000mL",
