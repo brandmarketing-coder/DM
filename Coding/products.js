@@ -605,7 +605,7 @@ window.PRODUCTS = [
     "series": "Salon USE",
     "copyKey": "海洋藤竹護髮油",
     "orig": "",
-    "img": "../產品圖片/Salon USE系列/海洋藤竹護髮油.webp?v=1795580549674"
+    "img": "../產品圖片/Salon USE系列/海洋藤竹護髮油.webp?v=1795590779463"
   },
   {
     "id": "雪松橙控油洗髮精2000mL",
