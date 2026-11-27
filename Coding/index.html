@@ -3215,6 +3215,48 @@ function ensureExportLibs() {
   return exportLibsPromise;
 }
 
+/* 匯出為 300dpi：A4 直式 2480×3508 像素 */
+function exportScale() {
+  return isLandscape() ? 3508 / 842 : 2480 / 595;
+}
+
+function waitImg(img) {
+  return (img.complete && img.naturalWidth) ? Promise.resolve() :
+    new Promise(r => {
+      img.addEventListener('load', r, { once: true });
+      img.addEventListener('error', r, { once: true });
+      setTimeout(r, 4000);
+    });
+}
+
+function drawScaled(src, w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(src, 0, 0, w, h);
+  return c;
+}
+
+/* 大圖先逐次減半縮到輸出尺寸再交給 html2canvas（一次大幅縮小會讓瓶身小字出現鋸齒）；回傳還原函式 */
+async function shrinkImagesForExport(root, scale) {
+  const swaps = [];
+  for (const img of root.querySelectorAll('img')) {
+    const nw = img.naturalWidth, nh = img.naturalHeight;
+    if (!nw || !nh || !img.offsetWidth || !img.offsetHeight) continue;
+    const fit = Math.min(img.offsetWidth / nw, img.offsetHeight / nh) * scale;
+    if (fit > 0.66) continue;
+    const tw = Math.max(1, Math.round(nw * fit)), th = Math.max(1, Math.round(nh * fit));
+    let src = img, w = nw, h = nh;
+    while (w / 2 >= tw) { w = Math.round(w / 2); h = Math.round(h / 2); src = drawScaled(src, w, h); }
+    swaps.push([img, img.getAttribute('src')]);
+    img.src = drawScaled(src, tw, th).toDataURL('image/png');
+  }
+  await Promise.all(swaps.map(([img]) => waitImg(img)));
+  return () => swaps.forEach(([img, src]) => { img.src = src; });
+}
+
 async function generateCanvas() {
   await ensureExportLibs();
   /* 流程版面：QR 函式庫與細體數字字型就緒後再重繪，避免匯出到佔位圖／替代字型 */
@@ -3235,21 +3277,17 @@ async function generateCanvas() {
   wrap.style.transform = 'translate(-50%, -50%) scale(1)';
   real.style.boxShadow = 'none';
 
+  let restoreImgs = null;
   try {
     // 等圖片載入；每張最多等 4 秒，避免任一張未觸發 load 而永久卡住
-    await Promise.all([...real.querySelectorAll('img')].map(img =>
-      (img.complete && img.naturalWidth) ? Promise.resolve() :
-        new Promise(r => {
-          img.addEventListener('load', r, { once: true });
-          img.addEventListener('error', r, { once: true });
-          setTimeout(r, 4000);
-        })
-    ));
+    await Promise.all([...real.querySelectorAll('img')].map(waitImg));
     // 用 setTimeout 而非 requestAnimationFrame：rAF 在背景分頁不會觸發會導致卡住
     await new Promise(r => setTimeout(r, 30));
+    const scale = exportScale();
+    restoreImgs = await shrinkImagesForExport(real, scale);
 
     const canvas = await html2canvas(real, {
-      scale: 2,
+      scale,
       width: W,
       height: H,
       useCORS: true,
@@ -3258,6 +3296,7 @@ async function generateCanvas() {
     });
     return canvas;
   } finally {
+    if (restoreImgs) restoreImgs();
     wrap.style.transform = prevTransform;
     real.style.boxShadow = prevShadow;
   }
